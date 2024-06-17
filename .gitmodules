@@ -1,0 +1,16 @@
+[submodule "libs/oUF"]
+	path = libs/oUF
+	url = https://github.com/lua-wow/oUF.git
+	branch = retail
+[submodule "libs/oUF_AuraTrack"]
+	path = libs/oUF_AuraTrack
+	url = https://github.com/lua-wow/oUF_AuraTrack.git
+	branch = master
+[submodule "libs/oUF_RaidDebuffs"]
+	path = libs/oUF_RaidDebuffs
+	url = https://github.com/lua-wow/oUF_RaidDebuffs.git
+	branch = master
+[submodule "libs/oUF_TargetIndicator"]
+	path = libs/oUF_TargetIndicator
+	url = https://github.com/lua-wow/oUF_TargetIndicator.git
+	branch = master
