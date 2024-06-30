@@ -36,6 +36,12 @@ C["maps"] = {
     },
 }
 
+C["miscellaneous"] = {
+    ["font"] = "Tainted",
+    ["texture"] = blankTex,
+    ["threatbar"] = true
+}
+
 C["unitframes"] = {
     ["enabled"] = true,
     ["font"] = "Tainted Outlined",

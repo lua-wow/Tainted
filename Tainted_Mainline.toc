@@ -43,6 +43,9 @@ modules\blizzard\init.xml
 ### maps
 modules\maps\init.xml
 
+### miscellaneous
+modules\miscellaneous\init.xml
+
 ### unitframes
 modules\unitframes\core.lua
 modules\unitframes\tags.lua
