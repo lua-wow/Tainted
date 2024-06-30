@@ -150,6 +150,26 @@ E.API.CreateBackdrop = function(self, template)
 	end
 end
 
+E.API.SkinButton = function(button)
+	button:CreateBackdrop()
+	button:HookScript("OnEnter", function (self)
+		if (self.Backdrop) then
+			local backdropColor = C.general.backdrop.color
+			local highlightColor = C.general.highlight.color
+			self.Backdrop:SetBackdropColor(backdropColor.r, backdropColor.g, backdropColor.b, backdropColor.a or 1)
+			self.Backdrop:SetBackdropBorderColor(highlightColor.r, highlightColor.g, highlightColor.b, highlightColor.a or 1)
+		end
+	end)
+	button:HookScript("OnLeave", function (self)
+		if (self.Backdrop) then
+			local backdropColor = C.general.backdrop.color
+			local borderColor = C.general.border.color
+			self.Backdrop:SetBackdropColor(backdropColor.r, backdropColor.g, backdropColor.b, backdropColor.a or 1)
+			self.Backdrop:SetBackdropBorderColor(borderColor.r, borderColor.g, borderColor.b, borderColor.a or 1)
+		end
+	end)
+end
+
 --------------------------------------------------
 -- Merge Tainted API with WoW API
 --------------------------------------------------

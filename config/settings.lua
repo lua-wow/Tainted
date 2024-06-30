@@ -28,6 +28,14 @@ C["blizzard"] = {
     ["uiwidgets"] = true
 }
 
+C["maps"] = {
+    ["enabled"] = true,
+    ["font"] = "Tainted",
+    ["worldmap"] = {
+        ["scale"] = 0.80
+    },
+}
+
 C["unitframes"] = {
     ["enabled"] = true,
     ["font"] = "Tainted Outlined",
