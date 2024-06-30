@@ -35,6 +35,7 @@ core\database.lua
 core\scaling.lua
 core\install.lua
 core\development.lua
+core\commands.lua
 
 ### blizzard
 modules\blizzard\init.xml

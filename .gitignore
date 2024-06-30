@@ -2,4 +2,4 @@
 .vscode/
 *.iml
 
-# core/development.lua
+core/development.lua

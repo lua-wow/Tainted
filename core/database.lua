@@ -20,6 +20,10 @@ function E:InitDatabase()
     end
 end
 
+function E:ResetDatabase()
+    TaintedDatabase[realm][name] = {}
+end
+
 function E:IsInstalled()
 	return TaintedDatabase[realm][name].installed
 end
