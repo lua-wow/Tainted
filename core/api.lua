@@ -31,19 +31,19 @@ E.Scale = function(size)
 end
 
 E.API.Kill = function(self)
-	self:SetParent(E.Hider)
-	self:Hide()
-
-	if (self.UnregisterAllEvents) then
+	if self.UnregisterAllEvents then
         self:UnregisterAllEvents()
+		self:SetAttribute("statehidden", true)
     end
+	self:SetParent(E.Hider)
+	-- self:Hide()
 end
 
-E.API.StripTexts = function(self, Kill)
+E.API.StripTexts = function(self, kill)
 	for i = 1, self:GetNumRegions() do
 		local Region = select(i, self:GetRegions())
 		if (Region and Region:GetObjectType() == "FontString") then
-			if (Kill and type(Kill) == "boolean") then
+			if (kll and type(kill) == "boolean") then
 				Region:Kill()
 			else
 				Region:SetText("")
@@ -52,29 +52,19 @@ E.API.StripTexts = function(self, Kill)
 	end
 end
 
-E.API.StripTextures = function(self, Kill)
+E.API.StripTextures = function(self, kill)
 	for i = 1, self:GetNumRegions() do
 		local Region = select(i, self:GetRegions())
 		if (Region and Region:GetObjectType() == "Texture") then
-			if (Kill and type(Kill) == "boolean") then
+			if (kill and type(kill) == "boolean") then
 				Region:Kill()
 			elseif (Region:GetDrawLayer() == Kill) then
 				Region:SetTexture(nil)
-			elseif (Kill and type(Kill) == "string" and Region:GetTexture() ~= Kill) then
+			elseif (kill and type(kill) == "string" and Region:GetTexture() ~= kill) then
 				Region:SetTexture(nil)
 			else
 				Region:SetTexture(nil)
 			end
-		end
-	end
-end
-
-
-E.API.StripTexts = function(self, Kill)
-	for i = 1, self:GetNumRegions() do
-		local Region = select(i, self:GetRegions())
-		if (Region and Region:GetObjectType() == "FontString") then
-			Region:SetText("")
 		end
 	end
 end

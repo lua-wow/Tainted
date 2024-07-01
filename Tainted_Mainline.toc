@@ -46,6 +46,9 @@ modules\maps\init.xml
 ### miscellaneous
 modules\miscellaneous\init.xml
 
+### auras
+modules\auras\auras.lua
+
 ### unitframes
 modules\unitframes\core.lua
 modules\unitframes\tags.lua

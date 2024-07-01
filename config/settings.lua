@@ -22,6 +22,19 @@ C["general"] = {
     }
 }
 
+C["auras"] = {
+    ["enabled"] = true,
+    ["font"] =  "Tainted Outlined",
+    ["size"] = 30,
+    ["spacing"] = 3,
+    ["rows"] = 3,
+    ["columns"] = 12,
+    ["sort"] = {
+        ["method"] = "TIME",        -- "INDEX", "NAME" or "TIME"
+        ["direction"] = "+"         -- "+" or "-"
+    }
+}
+
 C["blizzard"] = {
     ["mirrortimers"] = true,
     ["talkinghead"] = true,
