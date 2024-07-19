@@ -19,7 +19,6 @@ do
         local element = Mixin(CreateFrame("StatusBar", frame:GetName() .. "Power", frame), element_proto)
         element:SetStatusBarTexture(texture)
         element:SetFrameLevel(frame:GetFrameLevel() + 1)
-        element:SetClipsChildren(true)
         element:SetPoint("TOP", frame.Health, "BOTTOM", 0, -1)
         element:SetPoint("LEFT", frame, "LEFT", 0, 0)
         element:SetPoint("RIGHT", frame, "RIGHT", 0, 0)

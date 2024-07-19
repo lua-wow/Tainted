@@ -47,7 +47,7 @@ do
 
     function element_proto:SetHealerPosition()
         self:ClearAllPoints()
-        self:SetPoint("BOTTOM", parent, "BOTTOM", 0, 303)
+        self:SetPoint("BOTTOM", parent, "BOTTOM", 0, 270)
     end
 
     -- TODO: Implement method for classic
@@ -311,3 +311,22 @@ function UnitFrames:Init()
         end
     end)
 end
+
+function UnitFrames:RunTest()
+    for _, frame in next, units do
+        local length = #frame
+        if (length > 0) then
+            for i = 1, length do
+                frame[i].unit = "player"
+                frame[i].Hide = function() end
+                frame[i]:Show()
+            end
+        else
+            frame.unit = "player"
+            frame.Hide = function() end
+            frame:Show()
+        end
+    end
+end
+
+E:AddCommand("test", UnitFrames.RunTest, "spawn frames")

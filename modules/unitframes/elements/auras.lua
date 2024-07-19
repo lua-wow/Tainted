@@ -39,27 +39,24 @@ end
 local aura_proto = {}
 
 function aura_proto:OnUpdate(elapsed)
-	if (self.timeLeft) then
-		self.elapsed = (self.elapsed or 0) + elapsed
+    self.elapsed = (self.elapsed or 0) + elapsed
 
-		if (self.elapsed >= 0.1) then
-			self.timeLeft = self.timeLeft - self.elapsed
+    if (self.elapsed >= 0.1) then
+        local remainingTime = (self.expirationTime or 0) - GetTime()
 
-			if (self.timeLeft > 0) then
-				local value = E.FormatTime(self.timeLeft)
-				self.Timer:SetText(value)
-				if (self.timeLeft <= 5) then
-					self.Timer:SetTextColor(0.99, 0.31, 0.31)
-				else
-					self.Timer:SetTextColor(1, 1, 1)
-				end
-			else
-				self.Timer:Hide()
-			end
+        if (remainingTime > 0) then
+            self.Timer:SetText(E.FormatTime(remainingTime))
+            if (remainingTime <= 5) then
+                self.Timer:SetTextColor(0.99, 0.31, 0.31)
+            else
+                self.Timer:SetTextColor(1, 1, 1)
+            end
+        else
+            self.Timer:Hide()
+        end
 
-			self.elapsed = 0
-		end
-	end
+        self.elapsed = 0
+    end
 end
 
 function aura_proto:CreateButton(index)
@@ -124,7 +121,7 @@ function aura_proto:PostUpdateButton(button, unit, data, position)
     local isEnemy = UnitIsEnemy("player", unit)
 
     if (data.isHarmful) then
-        if (C.unitframes.debuffs.desaturate and (not isFriend) and (not data.isFromPlayerOrPlayerPet)) then
+        if (C.unitframes.debuffs.desaturate and (not isFriend) and (not data.isPlayerAura)) then
             if (button.Icon) then
                 button.Icon:SetDesaturated(true)
             end
@@ -161,10 +158,9 @@ function aura_proto:PostUpdateButton(button, unit, data, position)
         end
     end
 
-    local duration = data.duration
+    local duration = data.duration or 0
     button.duration = duration
-    button.timeLeft = data.expirationTime
-    button.elapsed = GetTime()
+    button.expirationTime = data.expirationTime
 
     local timer = button.Timer
     if (timer) then
