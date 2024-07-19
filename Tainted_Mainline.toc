@@ -49,6 +49,9 @@ modules\miscellaneous\init.xml
 ### auras
 modules\auras\auras.lua
 
+### tooltips
+modules\tooltips\tooltips.lua
+
 ### unitframes
 modules\unitframes\core.lua
 modules\unitframes\tags.lua

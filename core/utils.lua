@@ -115,4 +115,21 @@ E.CalcSegmentsNumber = function(width, size, spacing)
 	return floor((width + spacing) / (size + spacing))
 end
 
+local CLASSIFICATION = "|c%s%s |r"
+E.GetClassification = function(value)
+	local color = E.colors.classification[value]
+	if (value == "worldboss") then
+		return CLASSIFICATION:format(color.hex, "B") -- "|cffff0000B |r"
+	elseif (value == "rareelite") then
+		return CLASSIFICATION:format(color.hex, "R+") -- "|cffff4500R+ |r"
+	elseif (value == "elite") then
+		return CLASSIFICATION:format(color.hex, "+") -- "|cffffa500+ |r"
+	elseif (value == "rare") then
+		return CLASSIFICATION:format(color.hex, "R") -- "|cffffff00R |r"
+	elseif (value == "minus") then
+		return CLASSIFICATION:format(color.hex, "-") -- "|cff888888- |r"
+	end
+	return ""
+end
+
 E.Round = round

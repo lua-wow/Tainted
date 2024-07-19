@@ -55,6 +55,12 @@ C["miscellaneous"] = {
     ["threatbar"] = true
 }
 
+C["tooltips"] = {
+    ["enabled"] = true,
+    ["font"] =  "Tainted Outlined",
+    ["texture"] = blankTex
+}
+
 C["unitframes"] = {
     ["enabled"] = true,
     ["font"] = "Tainted Outlined",

@@ -5,6 +5,9 @@ L.gold = "|cffffd700g|r"
 L.silver = "|cffc7c7cfs|r"
 L.copper = "|cffeda55fc|r"
 
+L.offline = "Offline"
+L.ghost = "Ghost"
+
 L.merchant = {
     ["notEnoughMoney"] = "You don't have enough money to repair.",
     ["repairCost"] = "Your gear has been repaired for %s.",

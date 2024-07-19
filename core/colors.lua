@@ -2,11 +2,19 @@ local _, ns = ...
 local oUF = ns.oUF or _G.oUF
 assert(oUF, "Unable to locate oUF install.")
 
-local E = ns.E
+local E, C = ns.E, ns.C
 
 --------------------------------------------------
 -- Colors
 --------------------------------------------------
+oUF.colors.black = oUF:CreateColor(0, 0, 0)
+oUF.colors.white = oUF:CreateColor(1, 1, 1)
+oUF.colors.gray = oUF:CreateColor(0.70, 0.70, 0.70)
+oUF.colors.green = oUF:CreateColor(0.29, 0.67, 0.30) -- #4AAB4D
+oUF.colors.lawngreen = oUF:CreateColor(0.49, 0.99, 0.00) -- #7CFC00
+oUF.colors.yellow = oUF:CreateColor(1.00, 0.82, 0.00) -- #FFD100
+oUF.colors.orange = oUF:CreateColor(1.00, 0.23, 0.00) -- #FF4500
+
 oUF.colors.health = oUF:CreateColor(0.29, 0.68, 0.30)
 
 oUF.colors.disconnected = oUF:CreateColor(0.1, 0.1, 0.1)
@@ -174,6 +182,35 @@ oUF.colors.roles = {
 	["NONE"] = oUF:CreateColor(1.0, 1.0, 1.0)		-- unknown role
 }
 
+-- local difficulty = C_PlayerInfo.GetContentDifficultyCreatureForPlayer(self.unit)
+oUF.colors.difficulty = {
+	[0] = oUF:CreateColor(0.70, 0.70, 0.70), -- Trivial
+	-- [0] = oUF:CreateColor(0.50, 0.50, 0.50),
+	[1] = oUF:CreateColor(0.25, 0.75, 0.25), -- Easy
+	[2] = oUF:CreateColor(1.00, 0.82, 0.00), -- Fair
+	[3] = oUF:CreateColor(1.00, 0.27, 0.00), -- Difficult
+	-- [3] = oUF:CreateColor(1.00, 0.50, 0.25), -- Difficult
+	[4] = oUF:CreateColor(1.00, 0.10, 0.10)	-- Impossible
+}
+
+oUF.colors.difficulty.impossible = oUF.colors.difficulty[4]
+oUF.colors.difficulty.very_difficult = oUF.colors.difficulty[3]
+oUF.colors.difficulty.difficult = oUF.colors.difficulty[2]
+oUF.colors.difficulty.standard = oUF.colors.difficulty[1]
+oUF.colors.difficulty.trivial = oUF.colors.difficulty[0]
+
+-- local classification = UnitClassification(unit)
+oUF.colors.classification = {
+	-- ["unknown"] = oUF:CreateColor(175, 80, 80),	-- #AF5050
+	["worldboss"] = oUF:CreateColor(1.00, 0.10, 0.10),
+	["rareelite"] = oUF:CreateColor(1.00, 0.27, 0.00),
+	["elite"] = oUF:CreateColor(1.00, 0.65, 0.00),
+	["rare"] = oUF:CreateColor(1.00, 0.82, 0.00),
+	["normal"] = oUF:CreateColor(1.00, 1.00, 1.00),
+	["trivial"] = oUF:CreateColor(0.70, 0.70, 0.70),
+	["minus"] = oUF:CreateColor(0.70, 0.70, 0.70)
+}
+
 E.colors = oUF.colors
 E.CreateColor = oUF.CreateColor
 
@@ -261,4 +298,39 @@ function E.HexToRGB(hex)
          end
     end
     return 0, 0, 0
+end
+
+local UnitPlayerControlled = _G.UnitPlayerControlled
+local UnitCanAttack = _G.UnitCanAttack
+local UnitIsPVP = _G.UnitIsPVP
+local UnitClass = _G.UnitClass
+local UnitReaction = _G.UnitReaction
+
+function E.GetUnitColor(unit)
+	-- local color = E:CreateColor(1, 1, 1)
+
+	if UnitPlayerControlled(unit) then
+		if UnitCanAttack(unit, "player") then
+			-- hostile players are red
+			if UnitCanAttack("player", unit) then
+				return E.colors.reaction[2]
+			end
+		elseif UnitCanAttack("player", unit) then
+			-- players we can attack but which are not hostile are yellow
+			return E.colors.reaction[4]
+		elseif UnitIsPVP(unit) then
+			-- players we can assist but are PvP flagged are green
+			return E.colors.reaction[6]
+		else
+			local class = select(2, UnitClass(unit))
+			return E.colors.class[class]
+		end
+	else
+		local reaction = UnitReaction(unit, "player");
+		if reaction then
+			return E.colors.reaction[reaction]
+		else
+			return C.general.border.color
+		end
+	end
 end

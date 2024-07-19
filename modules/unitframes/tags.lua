@@ -32,8 +32,6 @@ local UnitPowerType = _G.UnitPowerType
 --------------------------------------------------
 -- Tags
 --------------------------------------------------
-local white = oUF:CreateColor(1, 1, 1)
-
 local events = {
     -- health
     ["curhp"]           = "UNIT_HEALTH UNIT_MAXHEALTH",
@@ -117,7 +115,7 @@ local tags = {
             local color = oUF.colors.reaction[reaction]
             return "|c" .. color.hex
         else
-            return "|c" .. white.hex
+            return "|c" .. E.colors.white.hex
         end
     end,
     ["rolecolor"] = function(unit)
@@ -127,7 +125,7 @@ local tags = {
     end,
     ["hostility"] = function(unit)
         local reaction = UnitReaction(unit, "player")
-        local color = oUF.colors.reaction[reaction] or white
+        local color = oUF.colors.reaction[reaction] or E.colors.white
         return "|c" .. color.hex
     end,
     ["difficulty"] = function(unit)
@@ -137,19 +135,8 @@ local tags = {
     end,
     -- others
     ["classification"] = function(unit)
-        local value = UnitClassification(unit)
-        if (value == "rare") then
-            return "|cffffff00R |r"
-        elseif (value == "rareelite") then
-            return "|cFFFF4500R+ |r"
-        elseif (value == "elite") then
-            return "|cFFFFA500+ |r"
-        elseif (value == "worldboss") then
-            return "|cffff0000B |r"
-        elseif (value == "minus") then
-            return "|cff888888- |r"
-        end
-        return ""
+        local classification = UnitClassification(unit)
+        return E.GetClassification(classification) or ""
     end,
     ["dead"] = function(unit)
         -- if UnitIsDeadOrGhost(unit) then

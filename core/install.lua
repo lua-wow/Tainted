@@ -12,6 +12,7 @@ local SetAutoDeclineGuildInvites = _G.SetAutoDeclineGuildInvites
 local variables = {
 	-- errors
 	["scriptErrors"] = 1,
+	["scriptWarnings"] = 1,
 	["luaErrorExceptions"] = 1,
 
 	-- system
@@ -47,6 +48,7 @@ local variables = {
 
 	-- tooltips
 	["UberTooltips"] = 1,
+	["alwaysCompareItems"] = 0,
 
 	-- loot
 	["autoLootDefault"] = 1,
