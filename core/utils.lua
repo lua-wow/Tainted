@@ -4,6 +4,10 @@ local E, C, A = ns.E, ns.C, ns.A
 -- Lua
 local floor = math.floor
 local modf = math.modf
+local infinity = math.huge
+
+-- constants
+local CLASSIFICATION = "|c%s%s |r"
 
 local round = function(value)
 	return floor(value + 0.5)
@@ -21,21 +25,22 @@ E.ShortValue = function(v)
 end
 
 -- Format seconds to min/hour/day
-E.FormatTime = function(s)
-	if (s == Infinity) then return end
+E.FormatTime = function(value)
+	value = tonumber(value)
+	if (not value or value == infinity) then return end
 
-	local Day, Hour, Minute = 86400, 3600, 60
+	local day, hour, minute = 86400, 3600, 60
 
-	if (s >= Day) then
-		return format("%dd", ceil(s / Day))
-	elseif (s >= Hour) then
-		return format("%dh", ceil(s / Hour))
-	elseif (s >= Minute) then
-		return format("%dm", ceil(s / Minute))
-	elseif (s >= Minute / 12) then
-		return ceil(s)
+	if (value >= day) then
+		return format("%dd", ceil(value / day))
+	elseif (value >= hour) then
+		return format("%dh", ceil(value / hour))
+	elseif (value >= minute) then
+		return format("%dm", ceil(value / minute))
+	elseif (value >= minute / 12) then
+		return ceil(value)
 	end
-	return format("%.1f", s)
+	return format("%.1f", value)
 end
 
 E.UTF8Sub = function(value, i, dots)
@@ -115,7 +120,13 @@ E.CalcSegmentsNumber = function(width, size, spacing)
 	return floor((width + spacing) / (size + spacing))
 end
 
-local CLASSIFICATION = "|c%s%s |r"
+--[[ Function: E.GetClassification(value)
+    Returns a classification symbol based on unit classification.
+
+    * value   - unit classification from `UnitClassification(unit)`.
+
+    Returns an string.
+--]]
 E.GetClassification = function(value)
 	local color = E.colors.classification[value]
 	if (value == "worldboss") then

@@ -10,14 +10,36 @@ local GetSpellInfo = _G.GetSpellInfo
 -- Totems
 --------------------------------------------------
 local MAX_TOTEMS = _G.MAX_TOTEMS or 4
+local FIRE_TOTEM_SLOT = _G.FIRE_TOTEM_SLOT or 1;
+local EARTH_TOTEM_SLOT = _G.EARTH_TOTEM_SLOT or 2;
+local WATER_TOTEM_SLOT = _G.WATER_TOTEM_SLOT or 3;
+local AIR_TOTEM_SLOT = _G.AIR_TOTEM_SLOT or 4;
+
+-- STANDARD_TOTEM_PRIORITIES = {1, 2, 3, 4};
+-- SHAMAN_TOTEM_PRIORITIES = { EARTH_TOTEM_SLOT, FIRE_TOTEM_SLOT, WATER_TOTEM_SLOT, AIR_TOTEM_SLOT };
 
 local element_proto = {}
 
 function element_proto:OnUpdate(elapsed)
     self.elapsed = (self.elapsed or 0) + elapsed
     if (self.elapsed >= 0.1) then
-        local remaining = self.start + self.duration - GetTime()
-        self:SetValue(remaining)
+        local remaining = self.expirationTime - GetTime()
+        if (remaining >= 0) then
+            self:SetValue(remaining)
+            if self.Timer then
+                self.Timer:SetText(E.FormatTime(remaining))
+                if (remaining <= 5) then
+                    self.Timer:SetTextColor(0.99, 0.31, 0.31)
+                else
+                    self.Timer:SetTextColor(1, 1, 1)
+                end
+            end
+        else
+            self:SetValue(0)
+            if self.Timer then
+                self.Timer:SetText("")
+            end
+        end
         self.elapsed = 0
     end
 end
@@ -29,16 +51,19 @@ function element_proto:Override(event, slot)
     local totem = element[slot]
     local haveTotem, name, start, duration, icon = GetTotemInfo(slot)
     local spellID = select(7, GetSpellInfo(name))
-    if (haveTotem and duration > 0) then
+    if (haveTotem and duration and duration > 0) then
         totem.slot = slot
-        totem.start = start
+        totem.start = start or 0
         totem.duration = duration
+        totem.expirationTime = start + duration
         totem.spellID = spellID
 
         if (totem:IsObjectType("StatusBar")) then
             totem:SetMinMaxValues(0, duration)
             totem:SetValue(duration)
             totem:SetScript("OnUpdate", element.OnUpdate)
+
+            
         else
             if (totem.Icon) then
                 totem.Icon:SetTexture(icon)
@@ -61,6 +86,7 @@ end
 
 function UnitFrames:CreateTotems(frame)
     local texture = C.unitframes.texture
+    local fontObject = E.GetFont(C.unitframes.font)
     local width = C.unitframes.classpower.width or 200
     local height = C.unitframes.classpower.height or 18
 
@@ -113,6 +139,11 @@ function UnitFrames:CreateTotems(frame)
             bg:SetTexture(texture)
             bg:SetVertexColor(color.r * multiplier, color.g * multiplier, color.b * multiplier, color.a or 1)
             totem.bg = bg
+
+            local timer = totem:CreateFontString(nil, "OVERLAY", nil, 7)
+            timer:SetFontObject(fontObject)
+            timer:SetPoint("CENTER", 0, 0)
+            totem.Timer = timer
 
             element[i] = totem
         end
