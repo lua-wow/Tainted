@@ -13,6 +13,7 @@ core\init.lua
 
 ## libaries
 libs\oUF\oUF.xml
+libs\oUF_Atonement\oUF_Atonement.lua
 libs\oUF_AuraTrack\oUF_AuraTrack.lua
 libs\oUF_RaidDebuffs\oUF_RaidDebuffs.xml
 libs\oUF_TargetIndicator\oUF_TargetIndicator.lua
@@ -56,6 +57,7 @@ modules\tooltips\tooltips.lua
 modules\unitframes\core.lua
 modules\unitframes\tags.lua
 
+modules\unitframes\elements\atonement.lua
 modules\unitframes\elements\auras.lua
 modules\unitframes\elements\castbar.lua
 modules\unitframes\elements\classpower.lua
