@@ -18,3 +18,7 @@
 	path = libs/oUF_TargetIndicator
 	url = https://github.com/lua-wow/oUF_TargetIndicator.git
 	branch = master
+[submodule "modules/miscellaneous/interrupts"]
+	path = modules/miscellaneous/interrupts
+	url = https://github.com/lua-wow/interrupts.git
+	branch = master
