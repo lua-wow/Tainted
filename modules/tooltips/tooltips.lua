@@ -79,15 +79,15 @@ local MODULE = E:CreateModule("Tooltips")
 
 local isInit = false
 
-local SPELL_ID = "|c" .. E.colors.yellow.hex .. "SpellID:|r %d"
-local SOURCE = "|c" .. E.colors.yellow.hex .. _G.SOURCE .. "|r %s"
-local TARGET = "|c" .. E.colors.yellow.hex .. _G.TARGET .. ":|r %s"
-local STATUS = "|c" .. E.colors.gray.hex .. "<%s> |r"
+local SPELL_ID = E.colors.yellow:WrapTextInColorCode("SpellID") .. " %d"
+local SOURCE = E.colors.yellow:WrapTextInColorCode(_G.SOURCE) .. " %s"
+local TARGET = E.colors.yellow:WrapTextInColorCode(_G.TARGET .. ":") .. " %s"
+local STATUS = E.colors.gray:WrapTextInColorCode("<%s> ")
 local AFK = STATUS:format(_G.AFK or "AFK")
 local DND = STATUS:format(_G.DND or "DND")
 local DEAD = STATUS:format(_G.DEAD or "Dead")
-local GHOST = STATUS:format(L.ghost or "Ghost")
-local OFFLINE = STATUS:format(L.offline or "Offline")
+local GHOST = STATUS:format(L.GHOST or "Ghost")
+local OFFLINE = STATUS:format(L.OFFLINE or "Offline")
 local NAME_FORMAT = "%s%s"
 local PLAYER_LEVEL = "%s %s (" .. _G.PLAYER .. ")"
 local BATTLE_PET_LEVEL = "%s %s%s"
@@ -397,6 +397,7 @@ do
         local name, unit, guid = tooltip:GetUnit()
         if not unit then return end
 
+        local realm = select(2, UnitName(unit))
         local class = select(2, UnitClass(unit))
         local level = UnitIsBattlePet(unit) and UnitBattlePetLevel(unit) or UnitLevel(unit)
         local scaledLevel = UnitIsBattlePet(unit) and UnitBattlePetLevel(unit) or UnitEffectiveLevel(unit)
@@ -411,7 +412,6 @@ do
             if UnitIsPlayer(unit) then
                 local color = E.colors.class[class]
                 local pvpName = UnitPVPName(unit)
-                local realm = select(2, UnitName(unit))
                 
                 local text = name
                 if pvpName and pvpName ~= "" then
@@ -464,12 +464,12 @@ do
                 local line, _offset = GetTooltipLine(tooltip, offset, guildName) -- offset = 3
                 offset = _offset
 
-                -- local guildText = "|c" .. E.colors.lawngreen.hex .. guildName .. "|r"
-                -- if guildRealm and guildRealm ~= "" then
-                --     guildText = guildText .. " - |c" .. E.colors.gray.hex .. guildRealm .. "|r"
-                -- end
+                local guildText = guildName
+                if guildRealm and guildRealm ~= "" and guildRealm ~= realm then
+                    guildText = guildName .. " - " .. guildRealm
+                end
                 
-                line:SetText("|c" .. E.colors.lawngreen.hex .. guildName .. "|r")
+                line:SetText(E.colors.lawngreen:WrapTextInColorCode(guildText))
                 line:SetTextColor(1, 1, 1)
             end
         end
@@ -489,7 +489,7 @@ do
                     local color = E.colors.class[class]
                     local race = UnitRace(unit)
 
-                    line:SetText(PLAYER_LEVEL:format("|c" .. difficultyColor.hex .. levelText .. "|r", race or "", classText))
+                    line:SetText(PLAYER_LEVEL:format(difficultyColor:WrapTextInColorCode(levelText), race or "", classText))
 
                     -- specialization
                     local specLine = _G["GameTooltipTextLeft" .. offset]
@@ -507,10 +507,10 @@ do
                         difficultyColor = GetRelativeDifficultyColor(teamLevel, scaledLevel)
                     end
 
-                    line:SetText(BATTLE_PET_LEVEL:format("|c" .. difficultyColor.hex .. levelText .. "|r", (creatureType or ""), " (" .. _G["BATTLE_PET_NAME_" .. petType] .. ")"))
+                    line:SetText(BATTLE_PET_LEVEL:format(difficultyColor:WrapTextInColorCode(levelText), (creatureType or ""), " (" .. _G["BATTLE_PET_NAME_" .. petType] .. ")"))
                 else
                     local classificationText = E.GetClassification(classification) or ""
-                    line:SetText(CREATURE_LEVEL:format("|c" .. difficultyColor.hex .. levelText .. "|r" .. classificationText, creatureType or ""))
+                    line:SetText(CREATURE_LEVEL:format(difficultyColor:WrapTextInColorCode(levelText) .. classificationText, creatureType or ""))
                 end
 
                 line:SetTextColor(1, 1, 1)
@@ -522,8 +522,8 @@ do
             local target = unit .. "target"
             if UnitExists(target) then
                 local color = E.GetUnitColor(target)
-                local name = UnitName(target)
-                tooltip:AddLine(TARGET:format("|c" .. color.hex .. name .. "|r"), 1, 1, 1)
+                local name = color:WrapTextInColorCode(UnitName(target))
+                tooltip:AddLine(TARGET:format(name), 1, 1, 1)
             end
         end
 
@@ -536,9 +536,9 @@ do
                 local loyalty = (loyaltyRate > 0) and "gaining" or "losing"
     
                 tooltip:AddLine(" ")
-                tooltip:AddLine("Pet is |c" .. color.hex .. happy .. "|r", 1, 1, 1)
-                tooltip:AddLine("Pet is doing |c" .. color.hex .. damagePercentage .. "%|r damage", 1, 1, 1)
-                tooltip:AddLine("Pet is |c" .. color.hex .. loyalty .. "|r loyalty", 1, 1, 1)
+                tooltip:AddLine(L.PET_HAPINESS:format(color:WrapTextInColorCode(happy)), 1, 1, 1)
+                tooltip:AddLine(L.PET_DAMAGE:format(color:WrapTextInColorCode(damagePercentage .. "%")), 1, 1, 1)
+                tooltip:AddLine(L.PET_LOYALTY:format(color:WrapTextInColorCode(loyalty)), 1, 1, 1)
             end
         end
     end

@@ -6,6 +6,7 @@ local E, C = ns.E, ns.C
 
 --------------------------------------------------
 -- Colors
+-- https://warcraft.wiki.gg/wiki/ColorMixin
 --------------------------------------------------
 oUF.colors.black = oUF:CreateColor(0, 0, 0)
 oUF.colors.white = oUF:CreateColor(1, 1, 1)
@@ -210,6 +211,13 @@ oUF.colors.classification = {
 	["trivial"] = oUF:CreateColor(0.70, 0.70, 0.70),
 	["minus"] = oUF:CreateColor(0.70, 0.70, 0.70)
 }
+
+oUF.colors.quality = {}
+
+for k, v in next, Enum.ItemQuality do
+	oUF.colors.quality[k] = color
+	oUF.colors.quality[v] = color
+end
 
 E.colors = oUF.colors
 E.CreateColor = oUF.CreateColor

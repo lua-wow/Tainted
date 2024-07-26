@@ -1,12 +1,13 @@
 ## Interface: 100207
-## Author: pedrozc90
-## X-Maintainer: pedrozc90
+## Author: Luaerror
 ## Version: 0.1.0 
 ## Title: |cffff8000Tainted|r
 ## Notes: Minimalistic interface
 ## SavedVariables: TaintedDatabase
-## IconTexture: Interface\Icons\Spell_priest_pontifex
+## IconTexture: Interface\ICONS\Spell_Shadow_Shadowform
+
 ## X-Website: https://github.com/lua-wow/Tainted
+## X-Maintainer: Luaerror
 
 ## init
 core\init.lua

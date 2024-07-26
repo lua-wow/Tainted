@@ -2,7 +2,7 @@ local _, ns = ...
 local oUF = ns.oUF or _G.oUF
 assert(oUF, "JasjeUI was unable to locate oUF install.")
 
-local E = ns.E
+local E, L = ns.E, ns.L
 
 -- Lua
 local format = string.format
@@ -28,6 +28,9 @@ local UnitHealthMax = _G.UnitHealthMax
 local UnitIsAFK = _G.UnitIsAFK
 local UnitClassification = _G.UnitClassification
 local UnitPowerType = _G.UnitPowerType
+
+-- Constants
+local GHOST = L.GHOST or "Ghost"
 
 --------------------------------------------------
 -- Tags
@@ -105,7 +108,8 @@ local tags = {
     -- colors
     ["healthcolor"] = function(unit)
         local color = oUF.colors.health
-        return "|c" .. color.hex
+        -- return "|c" .. color.hex
+        return color:GenerateHexColorMarkup()
     end,
     ["namecolor"] = function(unit)
         local reaction = UnitReaction(unit, "player")
@@ -113,25 +117,27 @@ local tags = {
             return _TAGS["raidcolor"](unit)
         elseif (reaction) then
             local color = oUF.colors.reaction[reaction]
-            return "|c" .. color.hex
+            -- return "|c" .. color.hex
+            return color:GenerateHexColorMarkup()
         else
-            return "|c" .. E.colors.white.hex
+            -- return "|c" .. E.colors.white.hex
+            return E.colors.white:GenerateHexColorMarkup()
         end
     end,
     ["rolecolor"] = function(unit)
         local role = UnitGroupRolesAssigned(unit)
         local color = oUF.colors.roles[role or "NONE"]
-		return "|c" .. color.hex
+		return color:GenerateHexColorMarkup()
     end,
     ["hostility"] = function(unit)
         local reaction = UnitReaction(unit, "player")
         local color = oUF.colors.reaction[reaction] or E.colors.white
-        return "|c" .. color.hex
+        return color:GenerateHexColorMarkup()
     end,
     ["difficulty"] = function(unit)
         local level = UnitLevel(unit)
         local color = level and GetQuestDifficultyColor(level) or { r = 1, g = 1, b = 1 }
-        return format("|cff%02x%02x%02x", color.r * 255, color.g * 255, color.b * 255)
+        return ("|cff%.2x%.2x%.2x"):format(color.r * 255, color.g * 255, color.b * 255)
     end,
     -- others
     ["classification"] = function(unit)
@@ -139,13 +145,10 @@ local tags = {
         return E.GetClassification(classification) or ""
     end,
     ["dead"] = function(unit)
-        -- if UnitIsDeadOrGhost(unit) then
-        --     return DEAD
-        -- end
         if UnitIsDead(unit) then
 			return DEAD
 		elseif UnitIsGhost(u) then
-			return "Ghost"
+			return GHOST
 		end
     end,
     -- ["afk"] = function(unit)
