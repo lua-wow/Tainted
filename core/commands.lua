@@ -38,7 +38,7 @@ end
 local help = function()
     for cmd, v in next, commands do
         if (v.description) then
-            print("|cffff0000" .. SLASH_TAINTED1 .. " " .. cmd .. "|r:", v.description)
+            print("|cffff8000Tainted " .. cmd .. "|r:", v.description)
         end
     end
 end
