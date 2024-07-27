@@ -1,6 +1,6 @@
 ## Interface: 100207
 ## Author: Luaerror
-## Version: 0.1.0 
+## Version: 1.0.0 
 ## Title: |cffff8000Tainted|r
 ## Notes: Minimalistic interface
 ## SavedVariables: TaintedDatabase
