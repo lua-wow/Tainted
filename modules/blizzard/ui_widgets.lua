@@ -10,6 +10,8 @@ local IsInJailersTower = _G.IsInJailersTower
 --------------------------------------------------
 -- UIWidget
 --------------------------------------------------
+if not C.blizzard.uiwidgets then return end
+
 local UIWidgets = CreateFrame("Frame", addon .. "UIWidgets")
 
 function UIWidgets:CreateHolder()

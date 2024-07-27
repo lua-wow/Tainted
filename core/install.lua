@@ -14,6 +14,7 @@ local variables = {
 	["scriptErrors"] = 1,
 	["scriptWarnings"] = 1,
 	["luaErrorExceptions"] = 1,
+	["taintLog"] = 1,						-- enable taint log
 
 	-- system
 	["screenshotQuality"] = 10,
