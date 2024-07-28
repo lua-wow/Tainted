@@ -14,8 +14,14 @@ local CompactRaidFrameContainer = _G.CompactRaidFrameContainer
 local GetSpecialization = _G.GetSpecialization
 local GetSpecializationRole = _G.GetSpecializationRole
 
-local units = {}
+local InCombatLockdown =_G.InCombatLockdown
 
+--------------------------------------------------
+-- Unitframes
+--------------------------------------------------
+local units = {} -- store all spawn units
+
+-- which units should have oUF auras
 local auras = {
     ["player"] = true,
     ["target"] = true,
@@ -30,25 +36,14 @@ local auras = {
 }
 
 do
+    local HEALER = "HEALER"
+    local DEFAULT = "DEFAULT"
+
     local element_proto = {
         unit = "player",
-        numGroupMembers = 0,
-        threshold = 20,
-        spells = {
-            [384255] = true,    -- Changing Talents
-            [200749] = true     -- Activating Specialization
-        }
+        position = DEFAULT,
+        groupThreshold = 20
     }
-
-    function element_proto:SetDefaultPosition()
-        self:ClearAllPoints()
-        self:SetPoint("BOTTOMLEFT", parent, "BOTTOMLEFT", 10, 300)
-    end
-
-    function element_proto:SetHealerPosition()
-        self:ClearAllPoints()
-        self:SetPoint("BOTTOM", parent, "BOTTOM", 0, 270)
-    end
 
     -- TODO: Implement method for classic
     function element_proto:IsHealer()
@@ -57,31 +52,72 @@ do
         return (specRole == "HEALER")
     end
 
+    function element_proto:SetDefaultPosition()
+        self:SetPoint("BOTTOMLEFT", parent, "BOTTOMLEFT", 10, 300)
+    end
+
+    function element_proto:SetHealerPosition()
+        self:SetPoint("BOTTOM", parent, "BOTTOM", 0, 270)
+    end
+
+    function element_proto:GetPosition()
+        if self:IsHealer() and GetNumGroupMembers() <= self.groupThreshold then
+            return HEALER
+        end
+        return DEFAULT
+    end
+
     function element_proto:UpdatePosition()
-        if self:IsHealer() and (self.numGroupMembers <= self.threshold) then
-            self:SetHealerPosition()
-        else
-            self:SetDefaultPosition()
+        -- you are not suppose to move stuff while in combat
+        if InCombatLockdown() then return end
+
+        -- prevent event spam updates
+        local position = self:GetPosition()
+        if position ~= self.position then
+            self:ClearAllPoints()
+            if position == HEALER then
+                self:SetHealerPosition()
+            else
+                self:SetDefaultPosition()
+            end
+            self.position = position
         end
     end
 
     function element_proto:OnEvent(event, ...)
-        self[event](self, ...)
-    end
+        if event == "PLAYER_ENTERING_WORLD" then
+            local isLogin, isReload = ...
+            if not isLogin and not isReload then return end
+        
+        -- fires when player enter combat
+        -- so we need to disable events to prevent moving stuff while in combat
+        elseif event == "PLAYER_REGEN_DISABLED" then
+            self:UnregisterEvent("GROUP_ROSTER_UPDATE")
+            self:UnregisterEvent("PLAYER_TALENT_UPDATE")
+            self:UnregisterEvent("CHARACTER_POINTS_CHANGED")
+            self:UnregisterEvent("PLAYER_SPECIALIZATION_CHANGED")
+            return
 
-    function element_proto:PLAYER_ENTERING_WORLD()
-        self.numGroupMembers = GetNumGroupMembers()
-        self:UpdatePosition()
-    end
+        -- fires when player leave combat
+        -- we can move stuff now
+        elseif event == "PLAYER_REGEN_ENABLED" then
+            self:RegisterEvent("GROUP_ROSTER_UPDATE")
 
-    function element_proto:GROUP_ROSTER_UPDATE()
-        self.numGroupMembers = GetNumGroupMembers()
-        self:UpdatePosition()
-    end
+            if Filger.isCata then
+                self:RegisterEvent("PLAYER_TALENT_UPDATE")
+            elseif Filger.isClassic then
+                self:RegisterEvent("CHARACTER_POINTS_CHANGED")
+            else
+                self:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED")
+            end
 
-    function element_proto:UNIT_SPELLCAST_SUCCEEDED(unit, guid, spellID)
-        if unit ~= self.unit then return end
-        if not self.spells[spellID] then return end
+            return
+
+        elseif event == "CHARACTER_POINTS_CHANGED" then
+            local changes = ...
+            if changes ~= -1 then return end
+        end
+
         self:UpdatePosition()
     end
 
@@ -94,16 +130,13 @@ do
         local height = C.unitframes.raid.height
     
         local element = Mixin(CreateFrame("Frame", addon .. "GroupHolder", E.PetHider), element_proto)
-        -- element:SetPoint("BOTTOMLEFT", parent, "BOTTOMLEFT", 10, 300)
         element:SetWidth(cols * width + (cols - 1) * colsSpacing)
         element:SetHeight(rows * height + (rows - 1) * rowsSpacing)
-        element:UpdatePosition()
-        -- element:RegisterEvent("PLAYER_LOGIN")
+        element:SetDefaultPosition()
         element:RegisterEvent("PLAYER_ENTERING_WORLD")
-        element:RegisterEvent("GROUP_ROSTER_UPDATE")
-        element:RegisterUnitEvent("UNIT_SPELLCAST_SUCCEEDED", "player")
-        -- element:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED")           -- Added in patch 5.0.4 (MoP) / Removed on patch 10.1.7 (Dragonflight)
-        -- element:RegisterEvent("SPELLS_CHANGED")                          -- Removed in patch 4.0.1 (Cata)
+        element:RegisterEvent("PLAYER_REGEN_ENABLED")
+        element:RegisterEvent("PLAYER_REGEN_DISABLED")
+        element:RegisterUnitEvent("PLAYER_SPECIALIZATION_CHANGED")
         element:SetScript("OnEvent", element.OnEvent)
         return element
     end
