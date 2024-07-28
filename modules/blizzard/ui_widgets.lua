@@ -45,7 +45,7 @@ function UIWidgets:Setup(widgetInfo, widgetContainer)
         
         -- add backdrop
         bar:CreateBackdrop()
-        bar.Backdrop:SetOutside()
+        -- bar.Backdrop:SetOutside()
 
         -- create a background
         bar.bg = bar:CreateTexture(nil, "BACKGROUND")

@@ -1,4 +1,4 @@
-## Interface: 100207
+## Interface: 100207, 110000
 ## Author: Luaerror
 ## Version: 1.0.0 
 ## Title: |cffff8000Tainted|r
