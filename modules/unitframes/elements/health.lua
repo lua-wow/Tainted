@@ -42,6 +42,14 @@ do
         element:SetPoint("RIGHT", frame, "RIGHT", 0, 0)
         element:SetPoint("BOTTOM", frame, "BOTTOM", 0, C.unitframes.power.height)
         element:SetClipsChildren(false)
+
+        local temploss = CreateFrame("StatusBar", nil, element)
+        temploss:SetAllPoints()
+        temploss:SetReverseFill(true)
+        temploss:SetMinMaxValues(0, 1)
+        temploss:SetClipsChildren(true)
+        temploss:SetFrameLevel(element:GetFrameLevel() + 1)
+        element.TempLoss = temploss
         
         local bg = element:CreateTexture(nil, "BACKGROUND")
         bg:SetAllPoints(element)

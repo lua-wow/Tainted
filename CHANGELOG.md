@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+-   StatusBar to display health temporary loss.
+
 ### Changed
 
 -   Patch 11.0.0, updating dependencies
