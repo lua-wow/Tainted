@@ -1,6 +1,5 @@
 local addon, ns = ...
 local E, C, A = ns.E, ns.C, ns.A
-local MODULE = E:CreateModule("Minimap")
 
 -- Blizzard
 local UnitOnTaxi = _G.UnitOnTaxi
@@ -11,10 +10,22 @@ local CanExitVehicle = _G.CanExitVehicle
 --------------------------------------------------
 -- Minimap
 --------------------------------------------------
+if not C.maps.enabled then return end
+
+local MODULE = E:CreateModule("Minimap")
+
 function MODULE:OnMouseClick(button)
 	if (button == "RightButton") then
-        local MinimapCluster = _G.MinimapCluster
-        ToggleDropDownMenu(1, nil, MinimapCluster.TrackingFrame.DropDown, MinimapCluster.TrackingFrame, 8, 5);
+        local button = _G.MinimapCluster.Tracking.Button
+        if button then
+            button:OpenMenu()
+            if button.menu then
+                button.menu:ClearAllPoints()
+                button.menu:SetPoint("TOPRIGHT", Minimap, "TOPLEFT", -5, 0);
+            end
+        else
+            ToggleDropDownMenu(1, nil, MinimapCluster.TrackingFrame.DropDown, MinimapCluster.TrackingFrame, 8, 5);
+        end
 	elseif (button == "MiddleButton") then
 		local ExpansionLandingPageMinimapButton = _G.ExpansionLandingPageMinimapButton
 		ExpansionLandingPageMinimapButton:ToggleLandingPage()
@@ -26,13 +37,16 @@ end
 
 function MODULE:Style()
     local MinimapCluster = _G.MinimapCluster
-    MinimapCluster:Kill()
-
-    local BorderTop = MinimapCluster.BorderTop
-    BorderTop:StripTextures()
-
-    local TrackingFrame = MinimapCluster.TrackingFrame
     
+    local BorderTop = MinimapCluster.BorderTop
+    BorderTop:Hide()
+
+    local Tracking = MinimapCluster.Tracking
+    if Tracking then
+        MinimapCluster.Tracking:SetAlpha(0)
+        MinimapCluster.Tracking:SetScale(0.001)
+    end
+
     local MinimapContainer = MinimapCluster.MinimapContainer
     MinimapContainer:ClearAllPoints()
     MinimapContainer:SetAllPoints()
@@ -175,7 +189,7 @@ function MODULE:AddTaxiRequestEarlyLandingButton()
     local button = CreateFrame("Button", addon .. "TaxiRequestEarlyLandingButton", Minimap)
     button:SetPoint("TOPLEFT", Minimap, "BOTTOMLEFT", 0, -3)
     button:SetPoint("TOPRIGHT", Minimap, "BOTTOMRIGHT", 0, -3)
-    button:SetHeight(30)
+    button:SetHeight(20)
     button:SkinButton()
     button:RegisterForClicks("AnyUp")
 	button:RegisterEvent("UPDATE_BONUS_ACTIONBAR")

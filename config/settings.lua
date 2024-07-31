@@ -24,7 +24,7 @@ C["general"] = {
 
 C["auras"] = {
     ["enabled"] = true,
-    ["font"] =  "Tainted Outlined",
+    ["font"] = "Tainted Outlined",
     ["size"] = 30,
     ["spacing"] = 3,
     ["rows"] = 3,
@@ -36,9 +36,10 @@ C["auras"] = {
 }
 
 C["blizzard"] = {
+    ["ghost"] = true,
     ["mirrortimers"] = true,
     ["talkinghead"] = true,
-    ["uiwidgets"] = true
+    ["uiwidgets"] = true,
 }
 
 C["maps"] = {

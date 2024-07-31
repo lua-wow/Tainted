@@ -11,10 +11,11 @@ local E, C = ns.E, ns.C
 oUF.colors.black = oUF:CreateColor(0, 0, 0)
 oUF.colors.white = oUF:CreateColor(1, 1, 1)
 oUF.colors.gray = oUF:CreateColor(0.70, 0.70, 0.70)
-oUF.colors.green = oUF:CreateColor(0.29, 0.67, 0.30) -- #4AAB4D
-oUF.colors.lawngreen = oUF:CreateColor(0.49, 0.99, 0.00) -- #7CFC00
-oUF.colors.yellow = oUF:CreateColor(1.00, 0.82, 0.00) -- #FFD100
-oUF.colors.orange = oUF:CreateColor(1.00, 0.23, 0.00) -- #FF4500
+oUF.colors.green = oUF:CreateColor(0.29, 0.67, 0.30)
+oUF.colors.lawngreen = oUF:CreateColor(0.49, 0.99, 0.00)
+oUF.colors.yellow = oUF:CreateColor(1.00, 0.82, 0.00)
+oUF.colors.orange = oUF:CreateColor(1.00, 0.23, 0.00)
+oUF.colors.red = oUF:CreateColor(0.78, 0.25, 0.25)
 
 oUF.colors.health = oUF:CreateColor(0.29, 0.68, 0.30)
 
@@ -41,75 +42,75 @@ oUF.colors.reaction = {
 
 do
 	local MANA = oUF:CreateColor(0.31, 0.45, 0.63)
-	oUF.colors.power[0] = MANA
+	oUF.colors.power[Enum.PowerType.Mana or 0] = MANA
 	oUF.colors.power.MANA = MANA
 	
 	local RAGE = oUF:CreateColor(0.69, 0.31, 0.31)
-	oUF.colors.power[1] = RAGE
+	oUF.colors.power[Enum.PowerType.Rage or 1] = RAGE
 	oUF.colors.power.RAGE = RAGE
 	
 	local FOCUS = oUF:CreateColor(0.71, 0.43, 0.27)
-	oUF.colors.power[2] = FOCUS
+	oUF.colors.power[Enum.PowerType.Focus or 2] = FOCUS
 	oUF.colors.power.FOCUS = FOCUS
 	
 	local ENERGY = oUF:CreateColor(0.65, 0.63, 0.35)
-	oUF.colors.power[3] = ENERGY
+	oUF.colors.power[Enum.PowerType.Energy or 3] = ENERGY
 	oUF.colors.power.ENERGY = ENERGY
 	
 	local COMBO_POINTS = oUF:CreateColor(0.78, 0.25, 0.25)
-	oUF.colors.power[4] = COMBO_POINTS
+	oUF.colors.power[Enum.PowerType.ComboPoints or 4] = COMBO_POINTS
 	oUF.colors.power.COMBO_POINTS = COMBO_POINTS
 	
 	local RUNES = oUF:CreateColor(0.55, 0.57, 0.61)
-	oUF.colors.power[5] = RUNES
+	oUF.colors.power[Enum.PowerType.Runes or 5] = RUNES
 	oUF.colors.power.RUNES = RUNES
 	
 	local RUNIC_POWER = oUF:CreateColor(0.00, 0.82, 1.00)
-	oUF.colors.power[6] = RUNIC_POWER
+	oUF.colors.power[Enum.PowerType.RunicPower or 6] = RUNIC_POWER
 	oUF.colors.power.RUNIC_POWER = RUNIC_POWER
 	
 	local SOUL_SHARDS = oUF:CreateColor(0.50, 0.32, 0.55)
-	oUF.colors.power[7] = SOUL_SHARDS
+	oUF.colors.power[Enum.PowerType.SoulShards or 7] = SOUL_SHARDS
 	oUF.colors.power.SOUL_SHARDS = SOUL_SHARDS
 	
 	local LUNAR_POWER = oUF:CreateColor(0.93, 0.51, 0.93)
-	oUF.colors.power[8] = LUNAR_POWER
+	oUF.colors.power[Enum.PowerType.LunarPower or 8] = LUNAR_POWER
 	oUF.colors.power.LUNAR_POWER = LUNAR_POWER
 	
 	local HOLY_POWER = oUF:CreateColor(0.95, 0.90, 0.60)
-	oUF.colors.power[9] = HOLY_POWER
+	oUF.colors.power[Enum.PowerType.HolyPower or 9] = HOLY_POWER
 	oUF.colors.power.HOLY_POWER = HOLY_POWER
 	
 	local ALTERNATE = oUF:CreateColor(0.00, 1.00, 1.00)
-	oUF.colors.power[10] = ALTERNATE
+	oUF.colors.power[Enum.PowerType.Alternate or 10] = ALTERNATE
 	oUF.colors.power.ALTERNATE = ALTERNATE
 	
 	local MAELSTROM = oUF:CreateColor(0.00, 0.50, 1.00)
-	oUF.colors.power[11] = MAELSTROM
+	oUF.colors.power[Enum.PowerType.Maelstrom or 11] = MAELSTROM
 	oUF.colors.power.MAELSTROM = MAELSTROM
 	
 	local CHI = oUF:CreateColor(0.71, 1.00, 0.92)
-	oUF.colors.power[12] = CHI
+	oUF.colors.power[Enum.PowerType.Chi or 12] = CHI
 	oUF.colors.power.CHI = CHI
 	
 	local INSANITY = oUF:CreateColor(0.40, 0.00, 0.80)
-	oUF.colors.power[13] = INSANITY
+	oUF.colors.power[Enum.PowerType.Insanity or 13] = INSANITY
 	oUF.colors.power.INSANITY = INSANITY
 	
 	-- local ARCANE_CHARGES = nil
-	-- oUF.colors.power[16] = ARCANE_CHARGES
+	-- oUF.colors.power[Enum.PowerType.ArcaneCharges or 16] = ARCANE_CHARGES
 	-- oUF.colors.power.ARCANE_CHARGES = ARCANE_CHARGES
 	
 	local FURY = oUF:CreateColor(0.78, 0.26, 0.99)
-	oUF.colors.power[17] = FURY
+	oUF.colors.power[Enum.PowerType.Fury or 17] = FURY
 	oUF.colors.power.FURY = FURY
 	
 	local PAIN = oUF:CreateColor(1.00, 0.61, 0.00)
-	oUF.colors.power[18] = PAIN
+	oUF.colors.power[Enum.PowerType.Pain or 18] = PAIN
 	oUF.colors.power.PAIN = PAIN
 	
 	-- local ESSENCE = oUF:CreateColor(0.00, 0.82, 1.00)
-	-- oUF.colors.power[19] = ESSENCE
+	-- oUF.colors.power[Enum.PowerType.Essence or 19] = ESSENCE
 	-- oUF.colors.power.ESSENCE = ESSENCE
 
 	oUF.colors.power.STAGGER = {
