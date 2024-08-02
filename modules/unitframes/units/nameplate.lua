@@ -6,30 +6,47 @@ local UnitFrames = E:GetModule("UnitFrames")
 --------------------------------------------------
 -- Nameplates
 --------------------------------------------------
+local config = C.unitframes.nameplate
+
+-- reference: https://warcraft.wiki.gg/wiki/Console_variables
 UnitFrames.NameplateCVars = {
-    nameplateMaxAlpha = 1,
-    nameplateMinAlpha = C.unitframes.nameplate.minAlpha,
-    nameplateSelectedAlpha = C.unitframes.nameplate.selectedAlpha,
-    nameplateNotSelectedAlpha = C.unitframes.nameplate.notSelectedAlpha,
-    nameplateOccludedAlphaMult = 1,
-    nameplateMaxAlphaDistance = 0,
-    nameplateMaxScale = 1,
-    nameplateMinScale = 1,
-    nameplateSelectedScale = C.unitframes.nameplate.selectedScale,
-    nameplateMaxDistance = E.isRetail and 61 or 41
+    nameplateMaxAlpha = 1.0,                                -- the max alpha of nameplates. default: 1.0
+    nameplateMaxAlphaDistance = 40,                          -- the distance from the camera that nameplates will reach their maximum alpha. default: 40
+    nameplateMaxScale = 1.0,                                -- the max scale of nameplates. default: 1.0
+    nameplateMaxDistance = E.isRetail and 61 or 41,         -- the max distance to show nameplates. default: 40
+    nameplateMinAlpha = config.minAlpha or 0.6,             -- the minimum alpha of nameplates. default: 0.6
+    nameplateMinAlphaDistance = 10,                         -- the distance from the max distance that nameplates will reach their minimum alpha. default: 10
+    nameplateMinScale = 0.8,                                -- the minimum scale of nameplates. default: 0.8
+    nameplateMinScaleDistance = 10,                         -- the distance from the max distance that nameplates will reach their minimum scale. default: 10
+    nameplateMotion = 0,                                    -- defines the movement/collision model for nameplates. detault: 2 (0 = overlapping, 1 = stacking, 2 = spreading)
+    nameplateMotionSpeed = 0.025,                           -- controls the rate at which nameplate animates into their target locations [0.0-1.0] detault: 0.025
+    nameplateSelectedAlpha = config.selectedAlpha or 1.0,   -- the alpha of the selected nameplate. detault: 1.0
+    nameplateSelectedScale = config.selectedScale or 1.2,   -- the scale of the selected nameplate. detault: 1.2
+    nameplateNotSelectedAlpha = (not E.isRetail) and config.notSelectedAlpha,
+    nameplateOccludedAlphaMult = 0.4,                       -- alpha multiplier of nameplates for occluded targets. default: 0.4
+    nameplateShowAll = 1,
+    nameplateShowSelf = 0
 }
 
 -- reference: https://github.com/trincasidra/TrincaUI/blob/main/unitframes/nameplate.lua
 UnitFrames.NameplateCallback = function(self, event, unit)
-    -- event == "PLAYER_TARGET_CHANGED"
     if (event == "NAME_PLATE_UNIT_ADDED") then
-        self.blizzPlate = self:GetParent().UnitFrame
-        self.widgetsOnly = UnitNameplateShowsWidgetsOnly(unit)
-        self.widgetSet = UnitWidgetSet(unit)
-        if (self.widgetsOnly) then
-            self.Health:SetAlpha(0)
+        if unit then
+            self.widgetsOnly = UnitNameplateShowsWidgetsOnly(unit)
+            self.widgetSet = UnitWidgetSet(unit)
+        end
+
+        local blizzPlate = self:GetParent().UnitFrame
+        if blizzPlate then
+            self.blizzPlate = blizzPlate
             self.widgetContainer = self.blizzPlate.WidgetContainer
-            if (self.widgetContainer) then
+        end
+        
+        if self.widgetsOnly then
+            if self.Name then self.Name:SetAlpha(0) end
+            if self.Health then self.Health:SetAlpha(0) end
+            if self.Backdrop then self.Backdrop:SetAlpha(0) end
+            if self.widgetContainer then
                 self.widgetContainer:SetScale(2.0)
                 self.widgetContainer:SetParent(self)
                 self.widgetContainer:ClearAllPoints()
@@ -37,11 +54,13 @@ UnitFrames.NameplateCallback = function(self, event, unit)
             end
         end
     elseif (event == "NAME_PLATE_UNIT_REMOVED") then
-        if (self.widgetsOnly and self.widgetContainer) then
-            self.Health:SetAlpha(1)
+        if self.widgetContainer and self.widgetsOnly then
+            if self.Name then self.Name:SetAlpha(1) end
+            if self.Health then self.Health:SetAlpha(1) end
+            if self.Backdrop then self.Backdrop:SetAlpha(1) end
             self.widgetContainer:SetParent(self.blizzPlate)
             self.widgetContainer:ClearAllPoints()
-            self.widgetContainer:SetPoint('TOP', self.blizzPlate.castBar, 'BOTTOM')
+            self.widgetContainer:SetPoint("TOP", self.blizzPlate.castBar, "BOTTOM")
         end
     end
 end

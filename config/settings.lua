@@ -208,8 +208,8 @@ C["unitframes"] = {
         },
         ["minAlpha"] = 0.30,
         ["notSelectedAlpha"] = 0.50,
-        ["selectedAlpha"] = 1,
-        ["selectedScale"] = 1
+        ["selectedAlpha"] = 1.0,
+        ["selectedScale"] = 1.2
     },
     ["raid"] = {
         ["enabled"] = true,

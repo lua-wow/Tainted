@@ -5,6 +5,7 @@ local E, C, A = ns.E, ns.C, ns.A
 local getmetatable = getmetatable
 
 -- Blizzard
+local GetCVar = C_CVar and C_CVar.GetCVar or _G.GetCVar
 local BackdropTemplateMixin = _G.BackdropTemplateMixin
 
 --------------------------------------------------

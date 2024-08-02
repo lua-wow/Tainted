@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   Patch 11.0.0, updating dependencies
 -   Taint Fix: you are not suppose to move stuff while in combat.
 -   Fix minimap tracking frame.
+-   Fix nameplates callback.
 
 ## [1.0.0] - 2024-07-27
 
