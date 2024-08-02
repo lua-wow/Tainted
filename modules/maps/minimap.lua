@@ -14,6 +14,60 @@ if not C.maps.enabled then return end
 
 local MODULE = E:CreateModule("Minimap")
 
+do
+    local button_proto = {}
+
+    function button_proto:OnClick()
+        if UnitOnTaxi("player") then
+            TaxiRequestEarlyLanding();
+        else
+            VehicleExit();
+        end
+        self:Hide()
+    end
+
+    function button_proto:OnEvent(event, ...)
+        if CanExitVehicle() then
+            if (UnitOnTaxi("player")) then
+                self.Text:SetText("|cffFF0000" .. TAXI_CANCEL .. "|r")
+            else
+                self.Text:SetText("|cffFF0000" .. BINDING_NAME_VEHICLEEXIT .. "|r")
+            end
+            self:Show()
+        else
+            self:Hide()
+        end
+    end
+
+    function MODULE:AddTaxiRequestEarlyLandingButton()
+        local Minimap = _G.Minimap
+
+        local button = Mixin(CreateFrame("Button", addon .. "TaxiRequestEarlyLandingButton", Minimap), button_proto)
+        button:SetPoint("TOPLEFT", Minimap, "BOTTOMLEFT", 0, -3)
+        button:SetPoint("TOPRIGHT", Minimap, "BOTTOMRIGHT", 0, -3)
+        button:SetHeight(20)
+        button:SkinButton()
+        button:RegisterForClicks("AnyUp")
+        button:RegisterEvent("UPDATE_BONUS_ACTIONBAR")
+        button:RegisterEvent("UPDATE_MULTI_CAST_ACTIONBAR")
+        button:RegisterEvent("UNIT_ENTERED_VEHICLE")
+        button:RegisterEvent("UNIT_EXITED_VEHICLE")
+        button:RegisterEvent("VEHICLE_UPDATE")
+        button:RegisterEvent("PLAYER_ENTERING_WORLD")
+        -- button:RegisterEvent("PLAYER_MOUNT_DISPLAY_CHANGED")
+        button:SetScript("OnClick", button.OnClick)
+        button:SetScript("OnEvent", button.OnEvent)
+        button:Hide()
+
+        local text = button:CreateFontString(nil, "OVERLAY")
+        text:SetPoint("CENTER", button, "CENTER", 0, 0)
+        text:SetFontObject(E.GetFont(C.maps.font))
+        button.Text = text
+
+        return button
+    end
+end
+
 function MODULE:OnMouseClick(button)
 	if (button == "RightButton") then
         local button = _G.MinimapCluster.Tracking.Button
@@ -162,57 +216,8 @@ function MODULE:AddZoneTextAnimation()
     end
 end
 
-local function OnClick(self)
-    if UnitOnTaxi("player") then
-		TaxiRequestEarlyLanding();
-	else
-		VehicleExit();
-	end
-    self:Hide()
-end
-
-local function OnEvent(self, event, ...)
-    if CanExitVehicle() then
-        if (UnitOnTaxi("player")) then
-			self.Text:SetText("|cffFF0000" .. TAXI_CANCEL .. "|r")
-		else
-			self.Text:SetText("|cffFF0000" .. BINDING_NAME_VEHICLEEXIT .. "|r")
-		end
-		self:Show()
-    else
-        self:Hide()
-    end
-end
-
-function MODULE:AddTaxiRequestEarlyLandingButton()
-    local Minimap = _G.Minimap
-    local button = CreateFrame("Button", addon .. "TaxiRequestEarlyLandingButton", Minimap)
-    button:SetPoint("TOPLEFT", Minimap, "BOTTOMLEFT", 0, -3)
-    button:SetPoint("TOPRIGHT", Minimap, "BOTTOMRIGHT", 0, -3)
-    button:SetHeight(20)
-    button:SkinButton()
-    button:RegisterForClicks("AnyUp")
-	button:RegisterEvent("UPDATE_BONUS_ACTIONBAR")
-	button:RegisterEvent("UPDATE_MULTI_CAST_ACTIONBAR")
-	button:RegisterEvent("UNIT_ENTERED_VEHICLE")
-	button:RegisterEvent("UNIT_EXITED_VEHICLE")
-	button:RegisterEvent("VEHICLE_UPDATE")
-	button:RegisterEvent("PLAYER_ENTERING_WORLD")
-    -- button:RegisterEvent("PLAYER_MOUNT_DISPLAY_CHANGED")
-    button:SetScript("OnClick", OnClick)
-    button:SetScript("OnEvent", OnEvent)
-    button:Hide()
-
-    local text = button:CreateFontString(nil, "OVERLAY")
-    text:SetPoint("CENTER", button, "CENTER", 0, 0)
-    text:SetFontObject(E.GetFont(C.maps.font))
-    button.Text = text
-
-    self.TaxiRequestEarlyLandingButton = button
-end
-
 function MODULE:Init()
     self:Style()
     self:AddZoneTextAnimation()
-    self:AddTaxiRequestEarlyLandingButton()
+    self.TaxiRequestEarlyLandingButton = self:AddTaxiRequestEarlyLandingButton()
 end
