@@ -13,6 +13,8 @@
 core\init.lua
 
 ## libaries
+libs\LibStub\LibStub.lua
+libs\LibDispel\LibDispel.lua
 libs\oUF\oUF.xml
 libs\oUF_Atonement\oUF_Atonement.lua
 libs\oUF_AuraTrack\oUF_AuraTrack.lua

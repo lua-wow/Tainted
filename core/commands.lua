@@ -43,7 +43,21 @@ local help = function()
     end
 end
 
+local spell = function(value)
+    if value then
+        local data = C_Spell.GetSpellInfo(value)
+        if data then
+            Tainted.print("Spell " .. data.name .. " (" .. data.spellID .. ")", IsPlayerSpell(data.spellID))
+        else
+            Tainted.print("Spell " .. value .. " not found.")
+        end
+    else
+        Tainted.print("Please, provide a spellID or spellName.")
+    end
+end
+
 E:AddCommand("help", help)
+E:AddCommand("spell", spell, "Look for spell information based on spellID or name.")
 
 SLASH_RELOADUI1 = "/rl"
 SlashCmdList["RELOADUI"] = ReloadUI

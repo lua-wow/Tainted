@@ -2,6 +2,9 @@ local _, ns = ...
 local E, C, A = ns.E, ns.C, ns.A
 local UnitFrames = E:GetModule("UnitFrames")
 
+local LibDispel = LibStub("LibDispel")
+assert(LibDispel, "Filger requires LibDispel")
+
 -- Blizzard
 local UnitIsFriend = _G.UnitIsFriend
 local UnitIsEnemy = _G.UnitIsEnemy
@@ -117,47 +120,6 @@ function aura_proto:CreateButton(index)
 end
 
 function aura_proto:PostUpdateButton(button, unit, data, position)
-    local isFriend = UnitIsFriend("player", unit)
-    local isEnemy = UnitIsEnemy("player", unit)
-
-    if (data.isHarmful) then
-        if (C.unitframes.debuffs.desaturate and (not isFriend) and (not data.isPlayerAura)) then
-            if (button.Icon) then
-                button.Icon:SetDesaturated(true)
-            end
-            if (button.Backdrop) then
-                local color = C.general.border.color
-                button.Backdrop:SetBackdropBorderColor(color.r, color.g, color.b, color.a or 1)
-            end
-        else
-            if (button.Icon) then
-                button.Icon:SetDesaturated(false)
-            end
-            if (button.Backdrop) then
-                local multiplier = 0.8
-                local color = E.colors.debuff[data.dispelName or "none"] or C.general.border.color
-                button.Backdrop:SetBackdropBorderColor(color.r * multiplier, color.g * multiplier, color.b * multiplier, color.a or 1)
-            end
-        end
-    else
-        if (button.Animation) then
-            if (data.isStealable or data.dispelName == "Magic") and isEnemy then
-                if not button.Animation:IsPlaying() then
-                    button.Animation:Play()
-                    -- button.Backdrop:SetBorderColor(0.2, 0.6, 1)
-                    local color = E.colors.debuff["Stealable"]
-                    button.Backdrop:SetBackdropBorderColor(color.r, color.g, color.b, color.a or 1)
-                end
-            else
-                if button.Animation:IsPlaying() then
-                    button.Animation:Stop()
-                    local color = C.general.border.color
-                    button.Backdrop:SetBackdropBorderColor(color.r, color.g, color.b, color.a or 1)
-                end
-            end
-        end
-    end
-
     local duration = data.duration or 0
     button.duration = duration
     button.expirationTime = data.expirationTime
@@ -174,15 +136,37 @@ function aura_proto:PostUpdateButton(button, unit, data, position)
         end
     end
 
-    local cd = button.cd
-    if (cd) then
-        if (duration and duration > 0) then
-            cd:SetCooldown(expirationTime - duration, duration)
-            cd:Show()
+    if button.Backdrop then
+        if (data.isHarmful and UnitCanAssist(unit, "player")) or (data.isHelpful and UnitCanAttack(unit, "player") and UnitCanAttack("player", unit)) then
+            local mu = 0.8
+            local color = E.colors.debuff[data.dispelName or "none"]
+            button.Backdrop:SetBackdropBorderColor(color.r * mu, color.g * mu, color.b * mu, color.a or 1)
         else
-            cd:Hide()
+            local color = C.general.border.color
+            button.Backdrop:SetBackdropBorderColor(color.r, color.g, color.b, color.a or 1)
         end
     end
+
+    if button.Icon then
+        button.Icon:SetDesaturated(data.isHarmful and (not data.isPlayerAura) and not UnitIsUnit(unit, "player"))
+    end
+
+    if (button.Animation) then
+        if data.isDispelable or data.isStealable then
+            if not button.Animation:IsPlaying() then
+                button.Animation:Play()
+            end
+        else
+            if button.Animation:IsPlaying() then
+                button.Animation:Stop()
+            end
+        end
+    end
+end
+
+function aura_proto:PostProcessAuraData(unit, data)
+    data.isDispelable = LibDispel:IsDispelable(unit, data.spellId, data.dispelName, data.isHarmful)
+    return data
 end
 
 --------------------------------------------------
