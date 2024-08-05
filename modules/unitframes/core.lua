@@ -242,9 +242,12 @@ function UnitFrames:Init()
         frame.__unit = unit:gsub("%d+", "")
         frame.__config = C.unitframes[frame.__unit]
 
-        local width = frame.__config.width or 200
-        local height = frame.__config.height or 32
-        frame:SetSize(width, height)
+        if frame.__unit ~= "raid" then
+            local width = frame.__config.width or 200
+            local height = frame.__config.height or 32
+            frame:SetSize(width, height)
+        end
+        
         frame:CreateBackdrop()
         frame.Backdrop:SetBackdropColor(0, 0, 0)
         frame.Backdrop:SetBackdropBorderColor(0, 0, 0)
