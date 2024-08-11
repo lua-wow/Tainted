@@ -9,6 +9,11 @@ local UnitFrames = E:CreateModule("UnitFrames")
 local NUM_BOSS_FRAMES = _G.NUM_BOSS_FRAMES or 8
 local NUM_ARENA_FRAMES = _G.NUM_ARENA_FRAMES or 5
 
+local SPEC_DRUID_RESTORATION = E.isRetail and 4 or 3
+local SPEC_PALADIN_HOLY = 1
+local SPEC_PRIEST_SHADOW = _G.SPEC_PRIEST_SHADOW or 3
+local SPEC_SHAMAN_RESTORATION = _G.SPEC_SHAMAN_RESTORATION or 3
+
 local CompactRaidFrameManager = _G.CompactRaidFrameManager
 local CompactRaidFrameContainer = _G.CompactRaidFrameContainer
 local GetSpecialization = _G.GetSpecialization
@@ -45,11 +50,26 @@ do
         groupThreshold = 20
     }
 
-    -- TODO: Implement method for classic
-    function element_proto:IsHealer()
-        local spec = GetSpecialization()
-        local specRole = GetSpecializationRole(spec)
-        return (specRole == "HEALER")
+    if E.isRetail then
+        function element_proto:IsHealer()
+            local spec = GetSpecialization(false, false)
+            local specRole = GetSpecializationRole(spec)
+            return (specRole == "HEALER")
+        end
+    elseif E.isCata then
+        function element_proto:IsHealer()
+            local class = E.Player.class
+            local spec = GetPrimaryTalentTree(false, false)
+            return (class == "DRUID" and spec == SPEC_DRUID_RESTORATION)
+                or (class == "PALADIN" and spec == SPEC_PALADIN_HOLY)
+                or (class == "PRIEST" and spec ~= SPEC_PRIEST_SHADOW)
+                or (class == "SHAMAN" and spec == SPEC_SHAMAN_RESTORATION)
+        end
+    else
+        function element_proto:IsHealer()
+            -- TODO: Implement method for classic
+            return false
+        end
     end
 
     function element_proto:SetDefaultPosition()
@@ -103,9 +123,9 @@ do
         elseif event == "PLAYER_REGEN_ENABLED" then
             self:RegisterEvent("GROUP_ROSTER_UPDATE")
 
-            if Filger.isCata then
+            if E.isCata then
                 self:RegisterEvent("PLAYER_TALENT_UPDATE")
-            elseif Filger.isClassic then
+            elseif E.isClassic then
                 self:RegisterEvent("CHARACTER_POINTS_CHANGED")
             else
                 self:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED")
