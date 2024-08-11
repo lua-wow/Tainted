@@ -41,103 +41,104 @@ E.API.Kill = function(self)
 end
 
 E.API.StripTexts = function(self, kill)
-	for i = 1, self:GetNumRegions() do
-		local Region = select(i, self:GetRegions())
-		if (Region and Region:GetObjectType() == "FontString") then
-			if (kll and type(kill) == "boolean") then
-				Region:Kill()
+	for _, region in next, { self:GetRegions() } do
+		if (region:GetObjectType() == "FontString") then
+			if (kill and type(kill) == "boolean") then
+				region:Kill()
 			else
-				Region:SetText("")
+				region:SetText("")
 			end
 		end
 	end
 end
 
 E.API.StripTextures = function(self, kill)
-	for i = 1, self:GetNumRegions() do
-		local Region = select(i, self:GetRegions())
-		if (Region and Region:GetObjectType() == "Texture") then
+	for _, region in next, { self:GetRegions() } do
+		if (region:GetObjectType() == "Texture") then
 			if (kill and type(kill) == "boolean") then
-				Region:Kill()
-			elseif (Region:GetDrawLayer() == Kill) then
-				Region:SetTexture(nil)
-			elseif (kill and type(kill) == "string" and Region:GetTexture() ~= kill) then
-				Region:SetTexture(nil)
+				region:Kill()
+			elseif (region:GetDrawLayer() == kill) then
+				region:SetTexture(nil)
+			elseif (kill and type(kill) == "string" and region:GetTexture() ~= kill) then
+				region:SetTexture(nil)
 			else
-				Region:SetTexture(nil)
+				region:SetTexture(nil)
 			end
 		end
 	end
 end
 
 -- Fading
-E.API.SetFadeInTemplate = function(self, FadeTime, Alpha)
-	securecall(UIFrameFadeIn, self, FadeTime, self:GetAlpha(), Alpha)
+E.API.SetFadeInTemplate = function(self, time, alpha)
+	securecall(UIFrameFadeIn, self, time, self:GetAlpha(), alpha)
 end
 
-E.API.SetFadeOutTemplate = function(self, FadeTime, Alpha)
-	securecall(UIFrameFadeOut, self, FadeTime, self:GetAlpha(), Alpha)
+E.API.SetFadeOutTemplate = function(self, time, alpha)
+	securecall(UIFrameFadeOut, self, time, self:GetAlpha(), alpha)
 end
 
 -- Resize
-E.API.SetOutside = function(self, Anchor, OffsetX, OffsetY)
-	OffsetX = OffsetX and E.Scale(OffsetX) or E.Scale(1)
-	OffsetY = OffsetY and E.Scale(OffsetY) or E.Scale(1)
+E.API.SetOutside = function(self, anchor, xOffset, yOffset)
+	xOffset = xOffset and E.Scale(xOffset) or E.Scale(1)
+	yOffset = yOffset and E.Scale(yOffset) or E.Scale(1)
 
-	Anchor = Anchor or self:GetParent()
+	anchor = anchor or self:GetParent()
 
 	if self:GetPoint() then
 		self:ClearAllPoints()
 	end
 
-	self:SetPoint("TOPLEFT", Anchor, "TOPLEFT", -OffsetX, OffsetY)
-	self:SetPoint("BOTTOMRIGHT", Anchor, "BOTTOMRIGHT", OffsetX, -OffsetY)
+	self:SetPoint("TOPLEFT", anchor, "TOPLEFT", -xOffset, yOffset)
+	self:SetPoint("BOTTOMRIGHT", anchor, "BOTTOMRIGHT", xOffset, -yOffset)
 end
 
-E.API.SetInside = function(self, Anchor, OffsetX, OffsetY)
-	OffsetX = OffsetX and E.Scale(OffsetX) or E.Scale(1)
-	OffsetY = OffsetY and E.Scale(OffsetY) or E.Scale(1)
+E.API.SetInside = function(self, anchor, xOffset, yOffset)
+	xOffset = xOffset and E.Scale(xOffset) or E.Scale(1)
+	yOffset = yOffset and E.Scale(yOffset) or E.Scale(1)
 
-	Anchor = Anchor or self:GetParent()
+	anchor = anchor or self:GetParent()
 
 	if self:GetPoint() then
 		self:ClearAllPoints()
 	end
 
-	self:SetPoint("TOPLEFT", Anchor, "TOPLEFT", OffsetX, -OffsetY)
-	self:SetPoint("BOTTOMRIGHT", Anchor, "BOTTOMRIGHT", -OffsetX, OffsetY)
+	self:SetPoint("TOPLEFT", anchor, "TOPLEFT", xOffset, -yOffset)
+	self:SetPoint("BOTTOMRIGHT", anchor, "BOTTOMRIGHT", -xOffset, yOffset)
 end
 
 -- Backdrop
 E.API.CreateBackdrop = function(self, template)
-	if not self.Backdrop then
-		local backdropTexture = C.general.backdrop.texture or A.textures.blank
-		local backdropColor = C.general.backdrop.color
-		local backdropAlpha = (template == "transparent") and 0.70 or 1
-		
-		local borderTexture = C.general.border.texture or A.textures.blank
-		local borderColor = C.general.border.color
+	if self.Backdrop then return end
+	
+	local backdropTexture = C.general.backdrop.texture or A.textures.blank
+	local backdropColor = C.general.backdrop.color
+	local backdropAlpha = (template == "transparent") and 0.70 or 1
+	
+	local borderTexture = C.general.border.texture or A.textures.blank
+	local borderColor = C.general.border.color
 
-		local inset = E.Scale(C.general.border.size or 1)
-		local backdrop = {
-			bgFile = backdropTexture
-		}
+	local inset = E.Scale(C.general.border.size or 1)
+	local backdrop = {
+		bgFile = backdropTexture
+	}
 
-		if (template ~= "solid") then
-			backdrop.edgeFile = borderTexture
-			backdrop.edgeSize = inset
-			backdrop.insets = { top = inset, left = inset, bottom = inset, right = inset }
-		end
-		
-		local level = self:GetFrameLevel() or 1
+	if (template ~= "solid") then
+		backdrop.edgeFile = borderTexture
+		backdrop.edgeSize = inset
+		backdrop.insets = { top = inset, left = inset, bottom = inset, right = inset }
+	end
+	
+	self.Backdrop = CreateFrame("Frame", nil, self, "BackdropTemplate")
+	self.Backdrop:SetPoint("TOPLEFT", -inset, inset)
+	self.Backdrop:SetPoint("BOTTOMRIGHT", inset, -inset)
+	self.Backdrop:SetBackdrop(backdrop)
+	self.Backdrop:SetBackdropColor(backdropColor.r, backdropColor.g, backdropColor.b, backdropAlpha)
+	self.Backdrop:SetBackdropBorderColor(borderColor.r, borderColor.g, borderColor.b)
 
-		self.Backdrop = CreateFrame("Frame", nil, self, "BackdropTemplate")
-		self.Backdrop:SetPoint("TOPLEFT", -inset, inset)
-		self.Backdrop:SetPoint("BOTTOMRIGHT", inset, -inset)
+	-- draw it below the element
+	local level = self:GetFrameLevel() or 1
+	if (level > 0) then
 		self.Backdrop:SetFrameLevel(level - 1)
-		self.Backdrop:SetBackdrop(backdrop)
-		self.Backdrop:SetBackdropColor(backdropColor.r, backdropColor.g, backdropColor.b, backdropAlpha)
-		self.Backdrop:SetBackdropBorderColor(borderColor.r, borderColor.g, borderColor.b)
 	end
 end
 
@@ -159,6 +160,17 @@ E.API.SkinButton = function(button)
 			self.Backdrop:SetBackdropBorderColor(borderColor.r, borderColor.g, borderColor.b, borderColor.a or 1)
 		end
 	end)
+end
+
+E.API.GetCooldownTimer = function(self)
+	if self:GetObjectType() == "Cooldown" then
+		local regions = { self:GetRegions() }
+		for k, v in next, regions do
+			if v:GetObjectType() == "FontString" then
+				return v
+			end
+		end
+	end
 end
 
 --------------------------------------------------

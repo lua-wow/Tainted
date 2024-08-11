@@ -35,36 +35,32 @@ A["sounds"] = {}
 --------------------------------------------------
 local CreateFont = _G.CreateFont
 
-local TAINTED_FONT = "TaintedFont"
-local TAINTED_FONT_OUTLINED = "TaintedFontOutline"
-local TAINTED_UNITFRAME_FONT = "TaintedUFFont"
-local TAINTED_PIXEL_FONT = "TaintedPixelFont"
+local TAINTED_FONT = CreateFont("TaintedFont")
+TAINTED_FONT:SetFont(A.fonts.normal, 12, "")
 
-local tainted_font = CreateFont(TAINTED_FONT)
-tainted_font:SetFont(A.fonts.normal, 12, "")
+local TAINTED_FONT_OUTLINED = CreateFont("TaintedFontOutline")
+TAINTED_FONT_OUTLINED:SetFont(A.fonts.normal, 12, "THINOUTLINE")
 
-local tainted_font_outlined = CreateFont(TAINTED_FONT_OUTLINED)
-tainted_font_outlined:SetFont(A.fonts.normal, 12, "THINOUTLINE")
+local TAINTED_UNITFRAME_FONT = CreateFont("TaintedUFFont")
+TAINTED_UNITFRAME_FONT:SetFont(A.fonts.unitframes, 12, "")
 
-local tainted_uf_font = CreateFont(TAINTED_UNITFRAME_FONT)
-tainted_uf_font:SetFont(A.fonts.unitframes, 12, "")
+local TAINTED_PIXEL_FONT = CreateFont("TaintedPixelFont")
+TAINTED_PIXEL_FONT:SetFont(A.fonts.pixel, 12, "MONOCHROME, OUTLINE, THIN")
 
-local tainted_pixel_font = CreateFont(TAINTED_PIXEL_FONT)
-tainted_pixel_font:SetFont(A.fonts.pixel, 12, "MONOCHROME, OUTLINE, THIN")
-
-local fonts = {
+local FONTS = {
     ["Tainted"] = TAINTED_FONT,
     ["Tainted Outlined"] = TAINTED_FONT_OUTLINED,
     ["Tainted UnitFrame"] = TAINTED_UNITFRAME_FONT,
     ["Tainted Pixel"] = TAINTED_PIXEL_FONT,
-    ["Game Font"] = "GameFontWhite"
+    ["Game Font White"] = _G.GameFontWhite,
+    ["Game Font Normal"] = _G.GameFontNormal
 }
 
 E.GetFont = function(value)
-    if (value and fonts[value]) then
-        return fonts[value]
+    if (value and FONTS[value]) then
+        return FONTS[value]
     end
-    return fonts["Tainted"]
+    return FONTS["Tainted"]
 end
 
 --------------------------------------------------

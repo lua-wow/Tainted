@@ -1,0 +1,16 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/">
+	<Script file="core.lua"/>
+	<Script file="bar1.lua"/>
+	<Script file="bar2.lua"/>
+	<Script file="bar3.lua"/>
+	<Script file="bar4.lua"/>
+	<Script file="bar5.lua"/>
+	<Script file="bar6.lua"/>
+	<Script file="bar7.lua"/>
+	<Script file="bar8.lua"/>
+	<Script file="petbar.lua"/>
+	<Script file="stancebar.lua"/>
+	<Script file="extra.lua"/>
+	<Script file="zone.lua"/>
+	<Script file="bindings.lua"/>
+</Ui>

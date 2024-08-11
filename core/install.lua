@@ -106,6 +106,9 @@ local variables = {
 	-- arena
 	["showArenaEnemyFrames"] = 0,
 	["showArenaEnemyPets"] = 0,
+
+	-- new player experience
+	["showNPETutorials"] = 0
 }
 
 function E:SetupDefaultsCVars()

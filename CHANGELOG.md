@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   Changed font fo frame rate (Ctrl + R)
 -   Placing queue status button inside minimap
 -   Update raid frame anchor for cataclysm classic
+-   Action bars styling
 
 ### Changed
 

@@ -22,6 +22,29 @@ C["general"] = {
     }
 }
 
+C["actionbars"] = {
+    ["enabled"] = true,
+    ["font"] = "Tainted Outlined",
+    ["size"] = 34,
+    ["spacing"] = 5,
+    ["bar6"] = false,
+    ["bar7"] = false,
+    ["bar8"] = false,
+    ["pet"] = {
+        ["size"] = 30,
+        ["spacing"] = 5
+    },
+    ["stance"] = {
+        ["size"] = 27,
+        ["spacing"] = 5,
+        ["horizontal"] = false,
+    },
+    ["extra"] = {
+        ["size"] = 40,
+        ["spacing"] = 5
+    },
+}
+
 C["auras"] = {
     ["enabled"] = true,
     ["font"] = "Tainted Outlined",

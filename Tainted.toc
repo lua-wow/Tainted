@@ -50,6 +50,9 @@ modules\maps\init.xml
 ### miscellaneous
 modules\miscellaneous\init.xml
 
+### actionbars
+modules\actionbars\init.xml
+
 ### auras
 modules\auras\auras.lua
 
