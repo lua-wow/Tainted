@@ -10,6 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 -   Auto keystone
+-   Changed font fo frame rate (Ctrl + R)
+-   Placing queue status button inside minimap
+
+### Changed
+
+-  Added mirro timers for classic
 
 ## [1.1.0] - 2024-08-04
 

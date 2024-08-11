@@ -1,7 +1,9 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/">
 	<Script file="core.lua"/>
+	<Script file="framerate.lua"/>
 	<Script file="ghost.lua"/>
 	<Script file="mirror_timer.lua"/>
+	<Script file="queue_status.lua"/>
 	<Script file="talkinghead.lua"/>
 	<Script file="ui_widgets.lua"/>
 </Ui>
