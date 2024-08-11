@@ -7,8 +7,6 @@ local MODULE = E:GetModule("Blizzard")
 --------------------------------------------------
 if (not C.blizzard.talkinghead) then return end
 
-local TalkingHeadFrame = _G.TalkingHeadFrame
-
 local TalkingHead = {}
 
 local function PlayCurrent(self)
@@ -18,7 +16,10 @@ end
 
 function TalkingHead:Init()
     -- hooksecurefunc(_G.TalkingHeadFrame, "PlayCurrent", PlayCurrent)
-    _G.TalkingHeadFrame:UnregisterEvent("TALKINGHEAD_REQUESTED")
+    local TalkingHeadFrame = _G.TalkingHeadFrame
+    if TalkingHeadFrame then
+        _G.TalkingHeadFrame:UnregisterEvent("TALKINGHEAD_REQUESTED")
+    end
 end
 
 MODULE.TalkingHead = TalkingHead

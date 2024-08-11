@@ -25,12 +25,10 @@ function Ghost:HideTextures(button)
 end
 
 function Ghost:Init()
-    local size = 20
-    
     GhostFrame:ClearAllPoints()
     GhostFrame:SetPoint("TOPLEFT", Minimap, "BOTTOMLEFT", 0, -3)
     GhostFrame:SetPoint("TOPRIGHT", Minimap, "BOTTOMRIGHT", 0, -3)
-    GhostFrame:SetHeight(size)
+    GhostFrame:SetHeight(20)
     GhostFrame:CreateBackdrop()
     
     GhostFrameContentsFrame:SetAllPoints(GhostFrame)
@@ -43,7 +41,9 @@ function Ghost:Init()
 
     GhostFrameContentsFrameText:SetWordWrap(false)
     GhostFrameContentsFrameText:SetNonSpaceWrap(true)
-    GhostFrameContentsFrameText:SetTextToFit(_G.RETURN_TO_GRAVEYARD)
+    if GhostFrameContentsFrameText.SetTextToFit then
+        GhostFrameContentsFrameText:SetTextToFit(_G.RETURN_TO_GRAVEYARD)
+    end
 
     local color = E:CreateColor(GhostFrameContentsFrameText:GetTextColor())
     
