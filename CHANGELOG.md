@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   Placing queue status button inside minimap
 -   Update raid frame anchor for cataclysm classic
 -   Action bars styling
+-   Fixed Objective Tracker position
 
 ### Changed
 

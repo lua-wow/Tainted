@@ -1,4 +1,4 @@
-local addon, ns = ...
+local _, ns = ...
 local E, C, A = ns.E, ns.C, ns.A
 local MODULE = E:GetModule("Blizzard")
 
@@ -15,7 +15,7 @@ local MIRRORTIMER_NUMTIMERS = _G.MIRRORTIMER_NUMTIMERS
 local texture = C.unitframes.texture
 local font = A.fonts.normal
 
-local MirrorTimer = CreateFrame("Frame", addon .. "MirrorTimer")
+local MirrorTimer = CreateFrame("Frame", "TaintedMirrorTimer")
 
 function MirrorTimer:Skin(element)
     element:SetHeight(18)

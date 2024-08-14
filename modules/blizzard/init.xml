@@ -3,6 +3,7 @@
 	<Script file="framerate.lua"/>
 	<Script file="ghost.lua"/>
 	<Script file="mirror_timer.lua"/>
+	<Script file="objective_tracker.lua"/>
 	<Script file="queue_status.lua"/>
 	<Script file="talkinghead.lua"/>
 	<Script file="ui_widgets.lua"/>
