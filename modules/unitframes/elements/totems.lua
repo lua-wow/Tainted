@@ -4,7 +4,6 @@ local UnitFrames = E:GetModule("UnitFrames")
 
 -- Blizzard
 local GetTotemInfo = _G.GetTotemInfo
-local GetSpellInfo = _G.GetSpellInfo
 
 --------------------------------------------------
 -- Totems
@@ -50,19 +49,16 @@ function element_proto:Override(event, slot)
 
     local totem = element[slot]
     local haveTotem, name, start, duration, icon = GetTotemInfo(slot)
-    local spellID = select(7, GetSpellInfo(name))
     if (haveTotem and duration and duration > 0) then
         totem.slot = slot
         totem.start = start or 0
         totem.duration = duration
         totem.expirationTime = start + duration
-        totem.spellID = spellID
 
         if (totem:IsObjectType("StatusBar")) then
             totem:SetMinMaxValues(0, duration)
             totem:SetValue(duration)
             totem:SetScript("OnUpdate", element.OnUpdate)
-
             
         else
             if (totem.Icon) then
@@ -99,7 +95,7 @@ function UnitFrames:CreateTotems(frame)
         element:SetPoint("TOPLEFT", frame, "BOTTOMLEFT", -1, -3)
     end
 
-    local spacing = 3
+    local spacing = C.unitframes.totems.spacing or 5
     local sizes = E.CalcSegmentsSizes(MAX_TOTEMS, width, spacing)
     
     for i = 1, MAX_TOTEMS do

@@ -128,6 +128,7 @@ C["unitframes"] = {
     ["totems"] = {
         ["icons"] = true,
         ["size"] = 32,
+        ["spacing"] = 5,
         ["width"] = 235,
         ["height"] = 16,
         ["anchor"] = { "CENTER", UIParent, "CENTER", 0, -200 }
