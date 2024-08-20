@@ -123,6 +123,7 @@ C["unitframes"] = {
     ["classpower"] = {
         ["width"] = 235,
         ["height"] = 16,
+        ["spacing"] = 5,
         ["anchor"] = { "CENTER", UIParent, "CENTER", 0, -308 }
     },
     ["totems"] = {

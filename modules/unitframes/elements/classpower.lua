@@ -41,7 +41,7 @@ function UnitFrames:CreateClassPower(frame)
     element:SetPoint(unpack(C.unitframes.classpower.anchor))
     element:SetSize(width, height)
 
-    local spacing = 3
+    local spacing = C.unitframes.classpower.spacing or 5
     local max = NUM_MAX[frame.__class] or 5
     local sizes = E.CalcSegmentsSizes(max, width, spacing)
     

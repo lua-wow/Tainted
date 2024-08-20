@@ -49,7 +49,7 @@ function UnitFrames:CreateRunes(frame)
     element:SetPoint(unpack(C.unitframes.classpower.anchor))
     element:SetSize(width, height)
 
-    local spacing = 3
+    local spacing = C.unitframes.classpower.spacing or 5
     local sizes = E.CalcSegmentsSizes(MAX_RUNES, width, spacing)
     
     for i = 1, MAX_RUNES do
