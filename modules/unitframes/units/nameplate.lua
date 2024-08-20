@@ -28,6 +28,15 @@ UnitFrames.NameplateCVars = {
     nameplateShowSelf = 0
 }
 
+local function UpdateAlpha(self, alpha)
+    if self.Name then self.Name:SetAlpha(alpha) end
+    if self.Health then self.Health:SetAlpha(alpha) end
+    if self.Power then self.Power:SetAlpha(alpha) end
+    if self.Backdrop then self.Backdrop:SetAlpha(alpha) end
+    if self.Backdrop and self.Backdrop.Center then self.Backdrop.Center:SetAlpha(alpha) end
+    if self.Backdrop and self.Backdrop.BottomEdge then self.Backdrop.BottomEdge:SetAlpha(alpha) end
+end
+
 -- reference: https://github.com/trincasidra/TrincaUI/blob/main/unitframes/nameplate.lua
 UnitFrames.NameplateCallback = function(self, event, unit)
     if (event == "NAME_PLATE_UNIT_ADDED") then
@@ -43,9 +52,7 @@ UnitFrames.NameplateCallback = function(self, event, unit)
         end
         
         if self.widgetsOnly then
-            if self.Name then self.Name:SetAlpha(0) end
-            if self.Health then self.Health:SetAlpha(0) end
-            if self.Backdrop then self.Backdrop:SetAlpha(0) end
+            UpdateAlpha(self, 0)
             if self.widgetContainer then
                 self.widgetContainer:SetScale(2.0)
                 self.widgetContainer:SetParent(self)
@@ -55,9 +62,7 @@ UnitFrames.NameplateCallback = function(self, event, unit)
         end
     elseif (event == "NAME_PLATE_UNIT_REMOVED") then
         if self.widgetContainer and self.widgetsOnly then
-            if self.Name then self.Name:SetAlpha(1) end
-            if self.Health then self.Health:SetAlpha(1) end
-            if self.Backdrop then self.Backdrop:SetAlpha(1) end
+            UpdateAlpha(self, 1)
             self.widgetContainer:SetParent(self.blizzPlate)
             self.widgetContainer:ClearAllPoints()
             self.widgetContainer:SetPoint("TOP", self.blizzPlate.castBar, "BOTTOM")
