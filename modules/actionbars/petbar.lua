@@ -46,8 +46,11 @@ function MODULE:CreatePetBar()
 
     local frame = _G.PetActionBar or _G.PetActionBarFrame
     frame:SetParent(element)
+    frame:ClearAllPoints()
+    frame:SetAllPoints(E.Hider)
+    frame:EnableMouse(false)
     frame.ignoreFramePositionManager = true
-    frame.ignoreInLayout = true
+    -- frame.ignoreInLayout = true
 
     for i = 1, element._num do
         local button = element:StyleActionButton(_G["PetActionButton" .. i])
