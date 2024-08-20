@@ -34,3 +34,7 @@
 	path = libs/LibDispel
 	url = https://github.com/lua-wow/LibDispel.git
 	branch = master
+[submodule "libs/TaintLess"]
+	path = libs/TaintLess
+	url = https://github.com/lua-wow/TaintLess.git
+	branch = master

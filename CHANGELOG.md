@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+-   Embedded `TaintLess`
+
+### Changed
+
 ## [1.2.0] - 2024-08-14
 
 ### Added
