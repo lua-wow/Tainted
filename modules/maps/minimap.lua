@@ -145,20 +145,11 @@ function MODULE:Style()
 
     local ZoneTextButton = MinimapCluster.ZoneTextButton
     if (ZoneTextButton) then
-        ZoneTextButton:SetParent(Minimap)
-        ZoneTextButton:ClearAllPoints()
-        ZoneTextButton:SetPoint("TOPLEFT", Minimap, "TOPLEFT", 3, -3)
-        ZoneTextButton:SetPoint("TOPRIGHT", Minimap, "TOPRIGHT", -3, -3)
-        ZoneTextButton:SetHeight(20)
-        ZoneTextButton:SetFrameLevel(Minimap:GetFrameLevel() + 10)
-        ZoneTextButton:CreateBackdrop()
-        ZoneTextButton:SetAlpha(0)
+        ZoneTextButton:Hide()
+    end
 
-        local MinimapZoneText = ZoneTextButton.MinimapZoneText
-        if MinimapZoneText then
-            MinimapZoneText:ClearAllPoints()
-            MinimapZoneText:SetPoint("CENTER", ZoneTextButton, "CENTER", 0, 0)
-        end
+    if MinimapZoneText then
+        MinimapZoneText:Hide()
     end
 
     local IndicatorFrame = MinimapCluster.IndicatorFrame
@@ -179,14 +170,52 @@ function MODULE:Style()
     end
 end
 
-function MODULE:AddZoneTextAnimation()
-    local MinimapCluster = _G.MinimapCluster
-    local ZoneTextButton = MinimapCluster.ZoneTextButton
-    if (ZoneTextButton) then
-        local MinimapZoneText = ZoneTextButton.MinimapZoneText
-        local InstanceDifficulty = MinimapCluster.InstanceDifficulty
+function MODULE:CreateZoneButton()
+    local Zone = CreateFrame("Button", "TukuiMinimapZone", Minimap)
+    Zone:SetPoint("TOPLEFT", Minimap, "TOPLEFT", 3, -3)
+    Zone:SetPoint("TOPRIGHT", Minimap, "TOPRIGHT", -3, -3)
+    Zone:SetHeight(20)
+    Zone:SetFrameLevel(Minimap:GetFrameLevel() + 10)
+    Zone:CreateBackdrop()
+    Zone:SetAlpha(0)
+    Minimap.Zone = Zone
 
-        local Animation = ZoneTextButton:CreateAnimationGroup()
+    local fontObject = E.GetFont(C.maps.font)
+
+    local Text = Zone:CreateFontString(Zone:GetName() .. "Text", "OVERLAY")
+    Text:SetAllPoints()
+    Text:SetFontObject(fontObject)
+    Text:SetJustifyH("CENTER")
+    Text:SetJustifyV("MIDDLE")
+    Text:SetWordWrap(false)
+    Zone.Text = Text
+
+    hooksecurefunc("Minimap_Update", function(self)
+        Text:SetText(GetMinimapZoneText())
+
+        local pvpType, isSubZonePvP, factionName = C_PvP.GetZonePVPInfo();
+        if (pvpType == "sanctuary") then
+            Text:SetTextColor(0.41, 0.8, 0.94);
+        elseif (pvpType == "arena") then
+            Text:SetTextColor(1.0, 0.1, 0.1);
+        elseif (pvpType == "friendly") then
+            Text:SetTextColor(0.1, 1.0, 0.1);
+        elseif (pvpType == "hostile") then
+            Text:SetTextColor(1.0, 0.1, 0.1);
+        elseif (pvpType == "contested") then
+            Text:SetTextColor(1.0, 0.7, 0.0);
+        else
+            Text:SetTextColor(NORMAL_FONT_COLOR.r, NORMAL_FONT_COLOR.g, NORMAL_FONT_COLOR.b);
+        end
+    end)
+
+    -- local MinimapCluster = _G.MinimapCluster
+    -- local ZoneTextButton = MinimapCluster.ZoneTextButton
+    -- if (ZoneTextButton) then
+    --     local MinimapZoneText = ZoneTextButton.MinimapZoneText
+    --     local InstanceDifficulty = MinimapCluster.InstanceDifficulty
+
+        local Animation = Zone:CreateAnimationGroup()
         Animation:SetLooping("NONE")
         Animation:SetToFinalAlpha(true)
 
@@ -196,7 +225,7 @@ function MODULE:AddZoneTextAnimation()
         FadeIn:SetDuration(0.50)
         FadeIn:SetSmoothing("IN")
 
-        ZoneTextButton.Animation = Animation
+        Zone.Animation = Animation
 
         Minimap:HookScript("OnEnter", function(self)
             Animation:Stop()
@@ -206,18 +235,18 @@ function MODULE:AddZoneTextAnimation()
         end)
 
         Minimap:HookScript("OnLeave", function(self)
-            if not MouseIsOver(ZoneTextButton) then
+            if not MouseIsOver(Zone) then
                 Animation:Stop()
                 if not Animation:IsPlaying() then
                     Animation:Play(true)
                 end
             end
         end)
-    end
+    -- end
 end
 
 function MODULE:Init()
     self:Style()
-    self:AddZoneTextAnimation()
+    self:CreateZoneButton()
     self.TaxiRequestEarlyLandingButton = self:AddTaxiRequestEarlyLandingButton()
 end
