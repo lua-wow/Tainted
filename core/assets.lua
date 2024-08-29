@@ -24,7 +24,8 @@ A["textures"] = {
     ["simpy 2"]     = [[Interface\AddOns\Tainted\assets\textures\simpy_2]],
     ["simpy 3"]     = [[Interface\AddOns\Tainted\assets\textures\simpy_3]],
     -- icon
-    ["raidtarget"]     = [[Interface\AddOns\Tainted\assets\icons\raidtarget]],
+    ["copy"]        = [[Interface\AddOns\Tainted\assets\icons\copy]],
+    ["raidtarget"]  = [[Interface\AddOns\Tainted\assets\icons\raidtarget]],
     ["resting"]     = [[Interface\AddOns\Tainted\assets\icons\resting]]
 }
 

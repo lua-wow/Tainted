@@ -82,7 +82,7 @@ end)
 
 function E:ADDON_LOADED(name, containsBindings)
     if (name == "Tainted") then
-		self:InitDatabase()
+		self.db = self:InitDatabase()
 	end
 end
 
@@ -91,10 +91,9 @@ function E:VARIABLES_LOADED(...)
 end
 
 function E:PLAYER_LOGIN()
-	local isInstalled = self:IsInstalled()
-	if (not isInstalled) then
+	if (not self.db.installed) then
 		self:SetupUiScale()
-		self:MarkAsInstalled()
+		self.db.installed = true
 	end
 
 	-- load modules
@@ -113,4 +112,10 @@ end
 
 function E:PLAYER_ENTERING_WORLD(isInitialLogin, isReloadingUi)
     self:SetupDefaultsCVars()
+
+	if not self.db.chat then
+		local Chat = self:GetModule("Chat")
+		Chat:Reset()
+		self.db.chat = true
+	end
 end

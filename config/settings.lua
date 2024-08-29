@@ -65,6 +65,27 @@ C["blizzard"] = {
     ["uiwidgets"] = true,
 }
 
+C["chat"] = {
+    ["margin"] = 5,
+	["width"] = 450,
+	["height"] = 205,
+	["font"] = "Tainted",
+	["text"] = {
+		["fading"] = {
+			["enabled"] = false,
+			["timer"] = 60
+		}
+	},
+    ["history"] = {
+        ["enabled"] = true,
+        ["threashold"] = 0,
+    },
+    ["link"] = {
+        ["color"] = E:CreateColor(0.08, 1.00, 0.36),
+        ["brackets"] = true
+    }
+}
+
 C["maps"] = {
     ["enabled"] = true,
     ["font"] = "Tainted",

@@ -46,6 +46,7 @@ local variables = {
 	["whisperMode"] = "popout",				-- values: "popout", "inline", "popout_and_inline"
 	["removeChatDelay"] = 1,
 	["profanityFilter"] = 0,
+	["chatClassColorOverride"] = 0,
 
 	-- tooltips
 	["UberTooltips"] = 1,

@@ -57,6 +57,12 @@ modules\actionbars\init.xml
 ### auras
 modules\auras\auras.lua
 
+### chat
+modules\chat\chatframe.lua
+modules\chat\history.lua
+modules\chat\copy_text.lua
+modules\chat\copy_url.lua
+
 ### tooltips
 modules\tooltips\tooltips.lua
 
