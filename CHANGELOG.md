@@ -10,7 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 -   Embedded `TaintLess`
--   Chat frame customization
+-   Added chat frame customization
+-   Added experience bar customization
 
 ### Changed
 

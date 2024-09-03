@@ -51,3 +51,11 @@ end
 function E:IsChatInstalled()
 	return TaintedDatabase[realm][name].chat
 end
+
+function E:GetExperienceBarIndex()
+	return TaintedDatabase[realm][name].experience
+end
+
+function E:SetExperienceBarIndex(index)
+	TaintedDatabase[realm][name].experience = index
+end

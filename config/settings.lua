@@ -15,7 +15,7 @@ C["general"] = {
         ["texture"] = blankTex
     },
     ["background"] = {
-        ["multiplier"] = 0.15
+        ["multiplier"] = 0.30
     },
     ["highlight"] = {
         ["color"] = E:CreateColor(0.84, 0.75, 0.65)
