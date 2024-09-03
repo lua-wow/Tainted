@@ -29,26 +29,50 @@ do
         end
     end
 
-    function UnitFrames:CreateHealth(frame)
+    function UnitFrames:CreateHealth(frame, textParent)
+        local ref = textParent or element
         local texture = C.unitframes.texture
         local fontObject = E.GetFont(C.unitframes.font)
 
-        local element = Mixin(CreateFrame("StatusBar", frame:GetName() .. "Health", frame), element_proto)
-        element:SetStatusBarTexture(texture)
-        element:SetFrameLevel(frame:GetFrameLevel() + 1)
-        element:SetClipsChildren(true)
-        element:SetPoint("TOP", frame, "TOP", 0, 0)
-        element:SetPoint("LEFT", frame, "LEFT", 0, 0)
-        element:SetPoint("RIGHT", frame, "RIGHT", 0, 0)
-        element:SetPoint("BOTTOM", frame, "BOTTOM", 0, C.unitframes.power.height)
-        element:SetClipsChildren(false)
-
-        local temploss = CreateFrame("StatusBar", nil, element)
-        temploss:SetAllPoints()
+        local temploss = CreateFrame("StatusBar", nil, frame)
+        temploss:SetPoint("TOP", frame, "TOP", 0, 0)
+        temploss:SetPoint("LEFT", frame, "LEFT", 0, 0)
+        temploss:SetPoint("RIGHT", frame, "RIGHT", 0, 0)
+        temploss:SetPoint("BOTTOM", frame, "BOTTOM", 0, C.unitframes.power.height)
         temploss:SetReverseFill(true)
         temploss:SetMinMaxValues(0, 1)
         temploss:SetClipsChildren(true)
-        temploss:SetFrameLevel(element:GetFrameLevel() + 1)
+        temploss:SetFrameLevel(frame:GetFrameLevel() + 1)
+        temploss:SetStatusBarTexture(texture)
+        
+        temploss._texture = temploss:GetStatusBarTexture()
+        temploss._texture:SetTexture(C.unitframes.health.temploss.texture, "REPEAT", "REPEAT")
+		temploss._texture:SetHorizTile(true)
+		temploss._texture:SetVertTile(true)
+        
+        local element = Mixin(CreateFrame("StatusBar", frame:GetName() .. "Health", frame), element_proto)
+        element:SetStatusBarTexture(texture)
+        element:SetFrameLevel(frame:GetFrameLevel() + 1)
+        element:SetPoint("LEFT", frame, "LEFT", 0, 0)
+        element:SetPoint("TOPRIGHT", temploss._texture, "TOPLEFT", 0, 0)
+        element:SetPoint("BOTTOMRIGHT", temploss._texture, "BOTTOMLEFT", 0, 0)
+        element:SetClipsChildren(false)
+        
+        -- force one pixel space between health and temploss
+        -- temploss:HookScript("OnValueChanged", function(self, value)
+        --     if value == 0 then
+        --         element:ClearAllPoints()
+        --         element:SetPoint("LEFT", frame, "LEFT", 0, 0)
+        --         element:SetPoint("TOPRIGHT", temploss._texture, "TOPLEFT", 0, 0)
+        --         element:SetPoint("BOTTOMRIGHT", temploss._texture, "BOTTOMLEFT", 0, 0)
+        --     else
+        --         element:ClearAllPoints()
+        --         element:SetPoint("LEFT", frame, "LEFT", 0, 0)
+        --         element:SetPoint("TOPRIGHT", temploss._texture, "TOPLEFT", -1, 0)
+        --         element:SetPoint("BOTTOMRIGHT", temploss._texture, "BOTTOMLEFT", -1, 0)
+        --     end
+        -- end)
+
         element.TempLoss = temploss
         
         local bg = element:CreateTexture(nil, "BACKGROUND")
@@ -59,8 +83,8 @@ do
 
         local tag = frame.__config.tags.health
         if (tag) then
-            local value = element:CreateFontString(nil, "OVERLAY")
-            value:SetPoint("RIGHT", element, "RIGHT", -5, 0)
+            local value = ref:CreateFontString(nil, "OVERLAY")
+            value:SetPoint("RIGHT", ref, "RIGHT", -5, 0)
             value:SetFontObject(fontObject)
             value:SetJustifyH("RIGHT")
             value:SetWordWrap(false)

@@ -113,6 +113,9 @@ C["unitframes"] = {
     ["monochrome"] = true,
     ["color"] = E:CreateColor(0.10, 0.10, 0.10),
     ["health"] = {
+        ["temploss"] = {
+            ["texture"] = A.textures.reduction
+        },
         ["prediction"] = {
             ["colors"] = {
                 ["self"] = E:CreateColor(0.31, 0.45, 0.63, 0.40),

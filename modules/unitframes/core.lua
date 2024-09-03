@@ -201,10 +201,15 @@ function UnitFrames:CreateUnitFrame(frame)
     frame:SetScript("OnEnter", UnitFrame_OnEnter)
     frame:SetScript("OnLeave", UnitFrame_OnLeave)
 
-    frame.Health = self:CreateHealth(frame)
+    local textParent = CreateFrame("Frame", nil, frame)
+    textParent:SetAllPoints(frame)
+    textParent:SetFrameLevel(frame:GetFrameLevel() + 8)
+    frame.TextParent = textParent
+
+    frame.Health = self:CreateHealth(frame, frame.TextParent)
     frame.HealthPrediction = self:CreateHealthPrediction(frame)
-    frame.Power = self:CreatePower(frame)
-    frame.Name = self:CreateName(frame)
+    frame.Power = self:CreatePower(frame, frame.TextParent)
+    frame.Name = self:CreateName(frame, frame.TextParent)
     frame.Portrait = self:CreatePortrait(frame)
     frame.RaidTargetIndicator = self:CreateRaidTargetIndicator(frame)
 

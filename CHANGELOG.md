@@ -15,6 +15,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+-   Fix health temporary loss status bar and texture
+
 ## [1.2.0] - 2024-08-14
 
 ### Added

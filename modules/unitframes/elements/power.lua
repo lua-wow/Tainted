@@ -12,7 +12,8 @@ do
         colorPower = true
     }
         
-    function UnitFrames:CreatePower(frame)
+    function UnitFrames:CreatePower(frame, textParent)
+        local ref = textParent or frame.Health
         local texture = C.unitframes.texture
         local font = E.GetFont(C.unitframes.font)
 
@@ -33,8 +34,8 @@ do
 
         local tag = frame.__config.tags.power
         if (tag) then
-            local value = frame.Health:CreateFontString(nil, "OVERLAY")
-            value:SetPoint("LEFT", frame.Health, "LEFT", 5, 0)
+            local value = ref:CreateFontString(nil, "OVERLAY")
+            value:SetPoint("LEFT", ref, "LEFT", 5, 0)
             value:SetFontObject(font)
             value:SetJustifyH("LEFT")
             value:SetWordWrap(false)
