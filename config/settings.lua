@@ -90,7 +90,8 @@ C["maps"] = {
     ["enabled"] = true,
     ["font"] = "Tainted",
     ["worldmap"] = {
-        ["scale"] = 0.80
+        ["scale"] = 0.80,
+        ["coords"] = true
     },
 }
 
