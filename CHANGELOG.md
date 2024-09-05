@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   Embedded `TaintLess`
 -   Added chat frame customization
 -   Added experience bar customization
+-   New miscellanous that takes screenshots when achievements are earned
 
 ### Changed
 

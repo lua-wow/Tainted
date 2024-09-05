@@ -97,7 +97,15 @@ C["maps"] = {
 C["miscellaneous"] = {
     ["font"] = "Tainted",
     ["texture"] = blankTex,
-    ["threatbar"] = true
+    ["threatbar"] = true,
+    ["screenshots"] = {
+        ["enabled"] = true,             -- enables plugin.
+        ["achievements"] = true,        -- enables screenshots of earned achievements.
+        ["boss_kills"] = false,         -- enables screenshots of successful boss encounters.
+        ["challenge_mode"] = true,      -- enables screenshots of successful challenge modes / mythic keys.
+        ["levelup"] = true,             -- enables screenshots when player level up.
+        ["dead"] = false,               -- enables screenshots when player dies.
+    }
 }
 
 C["tooltips"] = {

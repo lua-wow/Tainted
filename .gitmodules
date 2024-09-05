@@ -38,3 +38,7 @@
 	path = libs/TaintLess
 	url = https://github.com/lua-wow/TaintLess.git
 	branch = master
+[submodule "modules/miscellaneous/screenshots"]
+	path = modules/miscellaneous/screenshots
+	url = https://github.com/lua-wow/screenshots.git
+	branch = master
