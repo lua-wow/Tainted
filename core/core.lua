@@ -32,7 +32,7 @@ do
 			if (module.Init) then
 				module:Init()
 			else
-				E.debug("Module " .. name .. " do not have Init")
+				E:error("Module " .. name .. " do not have Init")
 			end
 		end
 	end
@@ -43,7 +43,7 @@ do
 			if module.Update then
 				module:Update()
 			else
-				E.debug("Module " .. name .. " do not have Update")
+				E:error("Module " .. name .. " do not have Update")
 			end
 		end
 	end
@@ -57,11 +57,11 @@ end
 --------------------------------------------------
 -- Functions
 --------------------------------------------------
-E.print = function(...)
-    print(E.name, ...)
+function E:print(...)
+    print(self.name, ...)
 end
 
-E.debug = function(...)
+function E:error(...)
     print("|cffff0000Tainted|r", ...)
 end
 
@@ -92,7 +92,12 @@ end
 
 function E:PLAYER_LOGIN()
 	if (not self.db.installed) then
+		-- setup cvars
 		self:SetupUiScale()
+
+		-- fix bag sorting order
+		C_Container.SetSortBagsRightToLeft(true)
+		
 		self.db.installed = true
 	end
 

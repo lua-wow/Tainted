@@ -16,11 +16,11 @@ local SetupKeyBindings = function()
     -- returns if either account or character-specific bindings are active.
     local set = GetCurrentBindingSet()
     if (set == DEFAULT_BINDINGS) then
-        E.print("You are using the default key bind configuration")
+        E:print("You are using the default key bind configuration")
     elseif (set == ACCOUNT_BINDINGS) then
-        E.print("You are using the account key bind configuration")
+        E:print("You are using the account key bind configuration")
     elseif (set == CHARACTER_BINDINGS) then
-        E.print("You are using the character-specific key bind configuration")
+        E:print("You are using the character-specific key bind configuration")
     end
 
     SetBinding("NUMPAD4", "ACTIONBUTTON8", 2)
@@ -52,6 +52,14 @@ local SetupKeyBindings = function()
     SetBinding("F4", "MULTIACTIONBAR3BUTTON12", 2)
 
     SetBinding("NUMPADPLUS", "EXTRAACTIONBUTTON1", 1)
+    
+    SetBinding("BUTTON3", "PINGONMYWAY", 1)
+    SetBinding("CTRL-BUTTON3", "PINGWARNING", 1)
+    SetBinding("SHIFT-BUTTON3", "PINGASSIST", 1)
+    SetBinding("ALT-BUTTON3", "TOGGLEPINGLISTENER", 1)
+    SetBinding("CTRL-SHIFT-BUTTON3", "PINGATTACK", 1)
+    
+    SetBinding("SHIFT-Y", "TOGGLEACHIEVEMENT", 1) -- default: Y
 
     SaveBindings(ACCOUNT_BINDINGS)
 end

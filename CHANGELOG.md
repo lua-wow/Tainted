@@ -18,6 +18,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 -   Fix health temporary loss status bar and texture
 -   Missing configuration for worldmap coordinates
+-   Added Ping System on default binding configuration
+-   Added Achievement window as `shift + y`
 
 ## [1.2.0] - 2024-08-14
 
