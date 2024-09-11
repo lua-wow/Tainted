@@ -16,13 +16,19 @@ local element_proto = {
     unit = "player"
 }
 
-function element_proto:OnUpdate(elapsed)
-    self.elapsed = (self.elapsed or 0) + elapsed
-    if (self.elapsed < 1) then return end
+function element_proto:UpdateAnchor()
+    local anchor = _G["TaintedChatRightDataText"]
+    if anchor then
+        self:ClearAllPoints()
+        self:SetAllPoints(anchor)
+    end
+end
 
-    if UnitAffectingCombat("player") then
-        local isTanking, status, threatPercentage, rawPercentage, threatValue = UnitDetailedThreatSituation(self.unit, "target")
+function element_proto:Update()
+    if not UnitAffectingCombat("player") then return end
 
+    local isTanking, status, threatPercentage, rawPercentage, threatValue = UnitDetailedThreatSituation(self.unit, "target")
+    if status then
         self:SetValue(threatPercentage or 0)
 
         if self.Text then
@@ -42,9 +48,19 @@ function element_proto:OnUpdate(elapsed)
                 self.bg:SetVertexColor(color.r * mu, color.g * mu, color.b * mu)
             end
         end
-    end
 
-    self.elapsed = 0
+        self:SetAlpha(1)
+    else
+        self:SetAlpha(0)
+    end
+end
+
+function element_proto:OnUpdate(elapsed)
+    self.elapsed = (self.elapsed or 0) + elapsed
+    if self.elapsed >= 0.75 then
+        self:Update()
+        self.elapsed = 0
+    end
 end
 
 function element_proto:OnShow()
@@ -56,29 +72,30 @@ function element_proto:OnHide()
 end
 
 function element_proto:OnEvent(event, ...)
-    self[event](self, ...)
-end
-
-function element_proto:PLAYER_DEAD()
-    self:Hide()
-end
-
-function element_proto:PLAYER_ENTERING_WORLD()
-    self:Hide()
-end
-
-function element_proto:PLAYER_REGEN_ENABLED()
-    self:Hide()
-end
-
-function element_proto:PLAYER_REGEN_DISABLED()
-    self:Show()
-end
-
-function element_proto:UNIT_THREAT_SITUATION_UPDATE(unit)
-end
-
-function element_proto:UNIT_THREAT_LIST_UPDATE(unit)
+    if event == "PLAYER_LOGIN" then
+        if self.isInit then return end
+        
+        self:UnregisterEvent("PLAYER_LOGIN")
+        self:RegisterEvent("PLAYER_ENTERING_WORLD")
+        self:RegisterEvent("PLAYER_DEAD")
+        self:RegisterEvent("PLAYER_REGEN_ENABLED")
+        self:RegisterEvent("PLAYER_REGEN_DISABLED")
+        -- self:RegisterEvent("UNIT_THREAT_SITUATION_UPDATE")
+        -- self:RegisterEvent("UNIT_THREAT_LIST_UPDATE")
+        self:Hide()
+        self.isInit = true
+    elseif event == "PLAYER_ENTERING_WORLD" then
+        self:UpdateAnchor()
+        self:Hide()
+    elseif event == "PLAYER_REGEN_DISABLED" then
+        if not self:IsShown() then
+            self:Show()
+        end
+    else
+        if self:IsShown() then
+            self:Hide()
+        end
+    end
 end
 
 local fontObject = E.GetFont(C.miscellaneous.font)
@@ -86,18 +103,11 @@ local fontObject = E.GetFont(C.miscellaneous.font)
 local frame = Mixin(CreateFrame("StatusBar", "TaintedThreatBar", E.PetHider), element_proto)
 frame:SetPoint("TOP", 0, -10)
 frame:SetSize(230, 18)
--- frame:SetFrameLevel(T.DataTexts.Panels.Right:GetFrameLevel() + 2)
 frame:SetFrameStrata("HIGH")
 frame:SetStatusBarTexture(C.miscellaneous.texture)
 frame:SetMinMaxValues(0, 100)
--- frame:SetAlpha(0)
 frame:CreateBackdrop()
-frame:RegisterEvent("PLAYER_DEAD")
-frame:RegisterEvent("PLAYER_ENTERING_WORLD")
-frame:RegisterEvent("PLAYER_REGEN_ENABLED")
-frame:RegisterEvent("PLAYER_REGEN_DISABLED")
-frame:RegisterEvent("UNIT_THREAT_SITUATION_UPDATE")
-frame:RegisterEvent("UNIT_THREAT_LIST_UPDATE")
+frame:RegisterEvent("PLAYER_LOGIN")
 frame:SetScript("OnShow", frame.OnShow)
 frame:SetScript("OnHide", frame.OnHide)
 frame:SetScript("OnEvent", frame.OnEvent)
@@ -112,14 +122,10 @@ bg.multiplier = C.general.background.multiplier or 0.15
 local text = frame:CreateFontString(nil, "OVERLAY")
 text:SetPoint("RIGHT", frame, -10, 0)
 text:SetFontObject(fontObject)
--- frame.Text:SetShadowColor(0, 0, 0)
--- frame.Text:SetShadowOffset(1.25, -1.25)
 
 local value = frame:CreateFontString(nil, "OVERLAY")
 value:SetPoint("LEFT", frame, 10, 0)
 value:SetFontObject(fontObject)
--- frame.Value:SetShadowColor(0, 0, 0)
--- frame.Value:SetShadowOffset(1.25, -1.25)
 
 frame.bg = bg
 frame.Text = text
