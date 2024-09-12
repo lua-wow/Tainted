@@ -106,7 +106,8 @@ C["miscellaneous"] = {
         ["challenge_mode"] = true,      -- enables screenshots of successful challenge modes / mythic keys.
         ["levelup"] = true,             -- enables screenshots when player level up.
         ["dead"] = false,               -- enables screenshots when player dies.
-    }
+    },
+    ["skyriding_race"] = true
 }
 
 C["tooltips"] = {
