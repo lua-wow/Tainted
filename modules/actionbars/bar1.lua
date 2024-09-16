@@ -69,11 +69,11 @@ function bar_proto:UpdateAnchor()
 end
 
 function bar_proto:getPageState()
-	return PAGE_STATES["DEFAULT"] .. (PAGE_STATES[E.Player.class] or "") .. " [form] 1; 1"
+	return PAGE_STATES["DEFAULT"] .. (PAGE_STATES[E.class] or "") .. " [form] 1; 1"
 end
 
 function bar_proto:getAvailablePages()
-	return AVAILABLE_PAGES[E.Player.class] or AVAILABLE_PAGES["DEFAULT"]
+	return AVAILABLE_PAGES[E.class] or AVAILABLE_PAGES["DEFAULT"]
 end
 
 function MODULE:CreateActionBar1()

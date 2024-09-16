@@ -4,7 +4,7 @@ local E = ns.E
 --------------------------------------------------
 -- Database
 --------------------------------------------------
-local realm, name = E.Player.realm, E.Player.name
+local name, realm = E.name, E.realm
 
 function E:InitDatabase()
     if not TaintedDatabase then
@@ -19,13 +19,20 @@ function E:InitDatabase()
         TaintedDatabase[realm][name] = {}
     end
 
-    -- chat hostory storage
-    if not TaintedDatabase.ChatHistory then
-        TaintedDatabase.ChatHistory = {}
-    end
+    self.db = TaintedDatabase[realm][name]
+end
 
+function E:GetDatabase()
     return TaintedDatabase
 end
+
+-- function E:GetDatabaseRealm()
+--     return TaintedDatabase[realm]
+-- end
+
+-- function E:GetCharacterDatabase()
+--     return TaintedDatabase[realm][name]
+-- end
 
 function E:ResetDatabase()
     TaintedDatabase[realm][name] = {}
@@ -39,6 +46,7 @@ function E:MarkAsInstalled()
     TaintedDatabase[realm][name].installed = true
 end
 
+-- chat
 function E:MarkAsChatInstalled()
     TaintedDatabase[realm][name].chat = true
 end
@@ -52,10 +60,20 @@ function E:IsChatInstalled()
 	return TaintedDatabase[realm][name].chat
 end
 
+-- experience bar
 function E:GetExperienceBarIndex()
 	return TaintedDatabase[realm][name].experience
 end
 
 function E:SetExperienceBarIndex(index)
 	TaintedDatabase[realm][name].experience = index
+end
+
+-- Gold
+function E:GetMoney()
+    return TaintedDatabase[realm][name].money
+end
+
+function E:SetMoney(value)
+    TaintedDatabase[realm][name].money = value
 end

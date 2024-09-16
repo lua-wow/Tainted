@@ -58,7 +58,7 @@ do
         end
     elseif E.isCata then
         function element_proto:IsHealer()
-            local class = E.Player.class
+            local class = E.class
             local spec = GetPrimaryTalentTree(false, false)
             return (class == "DRUID" and spec == SPEC_DRUID_RESTORATION)
                 or (class == "PALADIN" and spec == SPEC_PALADIN_HOLY)

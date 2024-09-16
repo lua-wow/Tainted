@@ -86,6 +86,30 @@ C["chat"] = {
     }
 }
 
+C["datatexts"] = {
+    ["enabled"] = true,
+	["font"] = "Tainted",
+	["colors"] = {
+        ["class"] = true,
+		["text"] = E:CreateColor(1.00, 1.00, 1.00),
+		["value"] = E:CreateColor(1.00, 1.00, 1.00),
+        ["highlight"] = E:CreateColor(1.00, 1.00, 0.00)
+	},
+	["elements"] = {
+        -- left chat
+		[1] = "Guild",
+		[2] = "Character",
+		[3] = "Friends",
+        -- right chat
+		[4] = "System",
+		[5] = "MicroMenu",
+		[6] = "Gold",
+        -- minimap
+		[7] = "Time",
+		[8] = "Coords"
+	}
+}
+
 C["maps"] = {
     ["enabled"] = true,
     ["font"] = "Tainted",

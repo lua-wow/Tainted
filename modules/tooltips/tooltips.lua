@@ -528,7 +528,7 @@ do
         end
 
         -- hunter
-        if E.isClassic and E.Player.class == "HUNTER" and unit == "pet" and GetPetHappiness then
+        if E.isClassic and E.class == "HUNTER" and unit == "pet" and GetPetHappiness then
             local happiness, damagePercentage, loyaltyRate = GetPetHappiness()
             if happiness then
                 local color = E.colors.happiness[happiness]

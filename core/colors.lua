@@ -343,3 +343,18 @@ function E.GetUnitColor(unit)
 		end
 	end
 end
+
+function E.GetRelativeDifficultyColor(unitLevel, challengeLevel)
+    local diff = challengeLevel - unitLevel
+    if diff >= 5 then
+        return E.colors.difficulty["impossible"]
+    elseif diff >= 3 then
+        return E.colors.difficulty["very_difficult"]
+    elseif diff >= -4 then
+        return E.colors.difficulty["difficult"]
+    elseif -diff <= UnitQuestTrivialLevelRange("player") then
+        return E.colors.difficulty["standard"]
+    else
+        return E.colors.difficulty["trivial"]
+    end
+end

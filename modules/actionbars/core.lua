@@ -330,6 +330,28 @@ function MODULE:Hide(obj)
     obj:SetParent(E.Hider)
 end
 
+function MODULE:ToggleBagsBar()
+    local element = _G.BagsBar
+    if element:IsShown() then
+        element:Hide()
+    else
+        element:Show()
+    end
+    element:ClearAllPoints()
+    element:SetPoint("BOTTOMRIGHT", UIParent, -10, 260)
+end
+
+function MODULE:ToggleMicroMenu()
+    local element = _G.MicroMenu
+    if element:IsShown() then
+        element:Hide()
+    else
+        element:Show()
+    end
+    element:ClearAllPoints()
+    element:SetPoint("BOTTOMRIGHT", UIParent, -10, 220)
+end
+
 function MODULE:Init()
     SetActionBarToggles(
         1,                              -- action bar 2
@@ -341,8 +363,19 @@ function MODULE:Init()
         C.actionbars.bar8 and 1 or nil  -- action bar 8
     )
 
+    -- temporary
+    do
+        MicroMenu:ClearAllPoints()
+        MicroMenu:SetPoint("BOTTOMRIGHT", UIParent, -10, 220)
+        MicroMenu:Hide()
+
+        BagsBar:ClearAllPoints()
+        BagsBar:SetPoint("BOTTOMRIGHT", UIParent, -10, 260)
+        BagsBar:Hide()
+    end
+
     self:Hide(_G.MainMenuBar)
-    self:Hide(_G.OverrideActionBar)
+    -- self:Hide(_G.OverrideActionBar)
     self:Hide(_G.StatusTrackingBarManager)
 	self:Hide(_G.MainStatusTrackingBarContainer)
 	self:Hide(_G.SecondaryStatusTrackingBarContainer)

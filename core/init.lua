@@ -16,7 +16,7 @@ local windowed = Display_DisplayModeDropDown and Display_DisplayModeDropDown:win
 local fullscreen = Display_DisplayModeDropDown and Display_DisplayModeDropDown:fullscreenmode() or false
 
 -- Addon
-E.name = addon --GetAddOnMetadata(addon, "Title")
+E.addon = addon --GetAddOnMetadata(addon, "Title")
 E.version = GetAddOnMetadata(addon, "Version")
 
 -- System
@@ -27,22 +27,20 @@ E.screenHeight = physicalScreenHeight
 E.pixelPerfectScale = math.min(1, math.max(0.3, 768 / physicalScreenHeight))
 
 -- Player
-E.Player = {}
-E.Player.name = UnitName("player")
-E.Player.class = select(2, UnitClass("player"))
-E.Player.race = UnitRace("player")
-E.Player.realm = GetRealmName()
-E.Player.locale = GetLocale()
-E.Player.level = UnitLevel("player")
-E.Player.faction = select(2, UnitFactionGroup("player"))
+E.name = UnitName("player")
+E.class = select(2, UnitClass("player"))
+E.race = UnitRace("player")
+E.realm = GetRealmName()
+E.locale = GetLocale()
+E.level = UnitLevel("player")
+E.faction = select(2, UnitFactionGroup("player"))
 
 -- Game
 local wowPatch, wowBuild, wowReleaseDate, tocVersion = GetBuildInfo()
-E.WoW = {}
-E.WoW.patch = wowPatch
-E.WoW.build = wowBuild
-E.WoW.releaseDate = wowReleaseDate
-E.WoW.tocVersion = tocVersion
+E.patch = wowPatch
+E.build = wowBuild
+E.releaseDate = wowReleaseDate
+E.tocVersion = tocVersion
 
 -- reference: https://wowpedia.fandom.com/wiki/WOW_PROJECT_ID
 E.isRetail = (WOW_PROJECT_ID == WOW_PROJECT_MAINLINE)

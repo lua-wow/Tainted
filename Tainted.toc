@@ -3,7 +3,7 @@
 ## Version: 1.2.0 
 ## Title: |cffff8000Tainted|r
 ## Notes: Minimalistic interface
-## SavedVariables: TaintedDatabase
+## SavedVariables: TaintedDatabase, TaintedChatHistory
 ## IconTexture: Interface\ICONS\Spell_Shadow_Shadowform
 
 ## X-Website: https://github.com/lua-wow/Tainted
@@ -62,6 +62,9 @@ modules\miscellaneous\init.xml
 
 ### actionbars
 modules\actionbars\init.xml
+
+### datatexts
+modules\datatexts\init.xml
 
 ### tooltips
 modules\tooltips\tooltips.lua

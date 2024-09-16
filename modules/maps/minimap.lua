@@ -41,11 +41,14 @@ do
 
     function MODULE:AddTaxiRequestEarlyLandingButton()
         local Minimap = _G.Minimap
+        local level = (self.DataText or Minimap):GetFrameLevel()
 
         local button = Mixin(CreateFrame("Button", addon .. "TaxiRequestEarlyLandingButton", Minimap), button_proto)
         button:SetPoint("TOPLEFT", Minimap, "BOTTOMLEFT", 0, -3)
         button:SetPoint("TOPRIGHT", Minimap, "BOTTOMRIGHT", 0, -3)
         button:SetHeight(20)
+        button:SetFrameLevel(level + 3)
+        button:SetFrameStrata("MEDIUM")
         button:SkinButton()
         button:RegisterForClicks("AnyUp")
         button:RegisterEvent("UPDATE_BONUS_ACTIONBAR")
@@ -209,44 +212,49 @@ function MODULE:CreateZoneButton()
         end
     end)
 
-    -- local MinimapCluster = _G.MinimapCluster
-    -- local ZoneTextButton = MinimapCluster.ZoneTextButton
-    -- if (ZoneTextButton) then
-    --     local MinimapZoneText = ZoneTextButton.MinimapZoneText
-    --     local InstanceDifficulty = MinimapCluster.InstanceDifficulty
+    local Animation = Zone:CreateAnimationGroup()
+    Animation:SetLooping("NONE")
+    Animation:SetToFinalAlpha(true)
 
-        local Animation = Zone:CreateAnimationGroup()
-        Animation:SetLooping("NONE")
-        Animation:SetToFinalAlpha(true)
+    local FadeIn = Animation:CreateAnimation("Alpha")
+    FadeIn:SetFromAlpha(0)
+    FadeIn:SetToAlpha(1)
+    FadeIn:SetDuration(0.50)
+    FadeIn:SetSmoothing("IN")
 
-        local FadeIn = Animation:CreateAnimation("Alpha")
-        FadeIn:SetFromAlpha(0)
-        FadeIn:SetToAlpha(1)
-        FadeIn:SetDuration(0.50)
-        FadeIn:SetSmoothing("IN")
+    Zone.Animation = Animation
 
-        Zone.Animation = Animation
+    Minimap:HookScript("OnEnter", function(self)
+        Animation:Stop()
+        if not Animation:IsPlaying() then
+            Animation:Play()
+        end
+    end)
 
-        Minimap:HookScript("OnEnter", function(self)
+    Minimap:HookScript("OnLeave", function(self)
+        if not MouseIsOver(Zone) then
             Animation:Stop()
             if not Animation:IsPlaying() then
-                Animation:Play()
+                Animation:Play(true)
             end
-        end)
+        end
+    end)
+end
 
-        Minimap:HookScript("OnLeave", function(self)
-            if not MouseIsOver(Zone) then
-                Animation:Stop()
-                if not Animation:IsPlaying() then
-                    Animation:Play(true)
-                end
-            end
-        end)
-    -- end
+function MODULE:CreateDataText()
+    local parent = _G.Minimap
+    local element = CreateFrame("Frame", "TaintedMinimapDataText", parent)
+    element:SetPoint("TOPLEFT", parent, "BOTTOMLEFT", 0, -3)
+    element:SetPoint("TOPRIGHT", parent, "BOTTOMRIGHT", 0, -3)
+    element:SetHeight(20)
+    element:CreateBackdrop()
+    
+    self.DataText = element
 end
 
 function MODULE:Init()
     self:Style()
     self:CreateZoneButton()
+    self:CreateDataText()
     self.TaxiRequestEarlyLandingButton = self:AddTaxiRequestEarlyLandingButton()
 end

@@ -8,32 +8,32 @@ E.IconCoord = { 0.08, 0.92, 0.08, 0.92 }
 -- Module
 --------------------------------------------------
 do
-	local ModuleMixin = {}
+	local ModuleMixin = {
+		indexes = {},
+		modules = {}
+	}
 
 	function ModuleMixin:GetModule(name)
 		return self.modules[name]
 	end
 
 	function ModuleMixin:SetModule(name, module)
-		if not self.modules then
-			self.modules = {}
-		end
 		self.modules[name] = module
 		return self.modules[name]
 	end
 
 	function ModuleMixin:CreateModule(name)
+		assert(not self.modules[name], "Module " .. name .. " already exists.")
+		self.indexes[#self.indexes + 1] = name
 		return self:SetModule(name, {})
 	end
-
+	
 	function ModuleMixin:InitModules()
 		if not self.modules then return end
-		for name, module in next, self.modules do
-			if (module.Init) then
-				module:Init()
-			else
-				E:error("Module " .. name .. " do not have Init")
-			end
+		for index, name in ipairs(self.indexes) do
+			local module = self.modules[name]
+			assert(module.Init, "Module " .. name .. " do not have 'Init' function.")
+			module:Init()
 		end
 	end
 
@@ -58,7 +58,7 @@ end
 -- Functions
 --------------------------------------------------
 function E:print(...)
-    print(self.name, ...)
+    print("|cffff8000Tainted|r", ...)
 end
 
 function E:error(...)
@@ -82,7 +82,7 @@ end)
 
 function E:ADDON_LOADED(name, containsBindings)
     if (name == "Tainted") then
-		self.db = self:InitDatabase()
+		self:InitDatabase()
 	end
 end
 

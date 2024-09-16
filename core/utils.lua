@@ -8,23 +8,25 @@ local infinity = math.huge
 
 -- constants
 local CLASSIFICATION = "|c%s%s |r"
+local MILLION = 1E6
+local THOUSAND = 1E3
 
 local round = function(value)
 	return floor(value + 0.5)
 end
 
--- Return short value of a number!
-E.ShortValue = function(v)
-	if (v >= 1e6) then
-		return gsub(format("%.1fm", v / 1e6), "%.?0+([km])$", "%1")
-	elseif (v >= 1e3 or v <= -1e3) then
-		return gsub(format("%.1fk", v / 1e3), "%.?0+([km])$", "%1")
-	else
-		return v
+-- return short value of a number!
+E.ShortValue = function(value)
+	local v = math.abs(value)
+	if (v >= 1E6) then
+		return ("%.1fm"):format(value / 1E6):gsub("%.?0+([km])$", "%1")
+	elseif (v >= 1E3) then
+		return ("%.1fk"):format(value / 1E3):gsub("%.?0+([km])$", "%1")
 	end
+	return value
 end
 
--- Format seconds to min/hour/day
+-- format seconds to minutes, hours or days
 E.FormatTime = function(value)
 	value = tonumber(value)
 	if (not value or value == infinity) then return end

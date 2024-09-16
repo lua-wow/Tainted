@@ -31,7 +31,7 @@ function button_proto:OnMouseUp()
 end
 
 function button_proto:Update(frame, state)
-	local color = state and E.colors.class[E.Player.class] or C.general.border.color
+	local color = state and E.colors.class[E.class] or C.general.border.color
 
 	frame:SetTextCopyable(state)
 	frame:EnableMouse(true)

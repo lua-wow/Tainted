@@ -15,7 +15,7 @@ if not C.blizzard.uiwidgets then return end
 local UIWidgets = CreateFrame("Frame", addon .. "UIWidgets")
 
 function UIWidgets:CreateHolder()
-    local element = CreateFrame("Frame", E.name .. "Widgets", UIParent)
+    local element = CreateFrame("Frame", addon .. "Widgets", UIParent)
     element:SetPoint("TOP", 0, -100)
     element:SetSize(220, 30)
     return element

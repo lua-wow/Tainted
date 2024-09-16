@@ -6,7 +6,7 @@ local UnitFrames = E:GetModule("UnitFrames")
 -- Player
 --------------------------------------------------
 function UnitFrames:CreatePlayerFrame(frame)
-    frame.__class = E.Player.class
+    frame.__class = E.class
 
     self:CreateUnitFrame(frame)
 

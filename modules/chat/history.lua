@@ -7,6 +7,7 @@ local E, C = ns.E, ns.C
 if not C.chat.history.enabled then return end
 
 local frame_proto = {
+    db = _G.TaintedChatHistory,
     threashold = C.chat.history.threashold or 0,
     isPrinting = false,
     events = {
@@ -34,8 +35,8 @@ local frame_proto = {
 function frame_proto:Print()
     self.isPrinting = true
 
-    for index = #TaintedDatabase.ChatHistory, 1, -1 do
-        local tmp = TaintedDatabase.ChatHistory[index]
+    for index = #self.db, 1, -1 do
+        local tmp = self.db[index]
         local result = pcall(_G.ChatFrame_MessageEventHandler, _G["ChatFrame1"], tmp.event, unpack(tmp.args))
     end
 
@@ -53,11 +54,11 @@ function frame_proto:Save(event, ...)
     }
     
     -- store message in the first position of the list
-    table.insert(TaintedDatabase.ChatHistory, 1, tmp)
+    table.insert(self.db, 1, tmp)
 
     -- remove old entries, keeping only a limited number of entries
-    for index = self.threashold, #TaintedDatabase.ChatHistory do
-        table.remove(TaintedDatabase.ChatHistory, self.threashold)
+    for index = self.threashold, #self.db do
+        table.remove(TaintedChatHistory, self.threashold)
     end
 end
 
