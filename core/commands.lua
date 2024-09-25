@@ -7,6 +7,7 @@ local ReloadUI = _G.ReloadUI
 --------------------------------------------------
 -- Slash Commands
 --------------------------------------------------
+local keys = {}
 local commands = {
     ["reset"] = {
         description = "reset Tainted settings",
@@ -33,12 +34,16 @@ function E:AddCommand(command, handler, description)
         func = handler,
         description = description
     }
+
+    table.insert(keys, command)
+    table.sort(keys)
 end
 
 local help = function()
-    for cmd, v in next, commands do
-        if (v.description) then
-            print("|cffff8000Tainted " .. cmd .. "|r:", v.description)
+    for _, cmd in next, keys do
+        local row = commands[cmd]
+        if (row and row.description) then
+            print("|cffff8000/tainted " .. cmd .. "|r:", row.description)
         end
     end
 end
@@ -47,16 +52,16 @@ local spell = function(value)
     if value then
         local data = C_Spell.GetSpellInfo(value)
         if data then
-            Tainted.print("Spell " .. data.name .. " (" .. data.spellID .. ")", IsPlayerSpell(data.spellID))
+            E:print("Spell " .. data.name .. " (" .. data.spellID .. ")", IsPlayerSpell(data.spellID))
         else
-            Tainted.print("Spell " .. value .. " not found.")
+            E:print("Spell " .. value .. " not found.")
         end
     else
-        Tainted.print("Please, provide a spellID or spellName.")
+        E:print("Please, provide a spellID or spellName.")
     end
 end
 
-E:AddCommand("help", help)
+E:AddCommand("", help)
 E:AddCommand("spell", spell, "Look for spell information based on spellID or name.")
 
 SLASH_RELOADUI1 = "/rl"
