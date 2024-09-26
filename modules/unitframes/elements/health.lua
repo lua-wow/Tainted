@@ -8,24 +8,36 @@ local UnitFrames = E:GetModule("UnitFrames")
 do
     local element_proto = {
         colorDisconnected = true,
-        colorTapping = false,
+        colorTapping = E.isClassic,
         colorClass = true,
         colorReaction = true
     }
 
-    function element_proto:PostUpdateColor(unit, r, g, b)
-        if unit:match("^nameplate%d") then return end
-        
+    function element_proto:SetColor(color)
         local element = self
-        if (C.unitframes.monochrome) then
-            local color = C.unitframes.color
-            element:SetStatusBarColor(color.r, color.g, color.b)
-            
-            local bg = element.bg
-            if (bg) then
-                local mu = bg.multiplier or 1
-                bg:SetVertexColor(color.r * mu, color.g * mu, color.b * mu)
-            end
+        element:SetStatusBarColor(color.r, color.g, color.b)
+        
+        local bg = element.bg
+        if (bg) then
+            local mu = bg.multiplier or 1
+            bg:SetVertexColor(color.r * mu, color.g * mu, color.b * mu)
+        end
+    end
+
+    function element_proto:SetMonochromeColor()
+        self:SetColor(C.unitframes.color)
+    end
+
+    function element_proto:SetTargetColor()
+        local color = E:CreateColor(0.40, 0.20, 0.80)
+        self:SetColor(color)
+    end
+
+    function element_proto:PostUpdateColor(unit, r, g, b)
+        -- nameplates should not be monochrome
+        if unit:match("^nameplate%d") then return end
+        if C.unitframes.monochrome then
+            self:SetMonochromeColor()
         end
     end
 
@@ -44,12 +56,12 @@ do
         temploss:SetClipsChildren(true)
         temploss:SetFrameLevel(frame:GetFrameLevel() + 1)
         temploss:SetStatusBarTexture(texture)
-        
+
         temploss._texture = temploss:GetStatusBarTexture()
         temploss._texture:SetTexture(C.unitframes.health.temploss.texture, "REPEAT", "REPEAT")
-		temploss._texture:SetHorizTile(true)
-		temploss._texture:SetVertTile(true)
-        
+        temploss._texture:SetHorizTile(true)
+        temploss._texture:SetVertTile(true)
+
         local element = Mixin(CreateFrame("StatusBar", frame:GetName() .. "Health", frame), element_proto)
         element:SetStatusBarTexture(texture)
         element:SetFrameLevel(frame:GetFrameLevel() + 1)
@@ -58,21 +70,6 @@ do
         element:SetPoint("BOTTOMRIGHT", temploss._texture, "BOTTOMLEFT", 0, 0)
         element:SetClipsChildren(false)
         
-        -- force one pixel space between health and temploss
-        -- temploss:HookScript("OnValueChanged", function(self, value)
-        --     if value == 0 then
-        --         element:ClearAllPoints()
-        --         element:SetPoint("LEFT", frame, "LEFT", 0, 0)
-        --         element:SetPoint("TOPRIGHT", temploss._texture, "TOPLEFT", 0, 0)
-        --         element:SetPoint("BOTTOMRIGHT", temploss._texture, "BOTTOMLEFT", 0, 0)
-        --     else
-        --         element:ClearAllPoints()
-        --         element:SetPoint("LEFT", frame, "LEFT", 0, 0)
-        --         element:SetPoint("TOPRIGHT", temploss._texture, "TOPLEFT", -1, 0)
-        --         element:SetPoint("BOTTOMRIGHT", temploss._texture, "BOTTOMLEFT", -1, 0)
-        --     end
-        -- end)
-
         element.TempLoss = temploss
         
         local bg = element:CreateTexture(nil, "BACKGROUND")
@@ -95,20 +92,11 @@ do
         end
        
         -- options
-        if (C.unitframes.monochrome) then
+        if C.unitframes.monochrome then
             element.colorDisconnected = false
             element.colorTapping = false
             element.colorClass = false
             element.colorReaction = false
-        end
-
-        if (frame.__unit == "nameplate") then
-            element.colorDisconnected = true
-            element.colorTapping = false
-            element.colorClass = true
-            element.colorReaction = true
-            element.colorThreat = (frame.__unit == "nameplate")
-            element.colorSelection = (frame.__unit == "nameplate")
         end
 
         return element

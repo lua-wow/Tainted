@@ -15,28 +15,28 @@ local UnitIsEnemy = _G.UnitIsEnemy
 local button_proto = {}
 
 function button_proto:UpdateTooltip()
-	if (GameTooltip:IsForbidden()) then return end
+    if (GameTooltip:IsForbidden()) then return end
 
-	if (self.isHarmful) then
-		GameTooltip:SetUnitDebuffByAuraInstanceID(self:GetParent().__owner.unit, self.auraInstanceID)
-	else
-		GameTooltip:SetUnitBuffByAuraInstanceID(self:GetParent().__owner.unit, self.auraInstanceID)
-	end
+    if (self.isHarmful) then
+        GameTooltip:SetUnitDebuffByAuraInstanceID(self:GetParent().__owner.unit, self.auraInstanceID)
+    else
+        GameTooltip:SetUnitBuffByAuraInstanceID(self:GetParent().__owner.unit, self.auraInstanceID)
+    end
 end
 
 function button_proto:OnEnter()
-	if (GameTooltip:IsForbidden() or not self:IsVisible()) then return end
+    if (GameTooltip:IsForbidden() or not self:IsVisible()) then return end
 
-	-- Avoid parenting GameTooltip to frames with anchoring restrictions,
-	-- otherwise it'll inherit said restrictions which will cause issues with
-	-- its further positioning, clamping, etc
-	GameTooltip:SetOwner(self, self:GetParent().__restricted and 'ANCHOR_CURSOR' or self:GetParent().tooltipAnchor)
-	self:UpdateTooltip()
+    -- Avoid parenting GameTooltip to frames with anchoring restrictions,
+    -- otherwise it'll inherit said restrictions which will cause issues with
+    -- its further positioning, clamping, etc
+    GameTooltip:SetOwner(self, self:GetParent().__restricted and 'ANCHOR_CURSOR' or self:GetParent().tooltipAnchor)
+    self:UpdateTooltip()
 end
 
 function button_proto:OnLeave()
-	if (GameTooltip:IsForbidden()) then return end
-	GameTooltip:Hide()
+    if (GameTooltip:IsForbidden()) then return end
+    GameTooltip:Hide()
 end
 
 local aura_proto = {}
@@ -67,38 +67,38 @@ function aura_proto:CreateButton(index)
 
     local font = A.fonts.normal
 
-	local button = Mixin(CreateFrame("Button", element:GetDebugName() .. "Button" .. index, element), button_proto)
+    local button = Mixin(CreateFrame("Button", element:GetDebugName() .. "Button" .. index, element), button_proto)
     button:CreateBackdrop()
 
     button:SetScript("OnEnter", button.OnEnter)
-	button:SetScript("OnLeave", button.OnLeave)
+    button:SetScript("OnLeave", button.OnLeave)
 
-	local cd = CreateFrame("Cooldown", "$parentCooldown", button, "CooldownFrameTemplate")
-	cd:SetAllPoints()
+    local cd = CreateFrame("Cooldown", "$parentCooldown", button, "CooldownFrameTemplate")
+    cd:SetAllPoints()
     cd:SetReverse(true)
     cd:SetHideCountdownNumbers(true)
     cd.noOCC = true
     cd.noCooldownCount = true
-	button.Cooldown = cd
+    button.Cooldown = cd
 
     local timer = cd:CreateFontString(nil, "OVERLAY", nil, 7)
     timer:SetFont(font, 12, "THINOUTLINE")
     timer:SetPoint("CENTER", 0, 0)
     button.Timer = timer
 
-	local icon = button:CreateTexture(nil, "ARTWORK")
-	icon:SetAllPoints()
+    local icon = button:CreateTexture(nil, "ARTWORK")
+    icon:SetAllPoints()
     icon:SetTexCoord(unpack(E.IconCoord))
-	button.Icon = icon
+    button.Icon = icon
 
-	local countFrame = CreateFrame("Frame", nil, button)
-	countFrame:SetAllPoints(button)
-	countFrame:SetFrameLevel(cd:GetFrameLevel() + 1)
+    local countFrame = CreateFrame("Frame", nil, button)
+    countFrame:SetAllPoints(button)
+    countFrame:SetFrameLevel(cd:GetFrameLevel() + 1)
 
-	local count = countFrame:CreateFontString(nil, "OVERLAY")
-	count:SetPoint("BOTTOMRIGHT", countFrame, "BOTTOMRIGHT", -1, 1)
+    local count = countFrame:CreateFontString(nil, "OVERLAY")
+    count:SetPoint("BOTTOMRIGHT", countFrame, "BOTTOMRIGHT", -1, 1)
     count:SetFont(font, 9, "THINOUTLINE")
-	button.Count = count
+    button.Count = count
 
     do
         local animation = button:CreateAnimationGroup()
@@ -114,9 +114,9 @@ function aura_proto:CreateButton(index)
         button.Animation.FadeOut = fadeout
     end
 
-	if (element.PostCreateButton) then element:PostCreateButton(button) end
+    if (element.PostCreateButton) then element:PostCreateButton(button) end
 
-	return button
+    return button
 end
 
 function aura_proto:PostUpdateButton(button, unit, data, position)
@@ -253,7 +253,7 @@ do
         if isCompact then
             element:SetPoint("BOTTOMRIGHT", frame, "TOPRIGHT", 0, 3)
         elseif (frame.__unit == "nameplate") then
-            element:SetPoint("BOTTOMRIGHT", frame, "TOPRIGHT", 0, 25)
+            element:SetPoint("BOTTOMRIGHT", frame, "TOPRIGHT", 0, 5)
         else
             if (frame.Buffs) then
                 element:SetPoint("BOTTOMLEFT", frame.Buffs, "TOPLEFT", 0, 3)

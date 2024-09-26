@@ -194,9 +194,10 @@ C["unitframes"] = {
     },
     -- castbar
     ["castbar"] = {
-        ["icon"] = true,
-        ["latency"] = true,
+        ["font"] = "Tainted",
         ["colors"] = {
+            -- ["text"] = E:CreateColor(0.84, 0.75, 0.65),
+            ["text"] = E:CreateColor(1.00, 1.00, 1.00),
             ["latency"] = E:CreateColor(0.69, 0.31, 0.31, 0.75),
             ["casting"] = E:CreateColor(0.29, 0.77, 0.30),
             ["channeling"] = E:CreateColor(0.29, 0.77, 0.30),
@@ -209,6 +210,14 @@ C["unitframes"] = {
         ["enabled"] = true,
         ["width"] = 267,
         ["height"] = 30,
+        ["auras"] = false,
+        ["castbar"] = {
+            ["mode"] = "detached",
+            ["width"] = 350,
+            ["height"] = 20,
+            ["icon"] = true,
+            ["latency"] = true
+        },
         ["buffs"] = {
             ["selfBuffs"] = true
         },
@@ -222,6 +231,13 @@ C["unitframes"] = {
         ["enabled"] = true,
         ["width"] = 267,
         ["height"] = 30,
+        ["auras"] = true,
+        ["castbar"] = {
+            ["mode"] = "detached",
+            ["width"] = 350,
+            ["height"] = 20,
+            ["icon"] = true
+        },
         ["tags"] = {
             ["name"] = "[classification][difficulty][level]|r [namecolor][namelong]|r",
             ["health"] = "[healthcolor][curhp]|r"
@@ -231,6 +247,7 @@ C["unitframes"] = {
         ["enabled"] = true,
         ["width"] = 177,
         ["height"] = 30,
+        ["auras"] = false,
         ["tags"] = {
             ["name"] = "[namecolor][namemedium]|r",
             ["health"] = "[healthcolor][curhp]|r"
@@ -240,6 +257,11 @@ C["unitframes"] = {
         ["enabled"] = true,
         ["width"] = 205,
         ["height"] = 25,
+        ["auras"] = true,
+        ["castbar"] = {
+            ["mode"] = "embedded",
+            ["icon"] = true
+        },
         ["tags"] = {
             ["name"] = "[classification][difficulty][level]|r [namecolor][namemedium]|r",
             ["health"] = "[healthcolor][perhp]%|r"
@@ -249,6 +271,7 @@ C["unitframes"] = {
         ["enabled"] = true,
         ["width"] = 205,
         ["height"] = 25,
+        ["auras"] = false,
         ["tags"] = {
             ["name"] = "[classification][difficulty][level]|r [namecolor][namemedium]|r",
             ["health"] = "[healthcolor][perhp]%|r"
@@ -258,6 +281,11 @@ C["unitframes"] = {
         ["enabled"] = true,
         ["width"] = 205,
         ["height"] = 25,
+        ["auras"] = true,
+        ["castbar"] = {
+            ["mode"] = "embedded",
+            ["icon"] = true
+        },
         ["tags"] = {
             ["name"] = "[namecolor][nameshort]|r [difficulty][level]|r",
             ["health"] = "[healthcolor][perhp]%|r"
@@ -267,6 +295,11 @@ C["unitframes"] = {
         ["enabled"] = true,
         ["width"] = 205,
         ["height"] = 25,
+        ["auras"] = true,
+        ["castbar"] = {
+            ["mode"] = "embedded",
+            ["icon"] = true
+        },
         ["tags"] = {
             ["name"] = "[classification][difficulty][level]|r [namecolor][namemedium]|r",
             ["health"] = "[healthcolor][curhp]|r"
@@ -276,6 +309,11 @@ C["unitframes"] = {
         ["enabled"] = true,
         ["width"] = 205,
         ["height"] = 25,
+        ["auras"] = true,
+        ["castbar"] = {
+            ["mode"] = "embedded",
+            ["icon"] = true
+        },
         ["tags"] = {
             ["name"] = "[classification][difficulty][level]|r [namecolor][namemedium]|r",
             ["health"] = "[healthcolor][perhp]%|r"
@@ -283,10 +321,16 @@ C["unitframes"] = {
     },
     ["nameplate"] = {
         ["enabled"] = true,
-        ["width"] = 175,
+        ["width"] = 185,
         ["height"] = 16,
+        ["auras"] = true,
+        ["castbar"] = {
+            ["mode"] = "detached",
+            ["icon"] = true
+        },
         ["tags"] = {
-            ["name"] = "[classification][difficulty][level]|r [hostility][name]|r",
+            -- ["name"] = "[classification][difficulty][level]|r [hostility][name]|r",
+            ["name"] = "[classification][difficulty][level]|r [name]",
             ["health"] = "[healthcolor][perhp]%|r"
         },
         ["minAlpha"] = 0.30,
@@ -298,6 +342,7 @@ C["unitframes"] = {
         ["enabled"] = true,
         ["width"] = 90,
         ["height"] = 58,
+        ["auras"] = false,
         ["tags"] = {
             ["name"] = "[raidcolor][nameshort]|r"
         },

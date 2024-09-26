@@ -18,27 +18,12 @@ local CompactRaidFrameManager = _G.CompactRaidFrameManager
 local CompactRaidFrameContainer = _G.CompactRaidFrameContainer
 local GetSpecialization = _G.GetSpecialization
 local GetSpecializationRole = _G.GetSpecializationRole
-
 local InCombatLockdown =_G.InCombatLockdown
 
 --------------------------------------------------
 -- Unitframes
 --------------------------------------------------
 local units = {} -- store all spawn units
-
--- which units should have oUF auras
-local auras = {
-    ["player"] = true,
-    ["target"] = true,
-    ["targettarget"] = false,
-    ["focus"] = true,
-    ["focustarget"] = false,
-    ["pet"] = true,
-    ["raid"] = false,
-    ["arena"] = true,
-    ["boss"] = true,
-    ["nameplate"] = false
-}
 
 do
     local HEALER = "HEALER"
@@ -47,7 +32,7 @@ do
     local element_proto = {
         unit = "player",
         position = DEFAULT,
-        groupThreshold = 20
+        groupThreshold = 25
     }
 
     if E.isRetail then
@@ -77,7 +62,7 @@ do
     end
 
     function element_proto:SetHealerPosition()
-        self:SetPoint("BOTTOM", parent, "BOTTOM", 0, 270)
+        self:SetPoint("BOTTOM", parent, "BOTTOM", 0, 225)
     end
 
     function element_proto:GetPosition()
@@ -210,14 +195,21 @@ function UnitFrames:CreateUnitFrame(frame)
     frame.HealthPrediction = self:CreateHealthPrediction(frame)
     frame.Power = self:CreatePower(frame, frame.TextParent)
     frame.Name = self:CreateName(frame, frame.TextParent)
-    frame.Portrait = self:CreatePortrait(frame)
-    frame.RaidTargetIndicator = self:CreateRaidTargetIndicator(frame)
-
-    if (auras[frame.__unit]) then
-        frame.Castbar = self:CreateCastbar(frame)
+    
+    if frame.__config.castbar then
+        frame.Castbar = self:CreateCastbar(frame, frame.Power)
+    end
+    
+    if frame.__config.auras then
         frame.Buffs = self:CreateBuffs(frame)
         frame.Debuffs = self:CreateDebuffs(frame)
     end
+
+    if frame.unit == "player" or frame.unit == "target" then
+        frame.Portrait = self:CreatePortrait(frame)
+    end
+    
+    frame.RaidTargetIndicator = self:CreateRaidTargetIndicator(frame)
 
     return frame
 end
@@ -315,7 +307,8 @@ function UnitFrames:Init()
 
         local targettarget = CreateUnit("targettarget", holder)
         if (targettarget) then
-            targettarget:SetPoint("BOTTOM", holder, "BOTTOM", 0, 235)
+            -- targettarget:SetPoint("BOTTOM", holder, "BOTTOM", 0, 235)
+            targettarget:SetPoint("TOPRIGHT", target, "BOTTOMRIGHT", 0, -40)
         end
 
         local pet = CreateUnit("pet", holder)
@@ -325,11 +318,12 @@ function UnitFrames:Init()
 
         local focus = CreateUnit("focus", holder)
         if (focus) then
-            focus:SetPoint("BOTTOMLEFT", target, "BOTTOMRIGHT", 30, 0)
+            focus:SetPoint("BOTTOMLEFT", target, "BOTTOMRIGHT", 100, -17)
 
             local focustarget = CreateUnit("focustarget", holder)
             if (focustarget) then
-                focustarget:SetPoint("TOP", focus, "BOTTOM", 0, -40)
+                -- focustarget:SetPoint("TOP", focus, "BOTTOM", 0, -40)
+                focustarget:SetPoint("BOTTOM", focus, "TOP", 0, 40)
             end
         end
 

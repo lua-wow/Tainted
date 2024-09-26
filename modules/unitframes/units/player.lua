@@ -14,13 +14,6 @@ function UnitFrames:CreatePlayerFrame(frame)
         frame.Castbar:ClearAllPoints()
         frame.Castbar:SetSize(350, 20)
         frame.Castbar:SetPoint("BOTTOM", UIParent, "BOTTOM", 0, 200)
-        frame.Castbar:CreateBackdrop()
-
-        if (frame.Castbar.IconBG) then
-            frame.Castbar.IconBG:ClearAllPoints()
-            frame.Castbar.IconBG:SetSize(20, 20)
-            frame.Castbar.IconBG:SetPoint("RIGHT", frame.Castbar, "LEFT", -3, 0)
-        end
     end
 
     frame.AdditionalPower = self:CreateAdditionalPower(frame)

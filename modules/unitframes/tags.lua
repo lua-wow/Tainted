@@ -46,7 +46,7 @@ local events = {
     ["name"]            = "UNIT_NAME_UPDATE",
     ["nameshort"]       = "UNIT_NAME_UPDATE PARTY_LEADER_CHANGED GROUP_ROSTER_UPDATE",
     ["namemedium"]      = "UNIT_NAME_UPDATE",
-    ["namelarge"]      = "UNIT_NAME_UPDATE",
+    ["namelarge"]       = "UNIT_NAME_UPDATE",
     -- colors
     ["healthcolor"]     = "UNIT_HEALTH UNIT_MAXHEALTH",
     ["namecolor"]       = "UNIT_POWER_UPDATE",

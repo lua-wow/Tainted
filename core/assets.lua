@@ -48,13 +48,13 @@ local TAINTED_FONT = CreateFont("TaintedFont")
 TAINTED_FONT:SetFont(A.fonts.normal, 12, "")
 
 local TAINTED_FONT_OUTLINED = CreateFont("TaintedFontOutline")
-TAINTED_FONT_OUTLINED:SetFont(A.fonts.normal, 12, "THINOUTLINE")
+TAINTED_FONT_OUTLINED:SetFont(A.fonts.normal, 12, "OUTLINE")
 
 local TAINTED_UNITFRAME_FONT = CreateFont("TaintedUFFont")
 TAINTED_UNITFRAME_FONT:SetFont(A.fonts.big_noogle_titling, 12, "")
 
 -- local TAINTED_PIXEL_FONT = CreateFont("TaintedPixelFont")
--- TAINTED_PIXEL_FONT:SetFont(A.fonts.pixel, 12, "MONOCHROME, OUTLINE, THIN")
+-- TAINTED_PIXEL_FONT:SetFont(A.fonts.pixel, 12, "OUTLINE, MONOCHROME")
 
 local FONTS = {
     ["Tainted"] = TAINTED_FONT,

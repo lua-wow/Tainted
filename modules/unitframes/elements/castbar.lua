@@ -56,15 +56,32 @@ function element_proto:PostCastStart(unit)
     -- 	end
 end
 
-function UnitFrames:CreateCastbar(frame)
-    local height = frame.__config.height or 20
+function UnitFrames:CreateCastbar(frame, parent)
+    if not frame.__config.castbar then return end
+
+    local owner = parent or frame.Power
+    local mode = frame.__config.castbar.mode or "embedded"
+    local height = frame.__config.castbar.height or frame.__config.height or 20
     local texture = A.textures.blank
-    local fontObject = E.GetFont(C.unitframes.font)
+    local fontObject = E.GetFont(C.unitframes.castbar.font)
 
     local element = Mixin(CreateFrame("StatusBar", frame:GetName() .. "Castbar", frame), element_proto)
     element:SetStatusBarTexture(texture)
-    element:SetAllPoints(frame.Power)
-    element:SetFrameLevel(frame.Power:GetFrameLevel() + 6)
+    
+    local iconOwner = nil
+    if mode == "detached" then
+        element:SetPoint("TOPLEFT", owner, "BOTTOMLEFT", 0, -3)
+        element:SetPoint("TOPRIGHT", owner, "BOTTOMRIGHT", 0, -3)
+        element:SetHeight(height)
+        element:CreateBackdrop()
+
+        iconOwner = element
+    else
+        element:SetAllPoints(owner)
+        element:SetFrameLevel(owner:GetFrameLevel() + 6)
+
+        iconOwner = frame
+    end
 
     local bg = element:CreateTexture(nil, "BACKGROUND")
     bg:SetAllPoints()
@@ -72,9 +89,9 @@ function UnitFrames:CreateCastbar(frame)
     bg.multiplier = C.general.background.multiplier or 0.15
     element.bg = bg
     
-    if (C.unitframes.castbar.icon) then
+    if frame.__config.castbar.icon then
         local iconBG = CreateFrame("Frame", nil, element)
-        iconBG:SetPoint("RIGHT", frame, "LEFT", -3, 0)
+        iconBG:SetPoint("RIGHT", iconOwner, "LEFT", -3, 0)
         iconBG:SetSize(height, height)
         iconBG:CreateBackdrop()
         
@@ -95,15 +112,15 @@ function UnitFrames:CreateCastbar(frame)
     time:SetPoint("RIGHT", element, "RIGHT", -5, 0)
     time:SetJustifyH("RIGHT")
     time:SetFontObject(fontObject)
-    time:SetTextColor(0.84, 0.75, 0.65)
+    time:SetTextColor(C.unitframes.castbar.colors.text:GetRGB())
     
     local text = element:CreateFontString(nil, "OVERLAY")
     text:SetPoint("LEFT", element, "LEFT", 5, 0)
     text:SetJustifyH("LEFT")
     text:SetFontObject(fontObject)
-    text:SetTextColor(0.84, 0.75, 0.65)
+    text:SetTextColor(C.unitframes.castbar.colors.text:GetRGB())
     
-    if (frame.__unit == "player" and C.unitframes.castbar.latency) then
+    if (frame.__unit == "player") and frame.__config.castbar.latency then
         local color = C.unitframes.castbar.colors.latency
         local safezone = element:CreateTexture(nil, "OVERLAY")
         safezone:SetTexture(texture)

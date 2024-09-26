@@ -19,9 +19,6 @@ function UnitFrames:CreateName(frame, parent)
     elseif (frame.__unit == "raid") then
         element:SetJustifyH("CENTER")
         element:SetPoint("CENTER", ref, "CENTER", 0, 3)
-    elseif (frame.__unit == "nameplate") then
-        element:SetJustifyH("LEFT")
-        element:SetPoint("BOTTOMLEFT", ref, "TOPLEFT", 0, 5)
     else
         element:SetJustifyH("LEFT")
         element:SetPoint("LEFT", ref, "LEFT", 5, 0)

@@ -16,6 +16,8 @@ oUF.colors.lawngreen = oUF:CreateColor(0.49, 0.99, 0.00)
 oUF.colors.yellow = oUF:CreateColor(1.00, 0.82, 0.00)
 oUF.colors.orange = oUF:CreateColor(1.00, 0.23, 0.00)
 oUF.colors.red = oUF:CreateColor(0.78, 0.25, 0.25)
+oUF.colors.aqua = oUF:CreateColor(0.00, 1.00, 1.00)
+oUF.colors.fuchsia = oUF:CreateColor(1.00, 0.00, 1.00)
 
 oUF.colors.health = oUF:CreateColor(0.29, 0.68, 0.30)
 

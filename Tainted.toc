@@ -42,6 +42,7 @@ core\scaling.lua
 core\install.lua
 core\development.lua
 core\commands.lua
+core\talents.lua
 
 ### auras
 modules\auras\auras.lua
@@ -73,6 +74,7 @@ modules\tooltips\tooltips.lua
 ### unitframes
 modules\unitframes\core.lua
 modules\unitframes\tags.lua
+modules\unitframes\data.lua
 
 modules\unitframes\elements\atonement.lua
 modules\unitframes\elements\auras.lua
