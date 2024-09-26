@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   New miscellanous that takes screenshots when achievements are earned
 -   New miscellanous to track skyriding race timer
 -   Setup game fonts
+-   Reagent tooltips shows amount in bag"
 
 ### Changed
 
@@ -23,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   Missing configuration for worldmap coordinates
 -   Added Ping System on default binding configuration
 -   Added Achievement window as `shift + y`
+-   Fix chatframe bug on install
 
 ## [1.2.0] - 2024-08-14
 
