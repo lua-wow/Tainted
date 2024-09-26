@@ -162,7 +162,7 @@ do
     function UnitFrames:CreateRaidTargetIndicator(frame, sublevel)
         local element = CreateIndicator(frame, "RaidTargetIndicator", frame.Health, element_proto)
         element:SetPoint("CENTER", frame.Health, "TOP", 0, 0)
-        element:SetTexture(A.textures.raidtarget)
+        element:SetTexture(A.icons.raidtarget)
         return element
     end
 end
@@ -195,7 +195,7 @@ do
     function UnitFrames:CreateRestingIndicator(frame, sublevel)
         local element = CreateIndicator(frame, "RestingIndicator", frame.Health, element_proto)
         element:SetPoint("CENTER", frame.Health, "TOPRIGHT", 0, 0)
-        element:SetTexture(A.textures.resting)
+        element:SetTexture(A.icons.resting)
         return element
     end
 end

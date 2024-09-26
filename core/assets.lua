@@ -4,14 +4,19 @@ local E, A = ns.E, ns.A
 --------------------------------------------------
 -- Assets
 --------------------------------------------------
+local NotoSans_Condensed_Bold = [[Interface\AddOns\Tainted\assets\fonts\NotoSans_Condensed-Bold.ttf]]
+local NotoSans_Condensed_SemiBold = [[Interface\AddOns\Tainted\assets\fonts\NotoSans_Condensed-SemiBold.ttf]]
+local NotoSans_SemiCondensed_Bold = [[Interface\AddOns\Tainted\assets\fonts\NotoSans_SemiCondensed-Bold.ttf]]
+local NotoSans_SemiCondensed_SemiBold = [[Interface\AddOns\Tainted\assets\fonts\NotoSans_SemiCondensed-SemiBold.ttf]]
+
 A["fonts"] = {
-    ["normal"]      = [[Interface\AddOns\Tainted\assets\fonts\roboto.ttf]],
-    ["alternative"] = [[Interface\AddOns\Tainted\assets\fonts\pt_sans_narrow.ttf]],
-    ["unitframes"]  = [[Interface\AddOns\Tainted\assets\fonts\big_noogle_titling.ttf]],
-    ["arial"]       = [[Interface\AddOns\Tainted\assets\fonts\arial.ttf]],
-    ["pixel"]       = [[Interface\AddOns\Tainted\assets\fonts\visitor.ttf]],
-    ["pixel 2"]     = [[Interface\AddOns\Tainted\assets\fonts\homespun_tt_brk.ttf]],
-    ["font"]        = [[Interface\AddOns\Tainted\assets\fonts\invisible.ttf]]
+    ["normal"]             = NotoSans_Condensed_SemiBold,
+    -- alternatives
+    ["big_noogle_titling"] = [[Interface\AddOns\Tainted\assets\fonts\BigNoogleTitling.ttf]],
+    ["expressway"]         = [[Interface\AddOns\Tainted\assets\fonts\Expressway.ttf]],
+    ["invisible"]          = [[Interface\AddOns\Tainted\assets\fonts\invisible.ttf]],
+    ["pt_sans_narrow"]     = [[Interface\AddOns\Tainted\assets\fonts\PT_Sans_Narrow.ttf]],
+    ["roboto"]             = [[Interface\AddOns\Tainted\assets\fonts\RobotoCondensed-Bold.ttf]],
 }
 
 A["textures"] = {
@@ -23,8 +28,10 @@ A["textures"] = {
     ["simpy 1"]     = [[Interface\AddOns\Tainted\assets\textures\simpy_1]],
     ["simpy 2"]     = [[Interface\AddOns\Tainted\assets\textures\simpy_2]],
     ["simpy 3"]     = [[Interface\AddOns\Tainted\assets\textures\simpy_3]],
-    ["reduction"]   = [[Interface\AddOns\Tainted\assets\textures\reduction]],
-    -- icon
+    ["reduction"]   = [[Interface\AddOns\Tainted\assets\textures\reduction]]
+}
+
+A["icons"] = {
     ["copy"]        = [[Interface\AddOns\Tainted\assets\icons\copy]],
     ["raidtarget"]  = [[Interface\AddOns\Tainted\assets\icons\raidtarget]],
     ["resting"]     = [[Interface\AddOns\Tainted\assets\icons\resting]]
@@ -44,16 +51,16 @@ local TAINTED_FONT_OUTLINED = CreateFont("TaintedFontOutline")
 TAINTED_FONT_OUTLINED:SetFont(A.fonts.normal, 12, "THINOUTLINE")
 
 local TAINTED_UNITFRAME_FONT = CreateFont("TaintedUFFont")
-TAINTED_UNITFRAME_FONT:SetFont(A.fonts.unitframes, 12, "")
+TAINTED_UNITFRAME_FONT:SetFont(A.fonts.big_noogle_titling, 12, "")
 
-local TAINTED_PIXEL_FONT = CreateFont("TaintedPixelFont")
-TAINTED_PIXEL_FONT:SetFont(A.fonts.pixel, 12, "MONOCHROME, OUTLINE, THIN")
+-- local TAINTED_PIXEL_FONT = CreateFont("TaintedPixelFont")
+-- TAINTED_PIXEL_FONT:SetFont(A.fonts.pixel, 12, "MONOCHROME, OUTLINE, THIN")
 
 local FONTS = {
     ["Tainted"] = TAINTED_FONT,
     ["Tainted Outlined"] = TAINTED_FONT_OUTLINED,
     ["Tainted UnitFrame"] = TAINTED_UNITFRAME_FONT,
-    ["Tainted Pixel"] = TAINTED_PIXEL_FONT,
+    -- ["Tainted Pixel"] = TAINTED_PIXEL_FONT,
     ["Game Font White"] = _G.GameFontWhite,
     ["Game Font Normal"] = _G.GameFontNormal
 }
