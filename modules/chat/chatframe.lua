@@ -301,13 +301,14 @@ function CHAT:SetChatFramePosition()
 		elseif (id == 4) then
 			local anchor = _G["TaintedChatRight"]
 			frame:SetParent(anchor)
-			frame:SetMovable(false)
-			frame:SetUserPlaced(true)
 			frame:ClearAllPoints()
 			frame:SetPoint("TOP", anchor.Tab, "BOTTOM", 0, -5)
 			frame:SetPoint("LEFT", anchor, "LEFT", C.chat.margin, 0)
 			frame:SetPoint("RIGHT", anchor, "RIGHT", -16, 0)
 			frame:SetPoint("BOTTOM", anchor.DataText, "TOP", 0, 8)
+			frame:SetMovable(true) -- the frame needs to be movable to use 'SetUserPlaced'
+			frame:SetUserPlaced(true)
+			frame:SetMovable(false)
 
 			-- if E.isRetail then
 			-- 	hooksecurefunc(frame, "SetPoint", function(f)
@@ -468,9 +469,9 @@ function CHAT:Setup()
 
 	local QuickJoinToastButton = _G.QuickJoinToastButton
     if QuickJoinToastButton then
-		-- QuickJoinToastButton:Kill()
-		QuickJoinToastButton:ClearAllPoints()
-		QuickJoinToastButton:SetPoint("BOTTOMLEFT", self.Left, "TOPLEFT", 0, 5)
+		QuickJoinToastButton:Kill()
+		-- QuickJoinToastButton:ClearAllPoints()
+		-- QuickJoinToastButton:SetPoint("BOTTOMLEFT", self.Left, "TOPLEFT", 0, 5)
 	end
 	
 	do
