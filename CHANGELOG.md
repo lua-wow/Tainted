@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   Datatexts
 -   New miscellanous that takes screenshots when achievements are earned
 -   New miscellanous to track skyriding race timer
+-   Setup game fonts
 
 ### Changed
 

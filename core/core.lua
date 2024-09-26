@@ -88,6 +88,7 @@ end
 
 function E:VARIABLES_LOADED(...)
 	self.locale = GetLocale()
+	self:UpdateFonts()
 end
 
 function E:PLAYER_LOGIN()
@@ -106,13 +107,13 @@ function E:PLAYER_LOGIN()
 end
 
 function E:SETTINGS_LOADED(...)
-	Settings.SetValue("PROXY_SHOW_ACTIONBAR_2", true);
-	Settings.SetValue("PROXY_SHOW_ACTIONBAR_3", true);
-	Settings.SetValue("PROXY_SHOW_ACTIONBAR_4", true);
-	Settings.SetValue("PROXY_SHOW_ACTIONBAR_5", true);
-	-- Settings.SetValue("PROXY_SHOW_ACTIONBAR_6", false);
-	-- Settings.SetValue("PROXY_SHOW_ACTIONBAR_7", false);
-	-- Settings.SetValue("PROXY_SHOW_ACTIONBAR_8", false);
+	Settings.SetValue("PROXY_SHOW_ACTIONBAR_2", true)
+	Settings.SetValue("PROXY_SHOW_ACTIONBAR_3", true)
+	Settings.SetValue("PROXY_SHOW_ACTIONBAR_4", true)
+	Settings.SetValue("PROXY_SHOW_ACTIONBAR_5", true)
+	-- Settings.SetValue("PROXY_SHOW_ACTIONBAR_6", false)
+	-- Settings.SetValue("PROXY_SHOW_ACTIONBAR_7", false)
+	-- Settings.SetValue("PROXY_SHOW_ACTIONBAR_8", false)
 end
 
 function E:PLAYER_ENTERING_WORLD(isInitialLogin, isReloadingUi)

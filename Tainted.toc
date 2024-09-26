@@ -23,8 +23,9 @@ libs\oUF_RaidDebuffs\oUF_RaidDebuffs.xml
 libs\oUF_TargetIndicator\oUF_TargetIndicator.lua
 
 ## assets
-core\colors.lua
 core\assets.lua
+core\colors.lua
+core\fonts.lua
 
 ## locales
 locales\init.xml
