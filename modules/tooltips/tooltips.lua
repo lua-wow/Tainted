@@ -79,6 +79,7 @@ local MODULE = E:CreateModule("Tooltips")
 
 local isInit = false
 
+local IN_BAG = E.colors.yellow:WrapTextInColorCode("In Bag") .. " %d"
 local SPELL_ID = E.colors.yellow:WrapTextInColorCode("SpellID") .. " %d"
 local SOURCE = E.colors.yellow:WrapTextInColorCode(_G.SOURCE) .. " %s"
 local TARGET = E.colors.yellow:WrapTextInColorCode(_G.TARGET .. ":") .. " %s"
@@ -345,7 +346,7 @@ do
         if tooltip == _G.GameTooltip or tooltip == _G.ItemRefTooltip then
             local name, link, id = tooltip:GetItem()
             if id then
-                local _, _, quality = C_Item.GetItemInfo(link or id)
+                local _, _, quality, itemLevel, _, itemType, itemSubtype, _, _, _, _, _, _, _, _, _, isCraftingReagent = C_Item.GetItemInfo(link or id)
                 if tooltip.Backdrop then
                     if quality then
                         local r, g, b = GetItemQualityColor(quality)
@@ -353,6 +354,14 @@ do
                     else
                         local color = C.general.backdrop.color
                         tooltip.Backdrop:SetBackdropBorderColor(color.r, color.g, color.b)
+                    end
+                end
+
+                if isCraftingReagent then
+                    local count = C_Item.GetItemCount(id)
+                    if count then
+                        tooltip:AddLine(" ")
+                        tooltip:AddLine(IN_BAG:format(count), 1.0, 1.0, 1.0)
                     end
                 end
             end
