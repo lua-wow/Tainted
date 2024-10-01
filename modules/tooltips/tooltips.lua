@@ -550,6 +550,13 @@ do
                 tooltip:AddLine(L.PET_LOYALTY:format(color:WrapTextInColorCode(loyalty)), 1, 1, 1)
             end
         end
+        
+        do
+            local guidType, _, _, _, _, guidID, _ = string.split("-", guid)
+            if IsShiftKeyDown() and guidType == "Creature" then
+                tooltip:AddDoubleLine("NPC ID", guidID, nil, nil, nil, 1.0, 1.0, 1.0)
+            end
+        end
     end
 
     function MODULE:SetupHooks()
@@ -574,19 +581,28 @@ do
     end
 end
 
+function MODULE:UpdateAnchors()
+    local owner = _G.TaintedChatRight
+    local containers = {
+        "GameTooltipDefaultContainer",
+        "SharedTooltipDefaultContainer"
+    }
+
+    for _, name in next, containers do
+        local container = _G[name]
+        if container then
+            container:ClearAllPoints()
+            if owner then
+                container:SetPoint("BOTTOMRIGHT", owner, "TOPRIGHT", 0, 5)
+            else
+                container:SetPoint("BOTTOMRIGHT", UIParent, "BOTTOMRIGHT", -30, 200)
+            end
+        end
+    end
+end
+
 function MODULE:Init()
-    do
-        local container = _G.GameTooltipDefaultContainer
-        container:ClearAllPoints()
-        container:SetPoint("BOTTOMRIGHT", UIParent, "BOTTOMRIGHT", -30, 200)
-    end
-
-    do
-        local container = _G.SharedTooltipDefaultContainer
-        container:ClearAllPoints()
-        container:SetPoint("BOTTOMRIGHT", UIParent, "BOTTOMRIGHT", -30, 200)
-    end
-
+    self:UpdateAnchors()
     self:Update(_G.GameTooltip)
     self:Update(_G.ItemRefTooltip)
     self:Update(_G.EmbeddedItemTooltip)
