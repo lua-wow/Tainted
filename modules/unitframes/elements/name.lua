@@ -18,7 +18,7 @@ function UnitFrames:CreateName(frame, parent)
         element:SetPoint("CENTER", ref, "CENTER", 0, 0)
     elseif (frame.__unit == "raid") then
         element:SetJustifyH("CENTER")
-        element:SetPoint("CENTER", ref, "CENTER", 0, 3)
+        element:SetPoint("CENTER", ref, "CENTER", 0, 7)
     else
         element:SetJustifyH("LEFT")
         element:SetPoint("LEFT", ref, "LEFT", 5, 0)

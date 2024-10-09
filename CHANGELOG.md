@@ -25,6 +25,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   Added Ping System on default binding configuration
 -   Added Achievement window as `shift + y`
 -   Fix chatframe bug on install
+-   Fixed some unitframes options
+-   Removed power bar from nameplates
+-   Colored nameplates by enemy type (mythic keys)
 
 ## [1.2.0] - 2024-08-14
 

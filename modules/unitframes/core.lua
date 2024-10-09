@@ -32,7 +32,7 @@ do
     local element_proto = {
         unit = "player",
         position = DEFAULT,
-        groupThreshold = 25
+        groupThreshold = 40
     }
 
     if E.isRetail then
@@ -245,6 +245,76 @@ local function CreateUnit(unit, parent, num)
     return units[unit]
 end
 
+function UnitFrames:GetRaidAttributes()
+    local name = addon .. "Raid"
+    local showSolo = C.unitframes.raid.solo or nil
+
+    local visibility = "custom [group:raid, @raid21, noexists] show; [group:party, nogroup:raid] show; "
+    if C.unitframes.raid.solo then
+        visibility = visibility .. "[@player, exists, nogroup:party] show; "
+    end
+    visibility = visibility ..  "hide"
+
+    return name,
+        nil,
+        visibility,
+        -- http://wowprogramming.com/docs/secure_template/Group_Headers
+        -- Set header attributes
+        "showParty", true,
+        "showRaid", true,
+        "showPlayer", true,
+        "showSolo", showSolo,
+        "showPet", false,
+        "xOffset", C.unitframes.raid.xOffset or 5,
+        "yOffset", C.unitframes.raid.yOffset or 5,
+        "point", "LEFT",
+        "groupFilter", "1,2,3,4,5,6,7,8",
+        "groupingOrder", "1,2,3,4,5,6,7,8",
+        "groupBy", "GROUP",
+        "maxColumns", math.ceil(40 / 5),
+        "unitsPerColumn", C.unitframes.raid.unitsPerColumn or 5,
+        "columnSpacing", C.unitframes.raid.columnSpacing or 5,
+        "columnAnchorPoint", "BOTTOM",
+        "initial-width", C.unitframes.raid.width or 70,
+        "initial-height", C.unitframes.raid.height or 30,
+        "oUF-initialConfigFunction", [[
+            local header = self:GetParent()
+            self:SetWidth(header:GetAttribute("initial-width"))
+            self:SetHeight(header:GetAttribute("initial-height"))
+        ]]
+end
+    
+function UnitFrames:GetRaid40Attributes()
+    local name = addon .. "Raid40"
+    local visibility = "custom [@raid21, exists] show; hide"
+    return name,
+        nil,
+        visibility,
+        -- http://wowprogramming.com/docs/secure_template/Group_Headers
+        -- Set header attributes
+        "showParty", true,
+        "showRaid", true,
+        "showPlayer", true,
+        "showPet", false,
+        "xOffset", C.unitframes.raid.xOffset or 5,
+        "yOffset", C.unitframes.raid.yOffset or 5,
+        "point", "LEFT",
+        "groupFilter", "1,2,3,4,5,6,7,8",
+        "groupingOrder", "1,2,3,4,5,6,7,8",
+        "groupBy", "GROUP",
+        "maxColumns", math.ceil(40 / 5),
+        "unitsPerColumn", C.unitframes.raid.unitsPerColumn or 5,
+        "columnSpacing", C.unitframes.raid.columnSpacing or 5,
+        "columnAnchorPoint", "BOTTOM",
+        "initial-width", C.unitframes.raid.width or 70,
+        "initial-height", math.ceil(0.80 * C.unitframes.raid.height or 30),
+        "oUF-initialConfigFunction", [[
+            local header = self:GetParent()
+            self:SetWidth(header:GetAttribute("initial-width"))
+            self:SetHeight(header:GetAttribute("initial-height"))
+        ]]
+end
+
 function UnitFrames:Init()
     if (not C.unitframes.enabled) then return end
 
@@ -332,33 +402,13 @@ function UnitFrames:Init()
         local arena = CreateUnit("arena", holder, NUM_ARENA_FRAMES)
 
         if (C.unitframes.raid.enabled) then
-            local group = self:SpawnHeader(addon .. "Group", nil, "raid,party,solo",
-                -- http://wowprogramming.com/docs/secure_template/Group_Headers
-                -- Set header attributes
-                "showParty", true,
-                "showRaid", true,
-                "showPlayer", true,
-                "showPet", false,
-                "xOffset", C.unitframes.raid.xOffset or 5,
-                "yOffset", C.unitframes.raid.yOffset or 5,
-                "point", "LEFT",
-                "groupFilter", "1,2,3,4,5,6,7,8",
-		        "groupingOrder", "1,2,3,4,5,6,7,8",
-                "groupBy", "GROUP",
-                "maxColumns", math.ceil(40 / 5),
-                "unitsPerColumn", C.unitframes.raid.unitsPerColumn or 5,
-                "columnSpacing", C.unitframes.raid.columnSpacing or 5,
-                "columnAnchorPoint", "BOTTOM",
-                "initial-width", C.unitframes.raid.width or 70,
-                "initial-height", C.unitframes.raid.height or 30,
-                "oUF-initialConfigFunction", [[
-                    local header = self:GetParent()
-                    self:SetWidth(header:GetAttribute("initial-width"))
-                    self:SetHeight(header:GetAttribute("initial-height"))
-                ]]
-            )
-            group:SetParent(RaidHolder)
-            group:SetPoint("BOTTOMLEFT", 0, 0)
+            local raid = self:SpawnHeader(UnitFrames:GetRaidAttributes())
+            raid:SetParent(RaidHolder)
+            raid:SetPoint("BOTTOMLEFT", 0, 0)
+
+            local raid40 = self:SpawnHeader(UnitFrames:GetRaid40Attributes())
+            raid40:SetParent(RaidHolder)
+            raid40:SetPoint("BOTTOMLEFT", 0, 0)
         end
 
         if (C.unitframes.nameplate.enabled) then

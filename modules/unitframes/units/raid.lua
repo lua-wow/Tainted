@@ -13,8 +13,8 @@ do
     function UnitFrames:CreateRaidDebuffs(frame)
         if (not C.unitframes.raid.debuffs) then return end
 
-        local height = C.unitframes.raid.height or 70
-        local size = math.ceil(0.70 * height)
+        local height = (frame:GetHeight() or frame.__config.height or 70) - (C.unitframes.power.height or 5)
+        local size = math.ceil(0.67 * height)
         local font = A.fonts.normal
 
         local element = Mixin(CreateFrame("Frame", nil, frame.Health), element_proto)

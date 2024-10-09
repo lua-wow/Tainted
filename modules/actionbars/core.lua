@@ -400,7 +400,7 @@ function MODULE:Init()
 
     do
         local holder = CreateFrame("Frame", "TaintedExtraAbilityHolder", UIParent)
-        holder:SetPoint("BOTTOM", UIParent, "BOTTOM", 0, 275)
+        holder:SetPoint("BOTTOM", UIParent, "BOTTOM", 0, 50)
         holder:SetSize(256, 128)
         holder:SetClampedToScreen(true)
 
