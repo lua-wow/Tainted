@@ -179,6 +179,23 @@ E.API.GetCooldownTimer = function(self)
 	end
 end
 
+E.API.SkinCloseButton = function(self, xOffset, yOffset, closeSize)
+	if self.SetNormalTexture then self:SetNormalTexture(0) end
+	if self.SetNormalTexture then self:SetPushedTexture(0) end
+	if self.SetHighlightTexture then self:SetHighlightTexture(0) end
+	if self.SetDisabledTexture then self:SetDisabledTexture(0) end
+
+	self:StripTextures()
+
+	self.Texture = self:CreateTexture(nil, "OVERLAY")
+	self.Texture:SetPoint("CENTER", xOffset or 0, yOffset or 0)
+	self.Texture:SetSize(size or 12, size or 12)
+	self.Texture:SetTexture(A.textures.close)
+
+	self:SetScript("OnEnter", function(self) self.Texture:SetVertexColor(1, 0, 0) end)
+	self:SetScript("OnLeave", function(self) self.Texture:SetVertexColor(1, 1, 1) end)
+end
+
 --------------------------------------------------
 -- Merge Tainted API with WoW API
 --------------------------------------------------

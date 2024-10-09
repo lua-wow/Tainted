@@ -30,6 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   Removed power bar from nameplates
 -   Colored nameplates by enemy type (mythic keys)
 -   Different raid frame layouts for 20 and 40-man groups
+-   Skin Battle.net toasts
 
 ## [1.2.0] - 2024-08-14
 

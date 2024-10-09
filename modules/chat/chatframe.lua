@@ -324,6 +324,32 @@ function CHAT:SetChatFramePosition()
 	end
 end
 
+-- TESTING CMD : /run BNToastFrame:AddToast(BN_TOAST_TYPE_ONLINE, 1)
+function CHAT:AddToast()
+	if not self.__skinned then
+		
+		self:ClearBackdrop()
+		self:CreateBackdrop()
+
+		if self.CloseButton then
+			self.CloseButton:SkinCloseButton()
+		end
+		
+		local glowFrame = _G.BNToastFrameGlowFrame
+		if glowFrame then
+			glowFrame:Hide()
+		end
+
+		self.__skinned = true
+	end
+
+	local owner = _G["TaintedExperienceBar"] or _G["TaintedChatLeft"]
+	if owner then
+		self:ClearAllPoints()
+		self:SetPoint("BOTTOMLEFT", owner, "TOPLEFT", 0, 5)
+	end
+end
+
 function CHAT:HideTextures(frame)
 	local id = frame:GetID()
 	local name = frame:GetName()
@@ -577,5 +603,5 @@ function CHAT:Init()
 	hooksecurefunc("FCF_RestorePositionAndDimensions", self.SetChatFramePosition)
 	-- hooksecurefunc("FCF_SavePositionAndDimensions", Chat.SaveChatFramePositionAndDimensions)
 	-- hooksecurefunc("FCFTab_UpdateAlpha", Chat.NoMouseAlpha)
-	-- hooksecurefunc(BNToastFrame, "AddToast", Chat.AddToast)
+	hooksecurefunc(BNToastFrame, "AddToast", self.AddToast)
 end
