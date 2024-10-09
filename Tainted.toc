@@ -40,9 +40,10 @@ core\core.lua
 core\database.lua
 core\scaling.lua
 core\install.lua
-core\development.lua
+core\dropdown.lua
 core\commands.lua
 core\talents.lua
+core\development.lua
 
 ### auras
 modules\auras\auras.lua
@@ -53,11 +54,11 @@ modules\chat\history.lua
 modules\chat\copy_text.lua
 modules\chat\copy_url.lua
 
-### blizzard
-modules\blizzard\init.xml
-
 ### maps
 modules\maps\init.xml
+
+### blizzard
+modules\blizzard\init.xml
 
 ### miscellaneous
 modules\miscellaneous\init.xml

@@ -59,10 +59,12 @@ C["auras"] = {
 }
 
 C["blizzard"] = {
+    ["font"] = "Tainted",
     ["ghost"] = true,
     ["mirrortimers"] = true,
     ["talkinghead"] = true,
     ["uiwidgets"] = true,
+    ["raid_utility"] = true
 }
 
 C["chat"] = {
@@ -352,6 +354,7 @@ C["unitframes"] = {
             ["icons"] = true,
             ["spellTextures"] = true
         },
+        ["solo"] = false,
         ["rangeAlpha"] = 0.30,
         ["xOffset"] = 5,
         ["yOffset"] = 5,

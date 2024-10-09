@@ -16,7 +16,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   New miscellanous that takes screenshots when achievements are earned
 -   New miscellanous to track skyriding race timer
 -   Setup game fonts
--   Reagent tooltips shows amount in bag"
+-   Reagent tooltips shows amount in bag
+-   Raid utility frame and `/tainted raid` command
 
 ### Changed
 
@@ -28,6 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   Fixed some unitframes options
 -   Removed power bar from nameplates
 -   Colored nameplates by enemy type (mythic keys)
+-   Different raid frame layouts for 20 and 40-man groups
 
 ## [1.2.0] - 2024-08-14
 

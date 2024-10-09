@@ -112,7 +112,13 @@ E.API.CreateBackdrop = function(self, template)
 	
 	local backdropTexture = C.general.backdrop.texture or A.textures.blank
 	local backdropColor = C.general.backdrop.color
-	local backdropAlpha = (template == "transparent") and 0.70 or 1
+	local backdropAlpha = 1
+	
+	if (template == "transparent") then
+		backdropAlpha = 0.70
+	elseif type(template) == "number" then
+		backdropAlpha = template
+	end
 	
 	local borderTexture = C.general.border.texture or A.textures.blank
 	local borderColor = C.general.border.color
