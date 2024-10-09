@@ -131,6 +131,10 @@ function MODULE:Update(element)
 
         element.isSkinned = true
     end
+
+    if element.CloseButton then
+        element.CloseButton:SkinCloseButton()
+    end
 end
 
 do
