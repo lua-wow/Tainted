@@ -21,7 +21,10 @@ local TOGGLE_BAGS_TEXT = L.TOGGLE_BAGS_TEXT
 local TOTAL = L.TOTAL or "Total"
 local WARBAND = L.WARBAND or "Warband"
 
-local gold_proto = {}
+
+local gold_proto = {
+    threshold = 15
+}
 
 function gold_proto:FormatMoney(value)
     local gold = math.floor(value / 10000)
@@ -49,12 +52,9 @@ function gold_proto:UpdateCharacterList(tooltip)
 
     for realm, realmData in next, TaintedDatabase do
         for name, charData in next, realmData do
-            if charData.money then
-                table.insert(self.characters, {
-                    realm = realm,
-                    name = name,
-                    money = tonumber(charData.money)
-                })
+            local money = tonumber(charData.money or "")
+            if money then
+                table.insert(self.characters, { realm = realm, name = name, money = money })
             end
         end
 	end
@@ -63,6 +63,8 @@ function gold_proto:UpdateCharacterList(tooltip)
 end
 
 function gold_proto:CreateTooltip(tooltip)
+    local isShiftKeyDown = IsShiftKeyDown()
+
 	tooltip:AddLine(SESSION)
 	tooltip:AddDoubleLine(EARNED, self:FormatMoney(self.earned), 1.0, 1.0, 1.0, 1.0, 1.0, 1.0)
 	tooltip:AddDoubleLine(SPENT, self:FormatMoney(self.spent), 1.0, 1.0, 1.0, 1.0, 1.0, 1.0)
@@ -80,14 +82,20 @@ function gold_proto:CreateTooltip(tooltip)
 
     local total = 0
 	tooltip:AddLine(CHARACTER)
-    for _, row in next, self.characters do
-        if row.money and row.money > 0 then
+
+    for index, row in next, self.characters do
+        if isShiftKeyDown or index <= self.threshold then
             local color = (row.name == E.name and row.realm == E.realm) and E.colors.class[E.class] or E.colors.white
             local left = ("%s - %s"):format(row.name, row.realm)
             tooltip:AddDoubleLine(left, self:FormatMoney(row.money), color.r, color.g, color.b, 1.0, 1.0, 1.0)
             total = total + row.money
         end
 	end
+
+    local length = #self.characters
+    if (length > 0) and (length > self.threshold) and (not isShiftKeyDown) then
+        tooltip:AddLine(L.HOLD_SHIFT_TO_SHOW_ALL_CHARACTERS, 0.70, 0.70, 0.70)
+    end
 
 	tooltip:AddLine(" ")
 	tooltip:AddDoubleLine(TOTAL, self:FormatMoney(total), 1.0, 1.0, 1.0, 1.0, 1.0, 1.0)

@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   Setup game fonts
 -   Reagent tooltips shows amount in bag
 -   Raid utility frame and `/tainted raid` command
+-   Added list of keystones in the character datatext
 
 ### Changed
 

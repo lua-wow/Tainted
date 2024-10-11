@@ -74,3 +74,12 @@ end
 function E:SetMoney(value)
     TaintedDatabase[realm][name].money = value
 end
+
+-- KeyStone
+function E:GetKeyStone()
+    return TaintedDatabase[realm][name].keystone
+end
+
+function E:SetKeyStone(value)
+    TaintedDatabase[realm][name].keystone = value
+end

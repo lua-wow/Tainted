@@ -43,6 +43,7 @@ core\install.lua
 core\dropdown.lua
 core\commands.lua
 core\talents.lua
+core\keystone.lua
 core\development.lua
 
 ### auras

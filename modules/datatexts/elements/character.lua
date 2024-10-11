@@ -1,6 +1,7 @@
 local _, ns = ...
 local E, L = ns.E, ns.L
 local MODULE = E:GetModule("DataTexts")
+local KeyStone = E:GetModule("KeyStone")
 
 -- Blizzard
 local INVSLOT_FIRST_EQUIPPED = _G.INVSLOT_FIRST_EQUIPPED or 1
@@ -60,6 +61,7 @@ local GetDodgeChance = _G.GetDodgeChance
 local GetParryChance = _G.GetParryChance
 local GetInventoryItemID = _G.GetInventoryItemID
 local GetInventoryItemDurability = _G.GetInventoryItemDurability
+local IsShiftKeyDown = _G.IsShiftKeyDown
 
 -- Mine
 local DATATEXT_STRING = "%s %s"
@@ -88,6 +90,7 @@ local STAT_PARRY = _G.STAT_PARRY or "Parry"
 local PRIMARY_STATS = _G.PRIMARY_STATS or "Primary Stats"
 local SECONDARY_STATS = _G.SECONDARY_STATS or "Secondary Stats"
 local CURRENCY = _G.CURRENCY or "Currency"
+local KEY_STONES = L.KEY_STONES or "Key Stones"
 local TOGGLE_CHARACTER_TEXT = L.TOGGLE_CHARACTER_TEXT
 
 local CURRENCIES = {
@@ -103,10 +106,47 @@ local CURRENCIES = {
 
 local slots = {}
 
-local character_proto = {}
+local character_proto = {
+    threshold = 10
+}
+
+local SortKeyStone = function(a, b)
+    if not a or not b then return false end
+    if a.realm ~= b.realm then
+        if a.realm == E.realm then
+            return true
+        end
+        return a.realm < b.realm
+    end
+    if a.level ~= b.level then
+        return a.level > b.level
+    end
+    return a.name < b.name
+end
+
+function character_proto:UpdateKeyStones()
+    self.keystones = table.wipe(self.keystones or {})
+
+    for realm, realmData in next, TaintedDatabase do
+        for name, charData in next, realmData do
+            if charData.keystone then
+                local info = KeyStone:IsCurrenWeek(charData.keystone) and KeyStone:Parse(charData.keystone) or nil
+                if info then
+                    table.insert(self.keystones, { realm = realm, name = name, keystone = charData.keystone, level = info.level })
+                end
+            end
+        end
+	end
+
+    table.sort(self.keystones, SortKeyStone)
+end
 
 function character_proto:CreateTooltip(tooltip)
+    local isShiftKeyDown = IsShiftKeyDown()
+
     PaperDollFrame_UpdateStats()
+
+    self:UpdateKeyStones()
 
     -- player info
     local name = UnitName(self.unit)
@@ -233,6 +273,24 @@ function character_proto:CreateTooltip(tooltip)
                 end
                 tooltip:AddDoubleLine(icon .. currency.name, quantityText, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0)
             end
+        end
+    end
+    
+    local length = #self.keystones
+    if length > 0 then
+        tooltip:AddLine(" ")
+        tooltip:AddLine(KEY_STONES)
+
+        for index, row in next, self.keystones do
+            if isShiftKeyDown or index <= self.threshold then
+                local color = (row.name == E.name and row.realm == E.realm) and E.colors.class[E.class] or E.colors.white
+                local left = ("%s - %s"):format(row.name, row.realm)
+                tooltip:AddDoubleLine(left, row.keystone, color.r, color.g, color.b, 1.0, 1.0, 1.0)
+            end
+        end
+
+        if (length > self.threshold) and (not isShiftKeyDown) then
+            tooltip:AddLine(L.HOLD_SHIFT_TO_SHOW_ALL_CHARACTERS, 0.70, 0.70, 0.70)
         end
     end
 
