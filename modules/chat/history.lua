@@ -6,9 +6,10 @@ local E, C = ns.E, ns.C
 --------------------------------------------------
 if not C.chat.history.enabled then return end
 
+local database = TaintedChatHistory
+
 local frame_proto = {
-    db = _G.TaintedChatHistory,
-    threashold = C.chat.history.threashold or 0,
+    threshold = C.chat.history.threshold or 0,
     isPrinting = false,
     events = {
         "CHAT_MSG_INSTANCE_CHAT",
@@ -35,8 +36,8 @@ local frame_proto = {
 function frame_proto:Print()
     self.isPrinting = true
 
-    for index = #self.db, 1, -1 do
-        local tmp = self.db[index]
+    for index = #TaintedChatHistory, 1, -1 do
+        local tmp = TaintedChatHistory[index]
         local result = pcall(_G.ChatFrame_MessageEventHandler, _G["ChatFrame1"], tmp.event, unpack(tmp.args))
     end
 
@@ -54,25 +55,35 @@ function frame_proto:Save(event, ...)
     }
     
     -- store message in the first position of the list
-    table.insert(self.db, 1, tmp)
+    table.insert(database, 1, tmp)
 
     -- remove old entries, keeping only a limited number of entries
-    for index = self.threashold, #self.db do
-        table.remove(TaintedChatHistory, self.threashold)
+    for index = self.threshold, #database do
+        table.remove(database, self.threshold)
     end
+end
+
+function frame_proto:Init()
+    self:UnregisterEvent("PLAYER_LOGIN")
+
+    if not TaintedChatHistory then
+        TaintedChatHistory = {}
+    end
+
+    database = TaintedChatHistory
+
+    if self.threshold <= 0 then return end
+
+    for _, event in ipairs(self.events) do
+        self:RegisterEvent(event)
+    end
+
+    self:Print()
 end
 
 function frame_proto:OnEvent(event, ...)
     if (event == "PLAYER_LOGIN") then
-        self:UnregisterEvent(event)
-
-        if self.threashold <= 0 then return end
-
-        for _, value in ipairs(self.events) do
-            self:RegisterEvent(value)
-        end
-
-        self:Print()
+        self:Init()
     elseif not self.isPrinting then
         self:Save(event, ...)
     end

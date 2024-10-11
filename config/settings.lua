@@ -80,7 +80,7 @@ C["chat"] = {
 	},
     ["history"] = {
         ["enabled"] = true,
-        ["threashold"] = 0,
+        ["threshold"] = 0,
     },
     ["link"] = {
         ["color"] = E:CreateColor(0.08, 1.00, 0.36),

@@ -19,6 +19,10 @@ function E:InitDatabase()
         TaintedDatabase[realm][name] = {}
     end
 
+    if not TaintedChatHistory then
+        TaintedChatHistory = {}
+    end
+
     self.db = TaintedDatabase[realm][name]
 end
 
@@ -26,16 +30,9 @@ function E:GetDatabase()
     return TaintedDatabase
 end
 
--- function E:GetDatabaseRealm()
---     return TaintedDatabase[realm]
--- end
-
--- function E:GetCharacterDatabase()
---     return TaintedDatabase[realm][name]
--- end
-
 function E:ResetDatabase()
     TaintedDatabase[realm][name] = {}
+    TaintedChatHistory = {}
 end
 
 function E:IsInstalled()
