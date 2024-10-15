@@ -563,7 +563,12 @@ do
         end
     end
 
-    function MODULE:SetupHooks()
+    function MODULE:SetupHooks(owner)
+        hooksecurefunc("GameTooltip_SetDefaultAnchor", function(tooltip, parent)
+            tooltip:ClearAllPoints()
+            tooltip:SetPoint("BOTTOMRIGHT", owner, "BOTTOMRIGHT", 0, 0)
+        end)
+
         -- update tooltip colors
         hooksecurefunc("GameTooltip_UnitColor", self.GameTooltip_UnitColor)
         hooksecurefunc("GameTooltip_ClearMoney", self.GameTooltip_ClearMoney)
@@ -585,27 +590,42 @@ do
     end
 end
 
-function MODULE:UpdateAnchors()
-    local owner = _G.TaintedChatRight
-    local containers = {
-        "GameTooltipDefaultContainer",
-        "SharedTooltipDefaultContainer"
-    }
+function MODULE:CreateAnchor()
+    local x = 10
+    local y = C.chat.height + 10 + 5
 
-    for _, name in next, containers do
-        local container = _G[name]
+    local element = CreateFrame("Frame", "TaintedTooltipAnchor", UIParent)
+    element:SetPoint("BOTTOMRIGHT", UIParent, "BOTTOMRIGHT", -x, y)
+    element:SetSize(200, 20)
+    element:SetFrameStrata("TOOLTIP")
+	element:SetFrameLevel(20)
+    element:SetClampedToScreen(true)
+    element:SetMovable(false)
+    return element
+end
+
+function MODULE:UpdateAnchors()
+    local owner = self.Anchor
+
+    do
+        local container = _G.GameTooltipDefaultContainer
         if container then
             container:ClearAllPoints()
-            if owner then
-                container:SetPoint("BOTTOMRIGHT", owner, "TOPRIGHT", 0, 5)
-            else
-                container:SetPoint("BOTTOMRIGHT", UIParent, "BOTTOMRIGHT", -30, 200)
-            end
+            container:SetPoint("BOTTOMRIGHT", owner, "BOTTOMRIGHT", 0, 0)
+        end
+    end
+
+    do
+        local container = _G.SharedTooltipDefaultContainer
+        if container then
+            container:ClearAllPoints()
+            container:SetPoint("BOTTOMRIGHT", owner, "BOTTOMRIGHT", 0, 0)
         end
     end
 end
 
 function MODULE:Init()
+    self.Anchor = self:CreateAnchor()
     self:UpdateAnchors()
     self:Update(_G.GameTooltip)
     self:Update(_G.ItemRefTooltip)
@@ -613,5 +633,5 @@ function MODULE:Init()
     self:Update(_G.ShoppingTooltip1)
     self:Update(_G.ShoppingTooltip2)
     self:UpdateStatusBar()
-    self:SetupHooks()
+    self:SetupHooks(self.Anchor)
 end
