@@ -21,8 +21,14 @@ local variables = {
 	["showTutorials"] = 0,
 	["violenceLevel"] = 5,
 
+	
 	-- camera
 	["cameraSmoothStyle"] = 0,				-- default: 4
+	["cameraDistanceMaxZoomFactor"] = 2.6,	-- default: 1.9
+    ["CameraReduceUnexpectedMovement"] = 1, -- motion sickness control to reduce camera movement without player input. Can override other cvar settings. (default: 0)
+
+	-- graphics
+	["ResampleAlwaysSharpen"] = 1,
 	
 	-- sounds
 	["Sound_EnableAllSound"] = 1,			-- enables all sounds
