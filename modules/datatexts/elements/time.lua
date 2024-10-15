@@ -49,8 +49,8 @@ end
 
 function time_proto:GetServerTime()
 	local serverTime = C_DateAndTime.GetServerTimeLocal()
-	local hour = date("%H", serverTime)
-	local minute = date("%M", serverTime)
+	local hour = tonumber(date("%H", serverTime))
+	local minute = tonumber(date("%M", serverTime))
     return GameTime_GetFormattedTime(hour, minute, true)
 end
 
