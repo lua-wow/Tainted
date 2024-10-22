@@ -372,7 +372,7 @@ function element_proto:OnEvent(event, ...)
     elseif event == "RAID_TARGET_UPDATE" then
         self:UpdateRaidTarget()
         self:UpdateWorldMarkers()
-    elseif event == "PLAYER_TARGET_CHANGED" or event == "RAID_TARGET_UPDATE" then
+    elseif event == "PLAYER_TARGET_CHANGED" then
         self:UpdateRaidTarget()
     elseif event == "PLAYER_ENTERING_WORLD" then
         -- self:UpdateVisibility()
