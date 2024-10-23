@@ -1,9 +1,10 @@
 local _, ns = ...
-local E, L = ns.E, ns.L
+local E, C, L = ns.E, ns.C, ns.L
 local MODULE = E:GetModule("DataTexts")
 
 -- Blizzard
 local GetCVar = C_CVar and C_CVar.GetCVar or GetCVar
+local SetCVar = C_CVar and C_CVar.SetCVar or SetCVar
 local GetCVarBool = C_CVar and C_CVar.GetCVarBool or GetCVarBool
 local GetGameTime = _G.GetGameTime
 local GetNumSavedInstances = _G.GetNumSavedInstances
@@ -25,33 +26,23 @@ local SAVED_INSTANCES = "%s - %s" -- Nerub-ar Palace - Mythic
 
 local time_proto = {}
 
-function time_proto:GetLocalTime()
-	local hour, minutes
-
-	if C_DateAndTime then
-		local calendarTime = C_DateAndTime.GetCurrentCalendarTime()
-		hour = calendarTime.hour
-		minute = calendarTime.minute
-	else
-		local isLocalTime = GetCVarBool("timeMgrUseLocalTime")
-		-- local isMilitaryTime = GetCVarBool("timeMgrUseMilitaryTime")
-		if isLocalTime then
-			local now = date()
-			hour = tonumber(date("%H", now))
-			minute = tonumber(date("%M", now))
-		else
-			hour, minute = GetGameTime()
-		end
-	end
-
-	return GameTime_GetFormattedTime(hour, minute, true)
+function time_proto:GetLocalTime(wantAMPM)
+	local hour, minute = tonumber(date("%H")), tonumber(date("%M"))
+	return GameTime_GetFormattedTime(hour, minute, wantAMPM)
 end
 
-function time_proto:GetServerTime()
+function time_proto:GetServerTime(wantAMPM)
 	local serverTime = C_DateAndTime.GetServerTimeLocal()
-	local hour = tonumber(date("%H", serverTime))
-	local minute = tonumber(date("%M", serverTime))
-    return GameTime_GetFormattedTime(hour, minute, true)
+	local hour, minute = tonumber(date("%H", serverTime)), tonumber(date("%M", serverTime))
+    return GameTime_GetFormattedTime(hour, minute, wantAMPM)
+end
+
+function time_proto:GetTime(wantAMPM)
+	local isLocalTime = GetCVarBool("timeMgrUseLocalTime")
+	if isLocalTime then
+		return self:GetLocalTime(wantAMPM)
+	end
+	return self:GetServerTime(wantAMPM)
 end
 
 function time_proto:GetResetTime(value)
@@ -107,12 +98,10 @@ function time_proto:CreateTooltip(tooltip)
 	end
 	
 	do
-		-- tooltip:AddLine(TIME)
-	
-    	local localTime = self:GetLocalTime()
+    	local localTime = self:GetLocalTime(true)
 		tooltip:AddDoubleLine(LOCAL_TIME, localTime, NORMAL_FONT_COLOR.r, NORMAL_FONT_COLOR.g, NORMAL_FONT_COLOR.b, 1.0, 1.0, 1.0)
 
-		local serverTime = self:GetServerTime()
+		local serverTime = self:GetServerTime(true)
 		tooltip:AddDoubleLine(SERVER_TIME, serverTime, NORMAL_FONT_COLOR.r, NORMAL_FONT_COLOR.g, NORMAL_FONT_COLOR.b, 1.0, 1.0, 1.0)
 	end
 end
@@ -138,7 +127,7 @@ function time_proto:OnUpdate(elapsed)
 	self.updateInterval = self.updateInterval - (elapsed or 1)
 
 	if (self.updateInterval <= 0) then
-		local value = self:GetLocalTime()
+		local value = self:GetTime(C.datatexts.clock.format == "civilian")
 
         if self.Text then
             self.Text:SetText(value)
@@ -154,6 +143,10 @@ end
 
 function time_proto:Enable()
 	self.updateInterval = 0
+
+	-- setup clock format as 24-hour (military) or 12-hour (civilian)
+	SetCVar("timeMgrUseMilitaryTime", C.datatexts.clock.format == "military" and 1 or 0)
+
     self:SetScript("OnUpdate", self.OnUpdate)
 	self:SetScript("OnEnter", self.OnEnter)
 	self:SetScript("OnLeave", self.OnLeave)

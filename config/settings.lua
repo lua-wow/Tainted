@@ -97,6 +97,13 @@ C["datatexts"] = {
 		["value"] = E:CreateColor(1.00, 1.00, 1.00),
         ["highlight"] = E:CreateColor(1.00, 1.00, 0.00)
 	},
+    ["clock"] = {
+        ["values"] = {
+            ["military"] = "24-hour format",
+            ["civilian"] = "12-hour format"
+        },
+        ["format"] = "military"
+    },
 	["elements"] = {
         -- left chat
 		[1] = "Guild",
