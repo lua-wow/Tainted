@@ -7,10 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+-   Added options to time datatext to display time as 24-hour or 12-hour format.
+
 ### Changed
 
--   Fixed time datatext bug
--   Added options to time datatext to display time as 24-hour or 12-hour format.
+-   Fixed time datatext bug which was showing time 1h ahead.
+-   Fixed keystone affix comparison.
 
 ## [1.3.1] - 2024-10-16
 
