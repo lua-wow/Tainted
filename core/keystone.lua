@@ -48,21 +48,33 @@ function keystone_proto:Parse(value)
 	table.insert(affixes, tonumber(affix4))
 
 	return {
-		itemID = itemID,
-		mapID = mapID,
+		itemID = tonumber(itemID),
+		mapID = tonumber(mapID),
 		mapName = mapName,
-		level = level,
+		level = tonumber(level),
 		affixes = affixes
 	}
 end
 
+--[[
+    * 9 - Tyrannical
+    * 10 - Fortified
+    * 147 - Xal'atath's Guile
+    * 148 - Xal'atath's Bargain: Ascendant
+    * 152 - Challenger's Peril
+]]
+-- "|cffa335ee|Hkeystone:180653:503:12:10:152:9:147|h[Keystone: Ara-Kara, City of Echoes (12)]|h|r"
+-- "|cffa335ee|Hkeystone:180653:375:10:148:10:152:9|h[Keystone: Mists of Tirna Scithe (9)]|h|r"
+-- "|cffa335ee|Hkeystone:180653:375:9:148:10:152:0|h[Keystone: Mists of Tirna Scithe (9)]|h|r"
+-- "|cffa335ee|Hkeystone:180653:503:6:148:10:0:0|h[Keystone: Ara-Kara, City of Echoes (6)]|h|r"
 function keystone_proto:IsCurrenWeek(value)
     local info = self:Parse(value)
     local affixes = info.affixes or {}
-    return affixes[1] == self.affixes[1]
-        and (affixes[2] == self.affixes[2] or affixes[2] == 0)
-        and (affixes[3] == self.affixes[3] or affixes[3] == 0)
-        and (affixes[4] == self.affixes[4] or affixes[4] == 0)
+    local offset = (info.level >= 12) and 1 or 0
+    return affixes[1] == self.affixes[1 + offset]
+        and (affixes[2] == self.affixes[2 + offset] or affixes[2] == 0)
+        and (affixes[3] == self.affixes[3 + offset] or affixes[3] == 0)
+        and (affixes[4] == self.affixes[4 + offset] or affixes[4] == 0)
 end
 
 function keystone_proto:UpdateKeyStone()
@@ -97,6 +109,7 @@ function keystone_proto:MYTHIC_PLUS_CURRENT_AFFIX_UPDATE()
     local affixesInfo = C_MythicPlus.GetCurrentAffixes()
     if affixesInfo then
         for index, data in next, affixesInfo do
+            local name, description, _ = C_ChallengeMode.GetAffixInfo(data.id)
             table.insert(self.affixes, data.id)
         end
     end
