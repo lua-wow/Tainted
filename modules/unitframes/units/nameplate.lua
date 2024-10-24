@@ -3,6 +3,9 @@ local E, C, A = ns.E, ns.C, ns.A
 local UnitFrames = E:GetModule("UnitFrames")
 local Talents = E:GetModule("Talents")
 
+local LibMobs = LibStub("LibMobs")
+assert(LibMobs, "Unable to locate LibMobs")
+
 -- Blizzard
 local UnitGUID = _G.UnitGUID
 local UnitThreatSituation = _G.UnitThreatSituation
@@ -14,16 +17,16 @@ local UnitIsPlayer = _G.UnitIsPlayer
 
 -- Mine
 local selectionTypes = {
-	[ 0] = 0,
-	[ 1] = 1,
-	[ 2] = 2,
-	[ 3] = 3,
-	[ 4] = 4,
-	[ 5] = 5,
-	[ 6] = 6,
-	[ 7] = 7,
-	[ 8] = 8,
-	[ 9] = 9,
+	[0] = 0,
+	[1] = 1,
+	[2] = 2,
+	[3] = 3,
+	[4] = 4,
+	[5] = 5,
+	[6] = 6,
+	[7] = 7,
+	[8] = 8,
+	[9] = 9,
 	-- [10] = 10, -- unavailable to players
 	-- [11] = 11, -- unavailable to players
 	-- [12] = 12, -- inconsistent due to bugs and its reliance on cvars
@@ -116,7 +119,7 @@ local health_proto = {
     colors = {
         ["caster"] = E.colors.fuchsia,
         ["frontal"] = E.colors.aqua,
-        ["important"] = E:CreateColor(0.72, 0.24, 0.93), -- E:CreateColor(0.56, 0.27, 0.68)
+        ["focus"] = E:CreateColor(0.72, 0.24, 0.93), -- E:CreateColor(0.56, 0.27, 0.68)
     }
 }
 
@@ -135,9 +138,9 @@ function health_proto:UpdateColor(event, unit)
 
     local isTank = Talents:IsTank()
 
-    local guid = UnitGUID(unit)
     local threat = UnitThreatSituation("player", unit)
     local selection = element:UnitSelectionType(unit, element.considerSelectionInCombatHostile)
+    local creatureRole = LibMobs:UnitRole(unit)
 
 	local color
 	if (element.colorDisconnected and not UnitIsConnected(unit)) then
@@ -145,9 +148,8 @@ function health_proto:UpdateColor(event, unit)
 	elseif (element.colorTapping and not UnitPlayerControlled(unit) and UnitIsTapDenied(unit)) then
 		color = self.colors.tapped
 	elseif (element.colorThreat and not UnitPlayerControlled(unit) and threat) then
-        local creatureType = E:GetCreatureType(unit)
-        if creatureType and ((isTank and threat == 3) or (not isTank and threat == 0))  then
-            color = element.colors[creatureType]
+        if creatureRole and ((isTank and threat == 3) or (not isTank and threat == 0))  then
+            color = element.colors[creatureRole] or self.colors.threat[threat]
         else
 		    color =  self.colors.threat[threat]
         end
@@ -157,9 +159,8 @@ function health_proto:UpdateColor(event, unit)
 		local _, class = UnitClass(unit)
 		color = self.colors.class[class]
 	elseif (element.colorSelection and selection) then
-        local creatureType = E:GetCreatureType(unit)
-        if creatureType and (selection == 0) then
-            color = element.colors[creatureType]
+        if creatureRole and (selection == 0) then
+            color = element.colors[creatureRole] or self.colors.selection[selection]
         else
             color = self.colors.selection[selection]
         end

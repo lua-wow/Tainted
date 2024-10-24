@@ -42,3 +42,7 @@
 	path = modules/miscellaneous/screenshots
 	url = https://github.com/lua-wow/screenshots.git
 	branch = master
+[submodule "libs/LibMobs"]
+	path = libs/LibMobs
+	url = https://github.com/lua-wow/LibMobs.git
+	branch = master
