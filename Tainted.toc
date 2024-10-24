@@ -16,6 +16,7 @@ core\init.lua
 libs\TaintLess\TaintLess.xml
 libs\LibStub\LibStub.lua
 libs\LibDispel\LibDispel.lua
+libs\LibMobs\LibMobs.lua
 libs\oUF\oUF.xml
 libs\oUF_Atonement\oUF_Atonement.lua
 libs\oUF_AuraTrack\oUF_AuraTrack.lua
@@ -76,7 +77,6 @@ modules\tooltips\tooltips.lua
 ### unitframes
 modules\unitframes\core.lua
 modules\unitframes\tags.lua
-modules\unitframes\data.lua
 
 modules\unitframes\elements\atonement.lua
 modules\unitframes\elements\auras.lua

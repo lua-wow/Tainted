@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 -   Added options to time datatext to display time as 24-hour or 12-hour format.
+-   New dependency LibMobs.
 
 ### Changed
 
