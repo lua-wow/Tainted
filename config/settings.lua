@@ -140,7 +140,11 @@ C["miscellaneous"] = {
         ["levelup"] = true,             -- enables screenshots when player level up.
         ["dead"] = false,               -- enables screenshots when player dies.
     },
-    ["skyriding_race"] = true
+    ["skyriding_race"] = true,
+    ["mythic"] = {
+        ["autokeystone"] = true,
+        ["portals"] = true
+    }
 }
 
 C["tooltips"] = {

@@ -1,11 +1,15 @@
 local _, ns = ...
-local E = ns.E
+local E, C = ns.E, ns.C
 
 -- Blizzard
 local BACKPACK_CONTAINER = _G.BACKPACK_CONTAINER or 0
 local NUM_BAG_SLOTS = _G.NUM_BAG_SLOTS or 4
 
--- Mine
+--------------------------------------------------
+-- Auto Keystone
+--------------------------------------------------
+if not C.miscellaneous.mythic.portals then return end
+
 local IsKeystone = function(itemID)
     local classID, subclassID = select(12, C_Item.GetItemInfo(itemID))
     return (classID == Enum.ItemClass.Reagent and subclassID == Enum.ItemReagentSubclass.Keystone)
