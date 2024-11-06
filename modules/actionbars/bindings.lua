@@ -50,6 +50,8 @@ local SetupKeyBindings = function()
     SetBinding("F6", "MULTIACTIONBAR3BUTTON10", 2)
     SetBinding("F5", "MULTIACTIONBAR3BUTTON11", 2)
     SetBinding("F4", "MULTIACTIONBAR3BUTTON12", 2)
+    
+    SetBinding("CTRL-Z", "MULTIACTIONBAR4BUTTON12", 1)
 
     SetBinding("NUMPADPLUS", "EXTRAACTIONBUTTON1", 1)
     
