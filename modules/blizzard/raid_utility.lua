@@ -94,8 +94,10 @@ function assist_proto:Update()
     self.__checked = IsEveryoneAssistant()
     self:SetHighlight(self.__checked)
 
-    local isGroupLeader = UnitIsGroupLeader("player")
-    self:SetEnabled(isGroupLeader)
+    if not InCombatLockdown() then
+        local isGroupLeader = UnitIsGroupLeader("player")
+        self:SetEnabled(isGroupLeader)
+    end
 end
 
 function assist_proto:OnClick(button, down)
