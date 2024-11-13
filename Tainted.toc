@@ -22,6 +22,7 @@ libs\oUF_Atonement\oUF_Atonement.lua
 libs\oUF_AuraTrack\oUF_AuraTrack.lua
 libs\oUF_RaidDebuffs\oUF_RaidDebuffs.xml
 libs\oUF_TargetIndicator\oUF_TargetIndicator.lua
+libs\oUF_Tempest\oUF_Tempest.lua
 
 ## assets
 core\assets.lua

@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+-   Added new dependency `oUF_Tempest`
+-   Added tempest bar to track shaman enhancement maelstorm weapon and tempest stacks
+
 ## [1.3.2] - 2024-10-29
 
 ### Added

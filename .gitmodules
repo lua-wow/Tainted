@@ -46,3 +46,7 @@
 	path = libs/LibMobs
 	url = https://github.com/lua-wow/LibMobs.git
 	branch = master
+[submodule "libs/oUF_Tempest"]
+	path = libs/oUF_Tempest
+	url = https://github.com/lua-wow/oUF_Tempest.git
+	branch = master
