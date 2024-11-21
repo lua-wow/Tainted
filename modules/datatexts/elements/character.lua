@@ -73,8 +73,9 @@ local LEVEL = _G.LEVEL or "Level"
 local STATS = _G.PET_BATTLE_STATS_LABEL or "Stats"
 local STAT_STRENGTH = _G.SPELL_STAT1_NAME or "Strength"
 local STAT_AGILITY = _G.SPELL_STAT2_NAME or "Agility"
-local STAT_INTELLECT = _G.SPELL_STAT3_NAME or "Intellect"
-local STAT_STAMINA = _G.SPELL_STAT4_NAME or "Stamina"
+local STAT_STAMINA = _G.SPELL_STAT3_NAME or "Stamina"
+local STAT_INTELLECT = _G.SPELL_STAT4_NAME or "Intellect"
+local STAT_SPIRIT = _G.SPELL_STAT5_NAME or "Spirit"
 local STAT_ARMOR = _G.STAT_ARMOR or "Armor"
 local STAT_CRITICAL_STRIKE = _G.STAT_CRITICAL_STRIKE or "Critical Strike"
 local STAT_HASTE = _G.STAT_HASTE or "Haste"
@@ -177,6 +178,9 @@ function character_proto:CreateTooltip(tooltip)
         local intellect = UnitStat(self.unit, _G.LE_UNIT_STAT_INTELLECT or 4)
         tooltip:AddDoubleLine(STAT_INTELLECT, intellect, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0)
 
+        local spirit = UnitStat(self.unit, _G.LE_UNIT_STAT_SPIRIT or 5)
+        tooltip:AddDoubleLine(STAT_SPIRIT, spirit, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0)
+
         local stamina = UnitStat(self.unit, _G.LE_UNIT_STAT_STAMINA or 3)
         tooltip:AddDoubleLine(STAT_STAMINA, stamina, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0)
         
@@ -198,49 +202,55 @@ function character_proto:CreateTooltip(tooltip)
         
         -- haste
         local haste, hasteRating, hasteRatingBonus = self:GetHaste()
-        tooltip:AddDoubleLine(STAT_HASTE, ("%d (%0.2f%%)"):format(hasteRating, haste), 1.0, 1.0, 1.0, 1.0, 1.0, 1.0)
+        if haste then
+            tooltip:AddDoubleLine(STAT_HASTE, ("%d (%0.2f%%)"):format(hasteRating, haste), 1.0, 1.0, 1.0, 1.0, 1.0, 1.0)
+        end
         
         -- mastery
         local mastery, masteryRating, masteryBonus = self:GetMastery()
-        tooltip:AddDoubleLine(STAT_MASTERY, ("%d (%0.2f%%)"):format(masteryRating, mastery), 1.0, 1.0, 1.0, 1.0, 1.0, 1.0)
+        if mastery then
+            tooltip:AddDoubleLine(STAT_MASTERY, ("%d (%0.2f%%)"):format(masteryRating, mastery), 1.0, 1.0, 1.0, 1.0, 1.0, 1.0)
+        end
         
         -- versatility
         local versatility, versatilityDamageBonus, versatilityDamageTakenReduction = self:GetVersatility()
-        tooltip:AddDoubleLine(STAT_VERSATILITY, ("%d (%0.2f%% / %0.2f%%)"):format(versatility, versatilityDamageBonus, versatilityDamageTakenReduction), 1.0, 1.0, 1.0, 1.0, 1.0, 1.0)
+        if versatility then
+            tooltip:AddDoubleLine(STAT_VERSATILITY, ("%d (%0.2f%% / %0.2f%%)"):format(versatility, versatilityDamageBonus, versatilityDamageTakenReduction), 1.0, 1.0, 1.0, 1.0, 1.0, 1.0)
+        end
         
         -- avoidance
         local avoidance, avoidanceRating, avoidanceRatingBonus = self:GetAvoidance()
-        if avoidanceRating ~= 0 then
+        if avoidance and avoidanceRating ~= 0 then
             tooltip:AddDoubleLine(STAT_AVOIDANCE, ("%d (%0.2f%%)"):format(avoidanceRating, avoidance), 1.0, 1.0, 1.0, 1.0, 1.0, 1.0)
         end
 
         -- leech
         local lifesteal, lifestealRating, lifestealRatingBonus = self:GetLeech()
-        if lifestealRating ~= 0 then
+        if lifesteal and lifestealRating ~= 0 then
             tooltip:AddDoubleLine(STAT_LIFESTEAL, ("%d (%0.2f%%)"):format(lifestealRating, lifesteal), 1.0, 1.0, 1.0, 1.0, 1.0, 1.0)
         end
 
         -- speed
         local speed, speedRating, speedRatingBonus = self:GetSpeed()
-        if speedRating ~= 0 then
+        if speed and speedRating ~= 0 then
             tooltip:AddDoubleLine(STAT_SPEED, ("%d (%0.2f%%)"):format(speedRating, speed), 1.0, 1.0, 1.0, 1.0, 1.0, 1.0)
         end
 
         -- block
         local block, shieldBlock = self:GetBlock()
-        if block ~= 0 then
+        if block and block ~= 0 then
             tooltip:AddDoubleLine(STAT_BLOCK, ("%0.2f%%"):format(block), 1.0, 1.0, 1.0, 1.0, 1.0, 1.0)
         end
 
         -- dodge
         local dodge, dodgeRating, dodgeRatingBonus = self:GetDodge()
-        if dodgeRating ~= 0 then
+        if dodge and dodgeRating ~= 0 then
             tooltip:AddDoubleLine(STAT_DODGE, ("%d (%0.2f%%)"):format(dodgeRating, dodge), 1.0, 1.0, 1.0, 1.0, 1.0, 1.0)
         end
 
         -- parry
         local parry, parryRating, parryRatingBonus = self:GetParry()
-        if parryRating ~= 0 then
+        if parry and parryRating ~= 0 then
             tooltip:AddDoubleLine(STAT_PARRY, ("%d (%0.2f%%)"):format(parryRating, parry), 1.0, 1.0, 1.0, 1.0, 1.0, 1.0)
         end
 
@@ -333,6 +343,7 @@ function character_proto:GetCriticalStrike()
 end
 
 function character_proto:GetHaste()
+    if E.isClassic then return end
     local rating = CR_HASTE_MELEE
     local haste = GetHaste()
     local hasteRating = GetCombatRating(rating)
@@ -341,14 +352,16 @@ function character_proto:GetHaste()
 end
 
 function character_proto:GetMastery()
+    if not GetMasteryEffect then return end
     local rating = CR_MASTERY
     local mastery, bonusCoeff = GetMasteryEffect()
-    local masteryRating = GetCombatRating(CR_MASTERY)
-    local masteryBonus = GetCombatRatingBonus(CR_MASTERY) * bonusCoeff
+    local masteryRating = GetCombatRating(rating)
+    local masteryBonus = GetCombatRatingBonus(rating) * bonusCoeff
     return mastery, masteryRating, masteryBonus
 end
 
 function character_proto:GetVersatility()
+    if not GetVersatilityBonus then return end
     local versatility = GetCombatRating(CR_VERSATILITY_DAMAGE_DONE)
     local versatilityDamageBonus = GetCombatRatingBonus(CR_VERSATILITY_DAMAGE_DONE) + GetVersatilityBonus(CR_VERSATILITY_DAMAGE_DONE)
     local versatilityDamageTakenReduction = GetCombatRatingBonus(CR_VERSATILITY_DAMAGE_TAKEN) + GetVersatilityBonus(CR_VERSATILITY_DAMAGE_TAKEN)
@@ -356,6 +369,7 @@ function character_proto:GetVersatility()
 end
 
 function character_proto:GetAvoidance()
+    if not GetAvoidance then return end
     local rating = CR_AVOIDANCE
     local avoidance = GetAvoidance()
     local avoidanceRating = GetCombatRating(rating)
@@ -364,6 +378,7 @@ function character_proto:GetAvoidance()
 end
 
 function character_proto:GetLeech()
+    if not GetLifesteal then return end
     local rating = CR_LIFESTEAL
     local lifesteal = GetLifesteal()
     local lifestealRating = GetCombatRating(rating)
@@ -372,6 +387,7 @@ function character_proto:GetLeech()
 end
 
 function character_proto:GetSpeed()
+    if not GetSpeed then return end
     local rating = CR_SPEED
     local speed = GetSpeed()
     local speedRating = GetCombatRating(rating)

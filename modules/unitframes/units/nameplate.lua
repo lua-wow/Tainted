@@ -108,6 +108,10 @@ UnitFrames.NameplateCallback = function(self, event, unit)
     end
 end
 
+if not E.isRetail then
+    UnitFrames.NameplateCallback = function(self, event, unit) end
+end
+
 local health_proto = {
     colorDisconnected = true,
     colorTapping = true,
@@ -131,50 +135,52 @@ function health_proto:UnitSelectionType(unit, considerHostile)
     return selectionTypes[selection]
 end
 
-function health_proto:UpdateColor(event, unit)
-	if (not unit or self.unit ~= unit) then return end
-	
-    local element = self.Health
+if E.isRetail then
+    function health_proto:UpdateColor(event, unit)
+        if (not unit or self.unit ~= unit) then return end
+        
+        local element = self.Health
 
-    local isTank = Talents:IsTank()
+        local isTank = Talents:IsTank()
 
-    local threat = UnitThreatSituation("player", unit)
-    local selection = element:UnitSelectionType(unit, element.considerSelectionInCombatHostile)
-    local creatureRole = LibMobs:UnitRole(unit)
+        local threat = UnitThreatSituation("player", unit)
+        local selection = element:UnitSelectionType(unit, element.considerSelectionInCombatHostile)
+        local creatureRole = LibMobs:UnitRole(unit)
 
-	local color
-	if (element.colorDisconnected and not UnitIsConnected(unit)) then
-		color = self.colors.disconnected
-	elseif (element.colorTapping and not UnitPlayerControlled(unit) and UnitIsTapDenied(unit)) then
-		color = self.colors.tapped
-	elseif (element.colorThreat and not UnitPlayerControlled(unit) and threat) then
-        if creatureRole and ((isTank and threat == 3) or (not isTank and threat == 0))  then
-            color = element.colors[creatureRole] or self.colors.threat[threat]
-        else
-		    color =  self.colors.threat[threat]
+        local color
+        if (element.colorDisconnected and not UnitIsConnected(unit)) then
+            color = self.colors.disconnected
+        elseif (element.colorTapping and not UnitPlayerControlled(unit) and UnitIsTapDenied(unit)) then
+            color = self.colors.tapped
+        elseif (element.colorThreat and not UnitPlayerControlled(unit) and threat) then
+            if creatureRole and ((isTank and threat == 3) or (not isTank and threat == 0))  then
+                color = element.colors[creatureRole] or self.colors.threat[threat]
+            else
+                color =  self.colors.threat[threat]
+            end
+        elseif (element.colorClass and (UnitIsPlayer(unit) or UnitInPartyIsAI(unit)))
+            or (element.colorClassNPC and not (UnitIsPlayer(unit) or UnitInPartyIsAI(unit)))
+            or (element.colorClassPet and UnitPlayerControlled(unit) and not UnitIsPlayer(unit)) then
+            local _, class = UnitClass(unit)
+            color = self.colors.class[class]
+        elseif (element.colorSelection and selection) then
+            if creatureRole and (selection == 0) then
+                color = element.colors[creatureRole] or self.colors.selection[selection]
+            else
+                color = self.colors.selection[selection]
+            end
+        elseif (element.colorReaction and UnitReaction(unit, "player")) then
+            color = self.colors.reaction[UnitReaction(unit, "player")]
+        elseif (element.colorSmooth) then
+            color = E:ColorGradient(element.cur or 1, element.max or 1, unpack(element.smoothGradient or self.colors.smooth))
+        elseif (element.colorHealth) then
+            color = self.colors.health
         end
-	elseif (element.colorClass and (UnitIsPlayer(unit) or UnitInPartyIsAI(unit)))
-        or (element.colorClassNPC and not (UnitIsPlayer(unit) or UnitInPartyIsAI(unit)))
-        or (element.colorClassPet and UnitPlayerControlled(unit) and not UnitIsPlayer(unit)) then
-		local _, class = UnitClass(unit)
-		color = self.colors.class[class]
-	elseif (element.colorSelection and selection) then
-        if creatureRole and (selection == 0) then
-            color = element.colors[creatureRole] or self.colors.selection[selection]
-        else
-            color = self.colors.selection[selection]
-        end
-	elseif (element.colorReaction and UnitReaction(unit, "player")) then
-		color = self.colors.reaction[UnitReaction(unit, "player")]
-	elseif (element.colorSmooth) then
-		color = E:ColorGradient(element.cur or 1, element.max or 1, unpack(element.smoothGradient or self.colors.smooth))
-	elseif (element.colorHealth) then
-		color = self.colors.health
-	end
 
-	if color then
-		element:SetColor(color)
-	end
+        if color then
+            element:SetColor(color)
+        end
+    end
 end
 
 local power_proto = {}

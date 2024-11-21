@@ -332,6 +332,8 @@ end
 
 function MODULE:ToggleBagsBar()
     local element = _G.BagsBar
+    if not element then return end
+
     if element:IsShown() then
         element:Hide()
     else
@@ -343,6 +345,8 @@ end
 
 function MODULE:ToggleMicroMenu()
     local element = _G.MicroMenu
+    if not element then return end
+    
     if element:IsShown() then
         element:Hide()
     else
@@ -365,13 +369,17 @@ function MODULE:Init()
 
     -- temporary
     do
-        MicroMenu:ClearAllPoints()
-        MicroMenu:SetPoint("BOTTOMRIGHT", UIParent, -10, 220)
-        MicroMenu:Hide()
+        if MicroMenu then
+            MicroMenu:ClearAllPoints()
+            MicroMenu:SetPoint("BOTTOMRIGHT", UIParent, -10, 220)
+            MicroMenu:Hide()
+        end
 
-        BagsBar:ClearAllPoints()
-        BagsBar:SetPoint("BOTTOMRIGHT", UIParent, -10, 260)
-        BagsBar:Hide()
+        if BagsBar then
+            BagsBar:ClearAllPoints()
+            BagsBar:SetPoint("BOTTOMRIGHT", UIParent, -10, 260)
+            BagsBar:Hide()
+        end
     end
 
     self:Hide(_G.MainMenuBar)

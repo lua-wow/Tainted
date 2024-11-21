@@ -141,10 +141,12 @@ function CHAT:SetupChatFrame(frame, config)
 	end
 
 	if config.channels then
-		local channels = { EnumerateServerChannels() }
-		for k, channel in next, channels do
-			-- dont know why, but this works
-			C_Timer.After(1, function() ChatFrame_SetChannelEnabled(frame, channel, true) end)
+		if E.isRetail then
+			local channels = { EnumerateServerChannels() }
+			for k, channel in next, channels do
+				-- dont know why, but this works
+				C_Timer.After(1, function() ChatFrame_SetChannelEnabled(frame, channel, true) end)
+			end
 		end
 
 		-- Adjust Chat Colors

@@ -62,6 +62,11 @@ local SetupKeyBindings = function()
     SetBinding("CTRL-SHIFT-BUTTON3", "PINGATTACK", 1)
     
     SetBinding("SHIFT-Y", "TOGGLEACHIEVEMENT", 1) -- default: Y
+    
+    if E.isClassic then
+        SetBinding("B", "OPENALLBAGS", 1)
+        SetBinding("SHIFT-B", "TOGGLEBACKPACK", 1)
+    end
 
     SaveBindings(ACCOUNT_BINDINGS)
 end

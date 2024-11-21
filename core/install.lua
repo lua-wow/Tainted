@@ -20,7 +20,6 @@ local variables = {
 	["screenshotQuality"] = 10,
 	["showTutorials"] = 0,
 	["violenceLevel"] = 5,
-
 	
 	-- camera
 	["cameraSmoothStyle"] = 0,				-- default: 4
@@ -45,6 +44,7 @@ local variables = {
 	-- bags
 	["combinedBags"] = 1,
 	["expandBagBar"] = 1,
+	["displayFreeBagSlots"] = E.isClassic and 1 or 0,
 	
 	-- chat
 	["chatMouseScroll"] = 1,

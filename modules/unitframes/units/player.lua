@@ -46,7 +46,9 @@ function UnitFrames:CreatePlayerFrame(frame)
     -- MONK -> STATUES
     -- PALADIN -> CONSACRATION
     -- PRIEST -> MIND BINDER
-    frame.Totems = self:CreateTotems(frame)
+    if E.isRetail then
+        frame.Totems = self:CreateTotems(frame)
+    end
 
     -- RUNES (DEATHKNIGHT)
     -- STAGGER (MONK)

@@ -15,6 +15,11 @@ function element_proto:GetTooltipAnchor()
 	if (index <= 3) then
 		owner = _G["TaintedChatLeft"] or parent
 		anchor, y = "ANCHOR_TOPLEFT", 5
+
+		local exp = _G["TaintedExperience"]
+		if exp and exp:IsShown() then
+			y = y + 12
+		end
 	elseif (index <= 6) then
 		owner = _G["TaintedChatRight"] or parent
 		anchor, y = "ANCHOR_TOPRIGHT", 5

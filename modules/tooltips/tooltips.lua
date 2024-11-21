@@ -574,19 +574,24 @@ do
         hooksecurefunc("GameTooltip_ClearMoney", self.GameTooltip_ClearMoney)
 
         -- update comparison tooltip anchors
-        hooksecurefunc(_G.TooltipComparisonManager, "AnchorShoppingTooltips", self.AnchorShoppingTooltips)
+        local TooltipComparisonManager = _G.TooltipComparisonManager
+        if TooltipComparisonManager then
+            hooksecurefunc(TooltipComparisonManager, "AnchorShoppingTooltips", self.AnchorShoppingTooltips)
+        end
 
-        -- color tooltip border by item quality
-        TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Item, self.UpdateItemTooltip)
+        if TooltipDataProcessor then
+            -- color tooltip border by item quality
+            TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Item, self.UpdateItemTooltip)
 
-        -- display spellID
-        TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Spell, self.UpdateSpellTooltip)
+            -- display spellID
+            TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Spell, self.UpdateSpellTooltip)
 
-        -- display aura spellID and source name
-        TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.UnitAura, self.UpdateAuraTooltip)
+            -- display aura spellID and source name
+            TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.UnitAura, self.UpdateAuraTooltip)
 
-        -- unit tooltip customization
-        TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Unit, self.UpdateUnitTooltip)
+            -- unit tooltip customization
+            TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Unit, self.UpdateUnitTooltip)
+        end
     end
 end
 

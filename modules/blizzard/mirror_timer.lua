@@ -56,53 +56,62 @@ function MirrorTimer:Skin(element)
     element.__skinned = true
 end
 
-function MirrorTimer:SetupTimer(timer, value, maxvalue, paused, label)
-    local element = self:GetActiveTimer(timer) or self:GetAvailableTimer(timer)
-    if (not element) then return end
-
-    -- local texture = MirrorTimerAtlas[timer]
-
-    if (not element.__skinned) then
-        MirrorTimer:Skin(element)
-    end
-
-    if (element.StatusBar) then
-        local color = E.colors.mirror[timer]
-        element.StatusBar:SetStatusBarTexture(texture)
-        element.StatusBar:SetStatusBarColor(color.r, color.g, color.b, color.a or 1)
-        
-        if (element.bg) then
-            local mu = element.bg.multiplier or 1
-            element.bg:SetVertexColor(color.r * mu, color.g * mu, color.b * mu, color.a or 1)
-        end
-    end
-end
-
-MirrorTimer.MirrorTimer_Show = function(timer, value, maxvalue, scale, paused, label)
-    for index = 1, MIRRORTIMER_NUMTIMERS, 1 do
-		local frame = _G["MirrorTimer" .. index];
-        if frame then
-            if not frame.__skinned then
-                MirrorTimer:Skin(frame)
-            end
-
-            if frame.timer then
-                local color = E.colors.mirror[frame.timer]
-                local statusBar = frame.StatusBar or _G[frame:GetName() .. "StatusBar"]
-                if statusBar then
-                    statusBar:SetStatusBarTexture(texture)
-                    statusBar:SetStatusBarColor(color.r, color.g, color.b, color.a or 1)
+if E.isClassic then
+    MirrorTimer.MirrorTimer_Show = function(timer, value, maxvalue, scale, paused, label)
+        for index = 1, MIRRORTIMER_NUMTIMERS, 1 do
+            local frame = _G["MirrorTimer" .. index];
+            if frame then
+                if not frame.__skinned then
+                    MirrorTimer:Skin(frame)
+                end
+    
+                if frame.timer then
+                    local color = E.colors.mirror[frame.timer]
+                    local statusBar = frame.StatusBar or _G[frame:GetName() .. "StatusBar"]
+                    if statusBar then
+                        statusBar:SetStatusBarTexture(texture)
+                        statusBar:SetStatusBarColor(color.r, color.g, color.b, color.a or 1)
+    
+                        if (frame.bg) then
+                            local mu = frame.bg.multiplier or 1
+                            frame.bg:SetVertexColor(color.r * mu, color.g * mu, color.b * mu, color.a or 1)
+                        end
+                    end
                 end
             end
         end
-	end
-end
+    end
 
-function MirrorTimer:Init()
-    if E.isRetail then
-        hooksecurefunc(_G.MirrorTimerContainer, "SetupTimer", self.SetupTimer)
-    else
+    function MirrorTimer:Init()
         hooksecurefunc("MirrorTimer_Show", self.MirrorTimer_Show)
+    end
+else
+    function MirrorTimer:SetupTimer(timer, value, maxvalue, paused, label)
+        local element = self:GetActiveTimer(timer) or self:GetAvailableTimer(timer)
+        if (not element) then return end
+    
+        -- local texture = MirrorTimerAtlas[timer]
+    
+        if (not element.__skinned) then
+            MirrorTimer:Skin(element)
+        end
+    
+        local statusBar = element.StatusBar
+        if (statusBar) then
+            local color = E.colors.mirror[timer]
+            E:print(timer, color)
+            statusBar:SetStatusBarTexture(texture)
+            statusBar:SetStatusBarColor(color.r, color.g, color.b, color.a or 1)
+            
+            if (element.bg) then
+                local mu = element.bg.multiplier or 1
+                element.bg:SetVertexColor(color.r * mu, color.g * mu, color.b * mu, color.a or 1)
+            end
+        end
+    end
+
+    function MirrorTimer:Init()
+        hooksecurefunc(_G.MirrorTimerContainer, "SetupTimer", self.SetupTimer)
     end
 end
 

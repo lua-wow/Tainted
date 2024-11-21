@@ -71,32 +71,51 @@ do
     end
 end
 
-function MODULE:OnMouseClick(button)
-	if (button == "RightButton") then
-        local button = _G.MinimapCluster.Tracking.Button
-        if button then
-            button:OpenMenu()
-            if button.menu then
-                button.menu:ClearAllPoints()
-                button.menu:SetPoint("TOPRIGHT", Minimap, "TOPLEFT", -5, 0);
-            end
-        else
-            ToggleDropDownMenu(1, nil, MinimapCluster.TrackingFrame.DropDown, MinimapCluster.TrackingFrame, 8, 5);
-        end
-	elseif (button == "MiddleButton") then
-		local ExpansionLandingPageMinimapButton = _G.ExpansionLandingPageMinimapButton
-		ExpansionLandingPageMinimapButton:ToggleLandingPage()
-	else
+if E.isClassic then
+    function MODULE:OnMouseClick(button)
         local Minimap = _G.Minimap
-        Minimap:OnClick()
-	end
+        Minimap_OnClick(Minimap)
+    end
+else
+    function MODULE:OnMouseClick(button)
+        local MinimapCluster = _G.MinimapCluster
+        local ExpansionLandingPageMinimapButton = _G.ExpansionLandingPageMinimapButton
+        if (button == "RightButton") then
+            local button = MinimapCluster and MinimapCluster.Tracking and MinimapCluster.Tracking.Button
+            if button then
+                button:OpenMenu()
+                if button.menu then
+                    button.menu:ClearAllPoints()
+                    button.menu:SetPoint("TOPRIGHT", Minimap, "TOPLEFT", -5, 0);
+                end
+            else
+                ToggleDropDownMenu(1, nil, MinimapCluster.TrackingFrame.DropDown, MinimapCluster.TrackingFrame, 8, 5);
+            end
+        elseif (button == "MiddleButton" and ExpansionLandingPageMinimapButton) then
+            ExpansionLandingPageMinimapButton:ToggleLandingPage()
+        else
+            local Minimap = _G.Minimap
+            if Minimap.OnClick then
+                Minimap:OnClick()
+            else
+                Minimap_OnClick(Minimap)
+            end
+        end
+    end
 end
 
 function MODULE:Style()
     local MinimapCluster = _G.MinimapCluster
     
-    local BorderTop = MinimapCluster.BorderTop
-    BorderTop:Hide()
+    local BorderTop = MinimapCluster.BorderTop or _G.MinimapBorderTop
+    if BorderTop then
+        BorderTop:Hide()
+    end
+
+    local ToggleButton = _G.MinimapToggleButton
+    if ToggleButton then
+        ToggleButton:Hide()
+    end
 
     local Tracking = MinimapCluster.Tracking
     if Tracking then
@@ -105,10 +124,12 @@ function MODULE:Style()
     end
 
     local MinimapContainer = MinimapCluster.MinimapContainer
-    MinimapContainer:ClearAllPoints()
-    MinimapContainer:SetAllPoints()
+    if MinimapContainer then
+        MinimapContainer:ClearAllPoints()
+        MinimapContainer:SetAllPoints()
+    end
 
-    local Minimap = MinimapContainer.Minimap
+    local Minimap = MinimapContainer and MinimapContainer.Minimap or _G.Minimap
     Minimap:SetParent(E.PetHider)
     Minimap:ClearAllPoints()
     Minimap:SetPoint("TOPRIGHT", -10, -10)
@@ -116,6 +137,10 @@ function MODULE:Style()
     Minimap:CreateBackdrop()
     Minimap:SetMovable(false)
     Minimap:SetScript("OnMouseUp", self.OnMouseClick)
+
+    if E.isClassic then
+        Minimap:SetSize(180, 180)
+    end
     
     local ZoomHitArea = Minimap.ZoomHitArea
     
@@ -136,7 +161,9 @@ function MODULE:Style()
     MinimapCompassTexture:Hide()
 
     local ExpansionLandingPageMinimapButton = _G.ExpansionLandingPageMinimapButton
-    ExpansionLandingPageMinimapButton:SetAlpha(0)
+    if ExpansionLandingPageMinimapButton then
+        ExpansionLandingPageMinimapButton:SetAlpha(0)
+    end
 
     -- calendar
     local GameTimeFrame = _G.GameTimeFrame
@@ -146,7 +173,7 @@ function MODULE:Style()
     local TimeManagerClockButton = _G.TimeManagerClockButton
     TimeManagerClockButton:Kill()
 
-    local ZoneTextButton = MinimapCluster.ZoneTextButton
+    local ZoneTextButton = MinimapCluster.ZoneTextButton or _G.MinimapZoneTextButton
     if (ZoneTextButton) then
         ZoneTextButton:Hide()
     end
@@ -163,10 +190,11 @@ function MODULE:Style()
     end
 
     local InstanceDifficulty = MinimapCluster.InstanceDifficulty
-    InstanceDifficulty:SetParent(Minimap)
-    InstanceDifficulty:ClearAllPoints()
-    InstanceDifficulty:SetPoint("TOPRIGHT", Minimap, "TOPRIGHT", -1, -1)
-    -- InstanceDifficulty:SetPoint("TOPRIGHT", ZoneTextButton, "BOTTOMRIGHT", 0, -1)
+    if InstanceDifficulty then
+        InstanceDifficulty:SetParent(Minimap)
+        InstanceDifficulty:ClearAllPoints()
+        InstanceDifficulty:SetPoint("TOPRIGHT", Minimap, "TOPRIGHT", -1, -1)
+    end
 
     if (self.PostStyle) then
         self:PostStyle()
@@ -194,22 +222,12 @@ function MODULE:CreateZoneButton()
     Zone.Text = Text
 
     hooksecurefunc("Minimap_Update", function(self)
-        Text:SetText(GetMinimapZoneText())
+        local zonetext = GetMinimapZoneText()
+        Text:SetText(zonetext)
 
-        local pvpType, isSubZonePvP, factionName = C_PvP.GetZonePVPInfo();
-        if (pvpType == "sanctuary") then
-            Text:SetTextColor(0.41, 0.8, 0.94);
-        elseif (pvpType == "arena") then
-            Text:SetTextColor(1.0, 0.1, 0.1);
-        elseif (pvpType == "friendly") then
-            Text:SetTextColor(0.1, 1.0, 0.1);
-        elseif (pvpType == "hostile") then
-            Text:SetTextColor(1.0, 0.1, 0.1);
-        elseif (pvpType == "contested") then
-            Text:SetTextColor(1.0, 0.7, 0.0);
-        else
-            Text:SetTextColor(NORMAL_FONT_COLOR.r, NORMAL_FONT_COLOR.g, NORMAL_FONT_COLOR.b);
-        end
+        local pvpType, isSubZonePvP, factionName = C_PvP.GetZonePVPInfo()
+        local pvpColor = E.colors.pvp[pvpType or "none"] or NORMAL_FONT_COLOR
+        Text:SetTextColor(pvpColor.r, pvpColor.g, pvpColor.b)
     end)
 
     local Animation = Zone:CreateAnimationGroup()
@@ -257,4 +275,8 @@ function MODULE:Init()
     self:CreateZoneButton()
     self:CreateDataText()
     self.TaxiRequestEarlyLandingButton = self:AddTaxiRequestEarlyLandingButton()
+
+    if E.isClassic then
+        Minimap_Update()
+    end
 end
