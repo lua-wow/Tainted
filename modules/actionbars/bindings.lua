@@ -12,6 +12,7 @@ local GetNumBindings = _G.GetNumBindings
 local SaveBindings = _G.SaveBindings
 local GetCurrentBindingSet = _G.GetCurrentBindingSet
 
+-- Mine
 local SetupKeyBindings = function()
     -- returns if either account or character-specific bindings are active.
     local set = GetCurrentBindingSet()

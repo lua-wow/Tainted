@@ -19,7 +19,8 @@ C["general"] = {
     },
     ["highlight"] = {
         ["color"] = E:CreateColor(0.84, 0.75, 0.65)
-    }
+    },
+    ["margin"] = 10
 }
 
 C["actionbars"] = {

@@ -5,92 +5,120 @@ local MODULE = E:GetModule("ActionBars")
 -- Blizzard
 local MAIN_MENU_BAR_NUM_BUTTONS  = _G.MAIN_MENU_BAR_NUM_BUTTONS or 12
 
-local PAGE_STATES = {
-	-- [bonusbar:5] 11 is skyriding
-	["DEFAULT"] = "[overridebar] 18; [shapeshift] 17; [vehicleui][possessbar] 16; [bonusbar:5] 11; [bar:2] 2; [bar:3] 3; [bar:4] 4; [bar:5] 5; [bar:6] 6;",
-    -- soar
+local GetActionTexture  = _G.GetActionTexture
+
+-- Mine
+local PAGE_STATE = {
+	["DEFAULT"] = "[overridebar] %d; [shapeshift] %d; [vehicleui][possessbar] %d; [bonusbar:5] 11; [bar:2] 2; [bar:3] 3; [bar:4] 4; [bar:5] 5; [bar:6] 6;",
+	-- unstealthed cat, stealthed cat, bear, owl; tree form [bonusbar:2] was removed
+	["DRUID"] = E.isRetail 
+		and "[bonusbar:1, stealth] 2; [bonusbar:1, nostealth] 7; [bonusbar:2] 8; [bonusbar:3] 9; [bonusbar:4] 10;"
+		or "[bonusbar:1, stealth] 2; [bonusbar:1, nostealth] 7; [bonusbar:2] 8; [bonusbar:3] 9; [bonusbar:4] 10; [bonusbar:5] 10;",
+	-- soar
 	["EVOKER"] = " [bonusbar:1] 7;",
-    -- unstealthed cat, stealthed cat, bear, owl; tree form [bonusbar:2] was removed
-	["DRUID"] = " [bonusbar:1,nostealth] 7; [bonusbar:1,stealth] 8; [bonusbar:3] 9; [bonusbar:4] 10;",
 	-- stealth, shadow dance
-	["ROGUE"] = " [bonusbar:1] 7;",
+	["ROGUE"] = E.isCata and "[bonusbar:1] 7; [bonusbar:2] 8;" or "[bonusbar:1] 7;",
+	-- battle stance, defensive stance, berserker stance
+	["WARRIOR"] = "[bonusbar:1] 7; [bonusbar:2] 8; [bonusbar:3] 9;",
+	-- shadowform
+	["PRIEST"] = "[bonusbar:1] 7;",
+	-- ???
+	["WARLOCK"] = E.isCata and "[form:1] 7;" or nil,
 }
 
-local AVAILABLE_PAGES = {
-	["DRUID"] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 16, 17, 18 },
-	["ROGUE"] = { 1, 2, 3, 4, 5, 6, 7, 11, 16, 17, 18 },
-	["EVOKER"] = { 1, 2, 3, 4, 5, 6, 7, 11, 16, 17, 18 },
-	["DEFAULT"] = { 1, 2, 3, 4, 5, 6, 11, 16, 17, 18 },
+local element_proto = {
+	name = "ActionButton",
+    num = MAIN_MENU_BAR_NUM_BUTTONS,
+	visibility = "[petbattle] hide; show"
 }
 
-local bar_proto = {
-	_num = MAIN_MENU_BAR_NUM_BUTTONS,
-    _visibility = "show"
-}
+do
+	function element_proto:UpdateAnchor()
+		local element = self
 
-function bar_proto:Update()
-    self:UpdateAnchor()
-    self:CreateBackground(self._num, self._size, self._spacing, self._horizontal)
-    self:UpdateVisibility()
-    self:UpdateButtonsPosition()
+		local margin = C.general.margin or 10
 
-    self:Execute([[
-		buttons = table.new()
-		for i = 1, 12 do
-			table.insert(buttons, self:GetFrameRef("Button" .. i))
-		end
-	]])
+		element:ClearAllPoints()
+		element:SetPoint("BOTTOM", UIParent, "BOTTOM", 0, margin)
+	end
 
-    self:SetAttribute("_onstate-page", [[
-		self:SetAttribute("state", newstate)
+	function element_proto:GetPageState()
+		local _, class = UnitClass("player")
 
-		if HasVehicleActionBar and HasVehicleActionBar() then
-			newstate = GetVehicleBarIndex() or newstate
-		elseif HasOverrideActionBar and HasOverrideActionBar() then
-			newstate = GetOverrideBarIndex() or newstate
-		elseif HasTempShapeshiftActionBar and HasTempShapeshiftActionBar() then
-			newstate = GetTempShapeshiftBarIndex() or newstate
-		elseif HasBonusActionBar and HasBonusActionBar() then
-			newstate = GetBonusBarIndex() or newstate
-		else
-			newstate = GetActionBarPage() or newstate
-		end
+		local vehicleBarIndex = GetVehicleBarIndex() or 16
+		local shapeshiftBarIndex = GetTempShapeshiftBarIndex() or 17
+		local overrideBarIndex = GetOverrideBarIndex() or 18
+
+		local defaultPageState = PAGE_STATE["DEFAULT"]:format(overrideBarIndex, shapeshiftBarIndex, vehicleBarIndex)
+		local classPageState = (PAGE_STATE[class] or "")
+		return defaultPageState .. classPageState .. " [form] 1; 1"
+	end
+
+	function element_proto:OnEvent(event, ...)
+		local unit = ...
+
+		local element = self
 		
-		for i, button in ipairs(buttons) do
-			button:SetAttribute("actionpage", tonumber(newstate))
+		for index, button in next, element._buttons do
+			-- local button = _G["ActionButton"..i]
+			local action = button.action
+			local icon = button.icon
+
+			if icon then
+				if action and action >= 120 then
+					local texture = GetActionTexture(action)
+					if (texture) then
+						icon:SetTexture(texture)
+						if not icon:IsShown() then
+							icon:Show()
+						end
+					else
+						if icon:IsShown() then
+							icon:Hide()
+						end
+					end
+				end
+			end
 		end
-	]])
+	end
 
-	RegisterStateDriver(self, "page", self:getPageState())
-end
+	function element_proto:PostCreate()
+		local element = self
 
-function bar_proto:UpdateAnchor()
-    self:SetPoint("BOTTOM", UIParent, "BOTTOM", 0, 10)
-end
+		element:SetScript("OnEvent", element.OnEvent)
 
-function bar_proto:getPageState()
-	return PAGE_STATES["DEFAULT"] .. (PAGE_STATES[E.class] or "") .. " [form] 1; 1"
-end
+		element:Execute([[
+			buttons = table.new()
+			for i = 1, 12 do
+				table.insert(buttons, self:GetFrameRef("button" .. i))
+			end
+		]])
 
-function bar_proto:getAvailablePages()
-	return AVAILABLE_PAGES[E.class] or AVAILABLE_PAGES["DEFAULT"]
+		element:SetAttribute("_onstate-page", [[
+			self:SetAttribute("state", newstate)
+
+			if HasVehicleActionBar and HasVehicleActionBar() then
+				newstate = GetVehicleBarIndex() or newstate
+			elseif HasOverrideActionBar and HasOverrideActionBar() then
+				newstate = GetOverrideBarIndex() or newstate
+			elseif HasTempShapeshiftActionBar and HasTempShapeshiftActionBar() then
+				newstate = GetTempShapeshiftBarIndex() or newstate
+			elseif HasBonusActionBar and HasBonusActionBar() then
+				newstate = GetBonusBarIndex() or newstate
+			else
+				newstate = GetActionBarPage() or newstate
+			end
+
+			for i, button in ipairs(buttons) do
+				button:SetAttribute("actionpage", tonumber(newstate))
+			end
+		]])
+
+		local page = element:GetPageState()
+		RegisterStateDriver(element, "page", page)
+	end
 end
 
 function MODULE:CreateActionBar1()
-    local element = self:CreateActionBar("ActionBar1", bar_proto)
-    
-    for i = 1, element._num do
-        local button = element:StyleActionButton(_G["ActionButton" .. i])
-        button:SetParent(element)
-        button:ClearAllPoints()
-        button._parent = element
-
-        element:SetFrameRef("Button" .. i, button)
-
-        element._buttons[i] = button
-    end
-
-    element:Update()
-
-    self.ActionBar1 = element
+	return self:CreateActionBar("ActionBar1", element_proto)
 end

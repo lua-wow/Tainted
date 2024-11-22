@@ -2,35 +2,36 @@ local _, ns = ...
 local E, C = ns.E, ns.C
 local MODULE = E:GetModule("ActionBars")
 
--- Blizzard
-local bar_proto = {
-    _horizontal = false
+-- Mine
+local element_proto = {
+    name = "MultiBarRightButton",
+    horizontal = false
 }
 
-function bar_proto:UpdateAnchor()
-    self:SetPoint("RIGHT", UIParent, "RIGHT", -10, -10)
+do
+    function element_proto:PostCreate()
+        local element = self
+
+        local frame = _G.MultiBarRight
+        if frame then
+            frame:SetShown(true)
+            frame:EnableMouse(false)
+            frame:SetParent(element)
+            frame.ignoreFramePositionManager = true
+            frame.ignoreInLayout = true
+        end
+    end
+
+    function element_proto:UpdateAnchor()
+        local element = self
+
+        local margin = C.general.margin or 10
+
+        element:ClearAllPoints()
+        element:SetPoint("RIGHT", UIParent, "RIGHT", -margin, -margin)
+    end
 end
 
 function MODULE:CreateActionBar4()
-    local element = self:CreateActionBar("ActionBar4", bar_proto)
-
-    local frame = _G.MultiBarRight
-    frame:SetParent(element)
-    frame.ignoreFramePositionManager = true
-    frame.ignoreInLayout = true
-
-    for i = 1, element._num do
-        local button = element:StyleActionButton(_G["MultiBarRightButton" .. i])
-        button:SetParent(element)
-        button:ClearAllPoints()
-        button._parent = element
-
-        element:SetFrameRef("Button" .. i, button)
-
-        element._buttons[i] = button
-    end
-
-    element:Update()
-
-	self.ActionBar4 = element
+	return self:CreateActionBar("ActionBar4", element_proto)
 end

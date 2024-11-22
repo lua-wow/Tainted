@@ -129,10 +129,12 @@ function MODULE:Style()
         MinimapContainer:SetAllPoints()
     end
 
+    local margin = C.general.margin or 10
+
     local Minimap = MinimapContainer and MinimapContainer.Minimap or _G.Minimap
     Minimap:SetParent(E.PetHider)
     Minimap:ClearAllPoints()
-    Minimap:SetPoint("TOPRIGHT", -10, -10)
+    Minimap:SetPoint("TOPRIGHT", -margin, -margin)
     Minimap:SetMaskTexture(A.textures.blank)
     Minimap:CreateBackdrop()
     Minimap:SetMovable(false)

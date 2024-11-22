@@ -2,103 +2,10 @@ local _, ns = ...
 local E, C, A = ns.E, ns.C, ns.A
 local MODULE = E:CreateModule("ActionBars")
 
--- Blizzard
-local NUM_SPECIAL_BUTTONS = _G.NUM_SPECIAL_BUTTONS or 10
-local NUM_PET_ACTION_SLOTS = _G.NUM_PET_ACTION_SLOTS or 10
-local NUM_ACTIONBAR_BUTTONS = _G.NUM_ACTIONBAR_BUTTONS or 12
-local MAIN_MENU_BAR_NUM_BUTTONS  = _G.MAIN_MENU_BAR_NUM_BUTTONS or 12
-local MULTI_BAR_BOTTOM_LEFT_NUM_BUTTONS   = _G.MULTI_BAR_BOTTOM_LEFT_NUM_BUTTONS or 12
-local MULTI_BAR_BOTTOM_RIGHT_NUM_BUTTONS    = _G.MULTI_BAR_BOTTOM_RIGHT_NUM_BUTTONS  or 12
-
--- local ACTION_BARS = {
---     ["bar1"] = { visibility = "[petbattle] hide; show" },
---     ["bar2"] = { visibility = "[vehicleui][petbattle][overridebar][possessbar] hide; show" },
---     ["bar3"] = { visibility = "[vehicleui][petbattle][overridebar][possessbar] hide; show" },
---     ["bar4"] = { visibility = "[vehicleui][petbattle][overridebar][possessbar] hide; show" },
---     ["bar5"] = { visibility = "[vehicleui][petbattle][overridebar][possessbar] hide; show" },
---     ["bar6"] = { visibility = "[vehicleui][petbattle][overridebar][possessbar] hide; show" },
---     ["bar7"] = { visibility = "[vehicleui][petbattle][overridebar][possessbar] hide; show" },
---     ["bar8"] = { visibility = "[vehicleui][petbattle][overridebar][possessbar] hide; show" },
---     ["pet"] = { visibility = "[pet,nopetbattle,nooverridebar,nopossessbar] show; hide" },
---     ["petbattle"] = { visibility = "[petbattle] show; hide" },
---     ["stance"] = { visibility = "[vehicleui][petbattle][overridebar][possessbar] hide; show" },
--- }
-
-local actionbar_proto = {
-    _enabled = true,
-    _num = NUM_ACTIONBAR_BUTTONS,
-    _size = C.actionbars.size,
-    _spacing = C.actionbars.spacing,
-    _visibility = "[vehicleui][petbattle][overridebar][possessbar] hide; show",
-    _horizontal = true
-}
-
-function actionbar_proto:Update()
-    self:UpdateAnchor()
-    self:CreateBackground(self._num, self._size, self._spacing, self._horizontal)
-    self:UpdateVisibility()
-    self:UpdateButtonsPosition()
-end
-
-function actionbar_proto:UpdateAnchor()
-    self:ClearAllPoints()
-	self:SetPoint("CENTER", UIParent, "CENTER", 0, 0)
-end
-
-function actionbar_proto:CreateBackground(num, size, spacing, isHorizontal)
-    local rows = (not isHorizontal) and num or 1
-    local cols = isHorizontal and num or 1
-    self:SetWidth((cols * size) + ((cols + 1) * spacing))
-    self:SetHeight((rows * size) + ((rows + 1) * spacing))
-	self:CreateBackdrop("transparent")
-end
-
-function actionbar_proto:Enable()
-	RegisterStateDriver(self, "visibility", self._visibility or "show")
-    self:Show()
-end
-
-function actionbar_proto:Disable()
-	UnregisterStateDriver(self, "visibility")
-    self:Hide()
-end
-
-function actionbar_proto:UpdateVisibility()
-    if self._enabled then
-	    self:Enable()
-    else
-        self:Disable()
-    end
-end
-
-function actionbar_proto:UpdateButtonsPosition()
-    local element = self
-
-    local size = element._size
-    local spacing = element._spacing
-
-    element:CreateBackground(element._num, size, spacing, element._horizontal)
-
-    for i, button in next, element._buttons do
-        button:SetParent(button._parent or element)
-        button:ClearAllPoints()
-        button:SetSize(size, size)
-
-        if i == 1 then
-            button:SetPoint("TOPLEFT", element, "TOPLEFT", spacing, -spacing)
-        else
-            local anchor = element._buttons[i - 1]
-            if element._horizontal then
-                button:SetPoint("LEFT", anchor, "RIGHT", spacing, 0)
-            else
-                button:SetPoint("TOP", anchor, "BOTTOM", 0, -spacing)
-            end
-        end
-    end
-end
-
 local function Hook_UpdateHotkeys(button)
     local hotkey = button.HotKey
+    if not hotkey then return end
+
     local text = hotkey:GetText()
     if not text then return end
     if text ~= _G.RANGE_INDICATOR then
@@ -138,27 +45,7 @@ local function Hook_UpdateHotkeys(button)
     end
 end
 
-function actionbar_proto:StyleActionButton(button)
-    return MODULE:StyleActionButton(button)
-end
-
-function MODULE:UpdateFlyout(isButtonDownOverride)
-    if (not self.FlyoutArrowContainer or not self.FlyoutBorderShadow) then return end
-
-    if self.FlyoutBorder then self.FlyoutBorder:SetTexture(nil) end
-    if self.FlyoutBorderShadow then self.FlyoutBorderShadow:SetTexture(nil) end
-
-    local SpellFlyout = _G.SpellFlyout
-    if SpellFlyout and SpellFlyout:IsShown() then
-        SpellFlyout.Background:Hide()
-
-        for i, button in next, SpellFlyout:GetLayoutChildren() do
-            MODULE:StyleActionButton(button)
-        end
-    end
-end
-
-function MODULE:StyleActionButton(button)
+MODULE.StyleActionButton = function(button)
     if not button then return end
     if button.__styled then return end
 
@@ -207,7 +94,7 @@ function MODULE:StyleActionButton(button)
         Hook_UpdateHotkeys(button)
     end
 
-    local normal = button.GetNormalTexture and button:GetNormalTexture()
+    local normal = button.GetNormalTexture and button:GetNormalTexture() or _G[button:GetName() .. "NormalTexture"]
 	if normal then
 		normal:SetTexture(nil)
 		normal:SetAlpha(0)
@@ -283,6 +170,9 @@ function MODULE:StyleActionButton(button)
     if button.AutoCastOverlay then button.AutoCastOverlay:Hide() end
     if button.LevelLinkLock then button.LevelLinkLock:Hide() end
     
+    local FloatingBG = _G[button:GetName() .. "FloatingBG"]
+    if FloatingBG then FloatingBG:Hide() end
+    
     -- button.SpellCastAnimFrame
     -- button.SpellHighlightAnim
 
@@ -302,32 +192,31 @@ function MODULE:StyleActionButton(button)
     return button
 end
 
-function MODULE:CreateActionBar(name, element_proto)
-    local element = Mixin(CreateFrame("Frame", "Tainted" .. name, E.PetHider, "SecureHandlerStateTemplate"), actionbar_proto, element_proto or {})
-    element:SetFrameLevel(5)
-    element:SetSize(0, 0)
-    element._buttons = {}
-
-    self[name] = element
-
-    return element
-end
-
-function MODULE:Hide(obj)
+function MODULE:Hide(obj, events)
     if not obj then return end
 
     obj:Hide()
+    obj:SetParent(E.Hider)
+    obj.ignoreFramePositionManager = true
+    obj.ignoreInLayout = true
+
+    -- with 8.2, there's more restrictions on frame anchoring if something
+    -- happens to be attached to a restricted frame. This causes issues with
+    -- moving the action bars around, so we perform a clear all points to avoid
+    -- some frame dependency issues
+    -- we then follow it up with a SetPoint to handle the cases of bits of the
+    -- UI code assuming that this element has a position
+    obj:ClearAllPoints()
+    obj:SetPoint("CENTER")
 
     if obj.EnableMouse then
 		obj:EnableMouse(false)
 	end
 
-    if obj.UnregisterAllEvents then
+    if events and obj.UnregisterAllEvents then
         obj:UnregisterAllEvents()
-		obj:SetAttribute("statehidden", true)
+		-- obj:SetAttribute("statehidden", true)
 	end
-
-    obj:SetParent(E.Hider)
 end
 
 function MODULE:ToggleBagsBar()
@@ -356,63 +245,85 @@ function MODULE:ToggleMicroMenu()
     element:SetPoint("BOTTOMRIGHT", UIParent, -10, 220)
 end
 
-function MODULE:Init()
-    SetActionBarToggles(
-        1,                              -- action bar 2
-        1,                              -- action bar 3
-        1,                              -- action bar 4
-        1,                              -- action bar 5
-        C.actionbars.bar6 and 1 or nil, -- action bar 6
-        C.actionbars.bar7 and 1 or nil, -- action bar 7
-        C.actionbars.bar8 and 1 or nil  -- action bar 8
-    )
+function MODULE:DisableBlizzard()
+    self:Hide(_G.MainMenuBar, true)
+	self:Hide(_G.MainMenuBarArtFrame, true)
+	self:Hide(_G.OverrideActionBar, true)
+	self:Hide(_G.PossessBarFrame, true)
+	self:Hide(_G.ShapeshiftBarLeft, true)
+	self:Hide(_G.ShapeshiftBarMiddle, true)
+	self:Hide(_G.ShapeshiftBarRight, true)
 
-    -- temporary
-    do
-        if MicroMenu then
-            MicroMenu:ClearAllPoints()
-            MicroMenu:SetPoint("BOTTOMRIGHT", UIParent, -10, 220)
-            MicroMenu:Hide()
-        end
+    -- retail
+    self:Hide(_G.StatusTrackingBarManager, true)
+    self:Hide(_G.MainStatusTrackingBarContainer, true)
+    self:Hide(_G.SecondaryStatusTrackingBarContainer, true)
 
-        if BagsBar then
-            BagsBar:ClearAllPoints()
-            BagsBar:SetPoint("BOTTOMRIGHT", UIParent, -10, 260)
-            BagsBar:Hide()
-        end
+    if E.isClassic then
+        MultiActionBar_Update = function() end
+        BeginActionBarTransition = function() end
     end
 
-    self:Hide(_G.MainMenuBar)
-    -- self:Hide(_G.OverrideActionBar)
-    self:Hide(_G.StatusTrackingBarManager)
-	self:Hide(_G.MainStatusTrackingBarContainer)
-	self:Hide(_G.SecondaryStatusTrackingBarContainer)
+    -- temporary
+    local MicroMenu = _G.MicroMenu
+    if MicroMenu then
+        MicroMenu:ClearAllPoints()
+        MicroMenu:SetPoint("BOTTOMRIGHT", UIParent, -10, 220)
+        MicroMenu:Hide()
+    end
 
-    local frame = _G.MainMenuBar
-    -- frame:SetParent(element)
-    frame.ignoreFramePositionManager = true
-    frame.ignoreInLayout = true
+    local BagsBar = _G.BagsBar
+    if BagsBar then
+        BagsBar:ClearAllPoints()
+        BagsBar:SetPoint("BOTTOMRIGHT", UIParent, -10, 260)
+        BagsBar:Hide()
+    end
+end
 
+function MODULE:Init()
+    -- diplay action bar grid
+    SetCVar("alwaysShowActionBars", 1)
+
+    local actionbars = {
+        true, -- bar 2
+        true, -- bar 3
+        true, -- bar 4
+        true, -- bar 5
+        (not E.isClassic and C.actionbars.bar6) and true or false, -- bar 6
+        (not E.isClassic and C.actionbars.bar7) and true or false, -- bar 7
+        (not E.isClassic and C.actionbars.bar8) and true or false, -- bar 8
+        true -- always show action bars
+    }
+
+    -- sets the visible state for each action bar
+    SetActionBarToggles(unpack(actionbars))
+
+    -- hide blizzard frames
+    self:DisableBlizzard()
+
+    -- costumize action bars
     self:CreateActionBar1()
     self:CreateActionBar2()
     self:CreateActionBar3()
     self:CreateActionBar4()
     self:CreateActionBar5()
-    
-    self:CreateActionBar6()
-    self:CreateActionBar7()
-    self:CreateActionBar8()
 
     self:CreatePetBar()
     self:CreateStanceBar()
 
-    do
-        local holder = CreateFrame("Frame", "TaintedExtraAbilityHolder", UIParent)
-        holder:SetPoint("BOTTOM", UIParent, "BOTTOM", 0, 50)
-        holder:SetSize(256, 128)
-        holder:SetClampedToScreen(true)
+    if E.isRetail then
+        self:CreateActionBar6()
+        self:CreateActionBar7()
+        self:CreateActionBar8()
 
-        self:CreateExtraActionButton(holder)
-        self:CreateZoneAbilityButton(holder)
+        do
+            local holder = CreateFrame("Frame", "TaintedExtraAbilityHolder", UIParent)
+            holder:SetPoint("BOTTOM", UIParent, "BOTTOM", 0, 50)
+            holder:SetSize(256, 128)
+            holder:SetClampedToScreen(true)
+
+            self:CreateExtraActionButton(holder)
+            self:CreateZoneAbilityButton(holder)
+        end
     end
 end
