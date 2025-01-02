@@ -40,28 +40,33 @@ local CR_UNUSED_4 = _G.CR_UNUSED_4 or 28
 local CR_VERSATILITY_DAMAGE_DONE = _G.CR_VERSATILITY_DAMAGE_DONE or 29
 local CR_VERSATILITY_DAMAGE_TAKEN = _G.CR_VERSATILITY_DAMAGE_TAKEN or 31
 
-local UnitName = _G.UnitName
-local UnitLevel = _G.UnitLevel
-local UnitClass = _G.UnitClass
-local UnitStat = _G.UnitStat
 local GetAverageItemLevel = _G.GetAverageItemLevel
-local GetSpellCritChance = _G.GetSpellCritChance
-local GetRangedCritChance = _G.GetRangedCritChance
-local GetCritChance = _G.GetCritChance
+local GetAvoidance = _G.GetAvoidance
+local GetBlockChance = _G.GetBlockChance
 local GetCombatRating = _G.GetCombatRating
 local GetCombatRatingBonus = _G.GetCombatRatingBonus
-local GetHaste = _G.GetHaste
-local GetMasteryEffect = _G.GetMasteryEffect
-local GetAvoidance = _G.GetAvoidance
-local GetLifesteal = _G.GetLifesteal
-local GetSpeed = _G.GetSpeed
-local GetBlockChance = _G.GetBlockChance
-local GetShieldBlock = _G.GetShieldBlock
+local GetCritChance = _G.GetCritChance
 local GetDodgeChance = _G.GetDodgeChance
-local GetParryChance = _G.GetParryChance
-local GetInventoryItemID = _G.GetInventoryItemID
+local GetHaste = _G.GetHaste
 local GetInventoryItemDurability = _G.GetInventoryItemDurability
+local GetInventoryItemID = _G.GetInventoryItemID
+local GetLifesteal = _G.GetLifesteal
+local GetMasteryEffect = _G.GetMasteryEffect
+local GetParryChance = _G.GetParryChance
+local GetPowerRegen = _G.GetPowerRegen
+local GetRangedCritChance = _G.GetRangedCritChance
+local GetShieldBlock = _G.GetShieldBlock
+local GetSpeed = _G.GetSpeed
+local GetSpellBonusDamage = _G.GetSpellBonusDamage
+local GetSpellBonusHealing = _G.GetSpellBonusHealing
+local GetSpellCritChance = _G.GetSpellCritChance
+local GetSpellCritChance = _G.GetSpellCritChance
+local GetSpellHitModifier = _G.GetSpellHitModifier
 local IsShiftKeyDown = _G.IsShiftKeyDown
+local UnitClass = _G.UnitClass
+local UnitLevel = _G.UnitLevel
+local UnitName = _G.UnitName
+local UnitStat = _G.UnitStat
 
 -- Mine
 local DATATEXT_STRING = "%s %s"
@@ -93,6 +98,9 @@ local SECONDARY_STATS = _G.SECONDARY_STATS or "Secondary Stats"
 local CURRENCY = _G.CURRENCY or "Currency"
 local KEY_STONES = L.KEY_STONES or "Key Stones"
 local TOGGLE_CHARACTER_TEXT = L.TOGGLE_CHARACTER_TEXT
+local HIT_CHANCE = L.HIT_CHANCE or "Hit Chance"
+local MANA_REGEN = L.MANA_REGEN or "Mana Regen"
+local HEALING_BONUS = L.HEALING_BONUS or "Healing Bonus"
 
 local CURRENCIES = {
     -- The War Winthin: Season 1
@@ -103,6 +111,16 @@ local CURRENCIES = {
     { currencyID = 2915, enabled = E.isRetail },  -- Carved Harbringer Crest
     { currencyID = 2916, enabled = E.isRetail },  -- Runed Harbringer Crest
     { currencyID = 2917, enabled = E.isRetail },  -- Gilded Harbringer Crest
+}
+
+local SchoolEnum = {
+    [1] = "Physical",
+    [2] = "Holy",
+    [3] = "Fire",
+    [4] = "Nature",
+    [5] = "Frost",
+    [6] = "Shadow",
+    [7] = "Arcane"
 }
 
 local slots = {}
@@ -198,7 +216,8 @@ function character_proto:CreateTooltip(tooltip)
 
         -- critical strike
         local criticalStrike, criticalStrikeRating, criticalStrikeRatingBonus = self:GetCriticalStrike()
-        tooltip:AddDoubleLine(STAT_CRITICAL_STRIKE, ("%d (%0.2f%%)"):format(criticalStrikeRating, criticalStrike), 1.0, 1.0, 1.0, 1.0, 1.0, 1.0)
+        local criticalStrikeText = E.isClassic and ("%0.2f%%"):format(criticalStrike) or ("%d (%0.2f%%)"):format(criticalStrikeRating, criticalStrike)
+        tooltip:AddDoubleLine(STAT_CRITICAL_STRIKE, criticalStrikeText, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0)
         
         -- haste
         local haste, hasteRating, hasteRatingBonus = self:GetHaste()
@@ -252,6 +271,24 @@ function character_proto:CreateTooltip(tooltip)
         local parry, parryRating, parryRatingBonus = self:GetParry()
         if parry and parryRating ~= 0 then
             tooltip:AddDoubleLine(STAT_PARRY, ("%d (%0.2f%%)"):format(parryRating, parry), 1.0, 1.0, 1.0, 1.0, 1.0, 1.0)
+        end
+
+        -- hit change
+        local hitMod = self:GetSpellHitModifier()
+        if hitMod and hitMod > 0 then
+            tooltip:AddDoubleLine(HIT_CHANCE, ("%0.2f%%"):format(hitMod), 1.0, 1.0, 1.0, 1.0, 1.0, 1.0)
+        end
+
+        -- mana regen
+        local regen = self:GetManaRegen()
+        if regen then
+            tooltip:AddDoubleLine(MANA_REGEN, ("%0.2f mana per sec"):format(regen), 1.0, 1.0, 1.0, 1.0, 1.0, 1.0)
+        end
+
+        -- healing bonus
+        local bonusHealing = self:GetSpellBonusHealing()
+        if bonusHealing then
+            tooltip:AddDoubleLine(HEALING_BONUS, ("%d"):format(bonusHealing), 1.0, 1.0, 1.0, 1.0, 1.0, 1.0)
         end
 
         tooltip:AddLine(" ")
@@ -415,6 +452,42 @@ function character_proto:GetParry()
     local parryRating = GetCombatRating(rating)
     local parryRatingBonus = GetCombatRatingBonus(rating)
     return parry, parryRating, parryRatingBonus
+end
+
+function character_proto:GetPowerRegen()
+    local powerType = UnitPowerType("player")
+    if powerType ~= Enum.PowerType.Mana then return end
+    local basePowerRegen, castingPowerRegen = GetPowerRegen()
+    return basePowerRegen, castingPowerRegen
+end
+
+function character_proto:GetManaRegen()
+    local baseManaRegen, castingManaRegen = GetManaRegen()
+    return InCombatLockdown() and castingManaRegen or baseManaRegen or nil
+end
+
+function character_proto:GetSpellBonusHealing()
+    return GetSpellBonusHealing()
+end
+
+function character_proto:GetSpellHitModifier()
+    local rating = CR_HIT_SPELL
+    local hitMod = GetSpellHitModifier()
+    local hitModRating = GetCombatRating(rating)
+    local hitModRatingBonus = GetCombatRatingBonus(rating)
+    return hitMod, hitModRating, hitModRatingBonus
+end
+
+function character_proto:GetSpellBonusDamage()
+    local holySchool = 2 -- start at 2 to skip physical damage
+    local minValue = GetSpellBonusDamage(holySchool)
+    
+    for school = (holySchool + 1), MAX_SPELL_SCHOOLS do
+        local value = GetSpellBonusDamage(school)
+        minValue = min(minValue, value)
+    end
+    
+    return minValue
 end
 
 function character_proto:OnMouseDown()

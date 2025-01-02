@@ -20,11 +20,13 @@ function button_proto:UpdateTooltip()
     local unit = self:GetParent().__owner.unit
 	if self.auraIndex then
 		GameTooltip:SetUnitAura(unit, self.auraIndex, self.isHarmful and "HARMFUL" or "HELPFUL")
-	elseif self.isHarmful then
-		GameTooltip:SetUnitDebuffByAuraInstanceID(unit, self.auraInstanceID)
-	else
-		GameTooltip:SetUnitBuffByAuraInstanceID(unit, self.auraInstanceID)
-	end
+    elseif self.auraInstanceID and GameTooltip.SetUnitDebuffByAuraInstanceID then
+        if self.isHarmful then
+            GameTooltip:SetUnitDebuffByAuraInstanceID(unit, self.auraInstanceID)
+        else
+            GameTooltip:SetUnitBuffByAuraInstanceID(unit, self.auraInstanceID)
+        end
+    end
 end
 
 function button_proto:OnEnter()

@@ -130,6 +130,11 @@ do
 	-- oUF.colors.ANIMA = oUF:CreateColor(0.83, 0.83, 0.83),
 end
 
+-- classes
+if E.isClassic then
+	oUF.colors.class["SHAMAN"] = oUF:CreateColor(0.00, 0.44, 0.87)
+end
+
 -- oUF.colors.class = {
 -- 	["DRUID"]       = oUF:CreateColor(1.00, 0.49, 0.04),
 -- 	["HUNTER"]      = oUF:CreateColor(0.67, 0.83, 0.45),

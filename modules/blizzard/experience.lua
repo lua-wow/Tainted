@@ -191,13 +191,13 @@ end
 local experience_proto = Mixin({ unit = "player" }, element_proto)
 
 do
-    if E.isClassic then
+    if E.isRetail then
         function experience_proto:GetMaxLevel()
-            return GetMaxPlayerLevel()
+            return GetMaxLevelForPlayerExpansion()
         end
     else
         function experience_proto:GetMaxLevel()
-            return GetMaxLevelForPlayerExpansion()
+            return GetMaxPlayerLevel()
         end
     end
 

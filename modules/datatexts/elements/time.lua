@@ -56,8 +56,6 @@ function time_proto:GetResetTime(value)
 end
 
 function time_proto:CreateTooltip(tooltip)
-	if not E.isRetail then return end
-
 	local numSavedInstances = GetNumSavedInstances() or 0
 	local numSavedWorldBosses = GetNumSavedWorldBosses() or 0
 
@@ -82,7 +80,7 @@ function time_proto:CreateTooltip(tooltip)
 
 		for i = 1, numSavedInstances do
 			local name, lockoutID, reset, difficultyID, locked, extended, _, isRaid, _, difficultyName, numEncounters, encounterProgress, extendDisabled, instanceID = GetSavedInstanceInfo(i)
-			if (isRaid and name and (locked or extended)) then
+			if (name and (locked or extended)) then
 				local resetTime = self:GetResetTime(reset)
 				if (numEncounters and numEncounters > 0) and (encounterProgress and encounterProgress > 0) then
 					tooltip:AddDoubleLine(SAVED_ENCOUNTERS:format(name, difficultyName, encounterProgress, numEncounters), resetTime, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0)

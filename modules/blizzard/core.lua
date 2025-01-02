@@ -6,6 +6,7 @@ local BLIZZARD = E:CreateModule("Blizzard")
 function BLIZZARD:Init()
     self:UpdateFramerateFrame()
     self:UpdateQueueStatusFrame()
+    if (self.Durability) then self.Durability:Init() end
     if (self.Ghost) then self.Ghost:Init() end
     if (self.MirrorTimer) then self.MirrorTimer:Init() end
     if (self.TalkingHead) then self.TalkingHead:Init() end

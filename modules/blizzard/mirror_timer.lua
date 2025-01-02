@@ -56,7 +56,7 @@ function MirrorTimer:Skin(element)
     element.__skinned = true
 end
 
-if E.isClassic then
+if not E.isRetail then
     MirrorTimer.MirrorTimer_Show = function(timer, value, maxvalue, scale, paused, label)
         for index = 1, MIRRORTIMER_NUMTIMERS, 1 do
             local frame = _G["MirrorTimer" .. index];

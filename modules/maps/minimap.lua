@@ -198,6 +198,35 @@ function MODULE:Style()
         InstanceDifficulty:SetPoint("TOPRIGHT", Minimap, "TOPRIGHT", -1, -1)
     end
 
+    if E.isClassic then
+        -- mail icon
+        do
+            local frame = _G.MiniMapMailFrame
+            if frame then
+                frame:ClearAllPoints()
+                frame:SetPoint("TOPLEFT", Minimap, "TOPLEFT", 0, 0)
+            end
+        end
+
+        -- tracking icon (mining, herbalism, etc.)
+        do
+            local frame = _G.MiniMapTracking
+            if frame then
+                frame:ClearAllPoints()
+                frame:SetPoint("TOPLEFT", Minimap, "TOPLEFT", 0, 0)
+            end
+        end
+
+        -- looking for group icon
+        do
+            local frame = _G.LFGMinimapFrame
+            if frame then
+                frame:ClearAllPoints()
+                frame:SetPoint("TOPLEFT", Minimap, "TOPLEFT", 0, 0)
+            end
+        end
+    end
+
     if (self.PostStyle) then
         self:PostStyle()
     end

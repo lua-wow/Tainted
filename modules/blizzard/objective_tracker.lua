@@ -16,6 +16,13 @@ if E.isClassic then
             end
         end)
     end
+elseif E.isCata then
+    function element_proto:Load()
+        local frame = _G.WatchFrame
+        local header = _G.WatchFrameHeader
+        local title = _G.WatchFrameTitle
+        E:print(frame, header, title)
+    end
 else
     function element_proto:Load()
         local element = self

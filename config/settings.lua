@@ -59,6 +59,15 @@ C["auras"] = {
     }
 }
 
+C["bags"] = {
+    ["enabled"] = false,
+    ["buttons"] = {
+        ["size"] = 32,
+        ["spacing"] = 5,
+        ["columns"] = 10,
+    }
+}
+
 C["blizzard"] = {
     ["font"] = "Tainted",
     ["ghost"] = E.isRetail,

@@ -5,6 +5,7 @@
 ## Notes: Minimalistic interface
 ## SavedVariables: TaintedDatabase, TaintedChatHistory
 ## IconTexture: Interface\ICONS\Spell_Shadow_Shadowform
+## OptionalDeps: Questie
 
 ## X-Website: https://github.com/lua-wow/Tainted
 ## X-Maintainer: Luaerror
@@ -47,6 +48,9 @@ core\development.lua
 
 ### auras
 modules\auras\auras.lua
+
+### bags
+modules\bags\_init.xml
 
 ### chat
 modules\chat\chatframe.lua
