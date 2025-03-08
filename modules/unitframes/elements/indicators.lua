@@ -2,6 +2,10 @@ local _, ns = ...
 local E, C, A = ns.E, ns.C, ns.A
 local UnitFrames = E:GetModule("UnitFrames")
 
+-- Blizzard
+local UnitIsQuestBoss = _G.UnitIsQuestBoss
+
+-- Mine
 local ICON_SIZE = 20
 local VERTEX_COLOR = { 0.69, 0.31, 0.31 }
 
@@ -71,6 +75,10 @@ do
     local element_proto = {}
 
     function UnitFrames:CreatePhaseIndicator(frame, sublevel)
+        if E.isClassic then
+            return nil
+        end
+        
         local element = CreateFrame("Frame", frame:GetName() .. "PhaseIndicator", frame)
         element:SetPoint("CENTER", UIParent, "CENTER", 0, 0)
         element:SetSize(20, 20)
@@ -93,6 +101,10 @@ do
     }
 
     function UnitFrames:CreatePvPClassificationIndicator(frame, sublevel)
+        if E.isClassic then
+            return nil
+        end
+
         local element = CreateIndicator(frame, "PvPClassificationIndicator", frame.Health, element_proto)
         element:SetPoint("LEFT", frame.Health, "RIGHT", 5, 0)
         return element
@@ -132,6 +144,10 @@ do
     local element_proto = {}
 
     function UnitFrames:CreateQuestIndicator(frame, sublevel)
+        if E.isClassic then
+            return nil
+        end
+
         local element = CreateIndicator(frame, "QuestIndicator", frame, element_proto)
         element:SetPoint("LEFT", frame, "RIGHT", 5, 0)
         element:SetTexture([[Interface\QuestFrame\AutoQuest-Parts]])
@@ -220,6 +236,10 @@ do
     local element_proto = {}
 
     function UnitFrames:CreateSummonIndicator(frame, sublevel)
+        if E.isClassic then
+            return nil
+        end
+
         local element = CreateIndicator(frame, "SummonIndicator", frame.Health, element_proto)
         element:SetPoint("CENTER", frame.Health, "CENTER", 0, 0)
         return element

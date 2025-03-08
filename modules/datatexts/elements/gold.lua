@@ -2,6 +2,7 @@ local _, ns = ...
 local E, C, L = ns.E, ns.C, ns.L
 local MODULE = E:GetModule("DataTexts")
 local ActionBars = E:GetModule("ActionBars")
+local Containers = E:GetModule("Containers")
 
 -- Blizzard
 local IsLoggedIn = _G.IsLoggedIn
@@ -34,16 +35,26 @@ function gold_proto:FormatMoney(value)
 end
 
 local SortByMoney = function(a, b)
-    if not a or not b then return false end
-    if a.realm ~= b.realm then
-        if a.realm == E.realm then
+    if not a or not b then
+        return false
+    end
+
+    local realmA, realmB = a.realm or "", b.realm or ""
+
+    if realmA ~= realmB then
+        if realmA == E.realm then
             return true
         end
-        return a.realm < b.realm
+        if realmB == E.realm then
+            return false
+        end
+        return realmA < realmB
     end
+
     if a.money ~= b.money then
-        return (a.money or 0) > (b.money or 0)
+        return a.money > b.money
     end
+
     return a.name < b.name
 end
 
@@ -54,7 +65,7 @@ function gold_proto:UpdateCharacterList(tooltip)
         for name, charData in next, realmData do
             local money = tonumber(charData.money or "")
             if money then
-                table.insert(self.characters, { realm = realm, name = name, money = money })
+                table.insert(self.characters, { realm = realm, name = (name or ""), money = (money or 0) })
             end
         end
 	end
@@ -100,9 +111,11 @@ function gold_proto:CreateTooltip(tooltip)
 	tooltip:AddLine(" ")
 	tooltip:AddDoubleLine(TOTAL, self:FormatMoney(total), 1.0, 1.0, 1.0, 1.0, 1.0, 1.0)
 
-    local warband = C_Bank.FetchDepositedMoney(Enum.BankType.Account)
-    tooltip:AddLine(" ")
-	tooltip:AddDoubleLine("Warband", self:FormatMoney(warband), 1.0, 1.0, 1.0, 1.0, 1.0, 1.0)
+    if C_Bank and C_Bank.FetchDepositedMoney then
+        local warband = C_Bank.FetchDepositedMoney(Enum.BankType.Account)
+        tooltip:AddLine(" ")
+        tooltip:AddDoubleLine("Warband", self:FormatMoney(warband), 1.0, 1.0, 1.0, 1.0, 1.0, 1.0)
+    end
     
     tooltip:AddLine(" ")
     tooltip:AddLine(TOGGLE_BAGS_TEXT)
@@ -111,7 +124,11 @@ end
 
 function gold_proto:OnMouseDown()
     if IsShiftKeyDown() then
-        ActionBars:ToggleBagsBar()
+        if Containers then
+            Containers:Toggle()
+        else
+            ActionBars:ToggleBagsBar()
+        end
     else
         ToggleAllBags()
     end

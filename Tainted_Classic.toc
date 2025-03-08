@@ -1,0 +1,123 @@
+## Interface: 11506
+## Author: Luaerror
+## Version: 1.3.2 
+## Title: |cffff8000Tainted|r Classic
+## Notes: Minimalistic interface
+## SavedVariables: TaintedDatabase, TaintedChatHistory
+## IconTexture: Interface\ICONS\Spell_Shadow_Shadowform
+## OptionalDeps: Questie
+
+## X-Website: https://github.com/lua-wow/Tainted
+## X-Maintainer: Luaerror
+
+## init
+core\init.lua
+
+## libaries
+libs\TaintLess\TaintLess.xml
+libs\LibStub\LibStub.lua
+libs\LibDispel\LibDispel.lua
+libs\LibMobs\LibMobs.lua
+libs\oUF_Classic\oUF.xml
+libs\oUF_AuraTrack\oUF_AuraTrack.lua
+libs\oUF_RaidDebuffs\oUF_RaidDebuffs.xml
+libs\oUF_TargetIndicator\oUF_TargetIndicator.lua
+
+## assets
+core\assets.lua
+core\colors.lua
+core\fonts.lua
+
+## locales
+locales\init.xml
+
+## settings
+config\settings.lua
+
+## core
+core\api.lua
+core\utils.lua
+core\core.lua
+core\database.lua
+core\scaling.lua
+core\install.lua
+core\dropdown.lua
+core\commands.lua
+core\talents.lua
+core\development.lua
+
+### auras
+modules\auras\auras.lua
+
+### bags
+modules\bags\_init.xml
+
+### chat
+modules\chat\chatframe.lua
+modules\chat\history.lua
+modules\chat\copy_text.lua
+modules\chat\copy_url.lua
+
+### maps
+modules\maps\init.xml
+
+### blizzard
+modules\blizzard\init_classic.xml
+
+### miscellaneous
+modules\miscellaneous\init_classic.xml
+
+### actionbars
+modules\actionbars\init.xml
+
+### datatexts
+modules\datatexts\init.xml
+
+### tooltips
+modules\tooltips\tooltips.lua
+
+### unitframes
+modules\unitframes\core.lua
+modules\unitframes\tags.lua
+
+modules\unitframes\elements\atonement.lua
+modules\unitframes\elements\auras.lua
+modules\unitframes\elements\castbar.lua
+modules\unitframes\elements\classpower.lua
+modules\unitframes\elements\health.lua
+modules\unitframes\elements\indicators.lua
+modules\unitframes\elements\name.lua
+modules\unitframes\elements\power.lua
+modules\unitframes\elements\range.lua
+modules\unitframes\elements\portrait.lua
+modules\unitframes\elements\runes.lua
+modules\unitframes\elements\stagger.lua
+modules\unitframes\elements\targetindicator.lua
+modules\unitframes\elements\threat.lua
+modules\unitframes\elements\totems.lua
+
+modules\unitframes\classes\deathknight.lua
+modules\unitframes\classes\demonhunter.lua
+modules\unitframes\classes\druid.lua
+modules\unitframes\classes\evoker.lua
+modules\unitframes\classes\hunter.lua
+modules\unitframes\classes\mage.lua
+modules\unitframes\classes\monk.lua
+modules\unitframes\classes\paladin.lua
+modules\unitframes\classes\priest.lua
+modules\unitframes\classes\rogue.lua
+modules\unitframes\classes\shaman.lua
+modules\unitframes\classes\warlock.lua
+modules\unitframes\classes\warrior.lua
+
+modules\unitframes\units\arena.lua
+modules\unitframes\units\boss.lua
+modules\unitframes\units\focus.lua
+modules\unitframes\units\focustarget.lua
+modules\unitframes\units\nameplate.lua
+modules\unitframes\units\party.lua
+modules\unitframes\units\pet.lua
+modules\unitframes\units\player.lua
+modules\unitframes\units\raid.lua
+modules\unitframes\units\target.lua
+modules\unitframes\units\targettarget.lua

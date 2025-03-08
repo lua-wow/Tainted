@@ -12,6 +12,7 @@ local GetNumBindings = _G.GetNumBindings
 local SaveBindings = _G.SaveBindings
 local GetCurrentBindingSet = _G.GetCurrentBindingSet
 
+-- Mine
 local SetupKeyBindings = function()
     -- returns if either account or character-specific bindings are active.
     local set = GetCurrentBindingSet()
@@ -62,6 +63,11 @@ local SetupKeyBindings = function()
     SetBinding("CTRL-SHIFT-BUTTON3", "PINGATTACK", 1)
     
     SetBinding("SHIFT-Y", "TOGGLEACHIEVEMENT", 1) -- default: Y
+    
+    if E.isClassic then
+        SetBinding("B", "OPENALLBAGS", 1)
+        SetBinding("SHIFT-B", "TOGGLEBACKPACK", 1)
+    end
 
     SaveBindings(ACCOUNT_BINDINGS)
 end

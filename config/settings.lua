@@ -19,7 +19,8 @@ C["general"] = {
     },
     ["highlight"] = {
         ["color"] = E:CreateColor(0.84, 0.75, 0.65)
-    }
+    },
+    ["margin"] = 10
 }
 
 C["actionbars"] = {
@@ -58,13 +59,22 @@ C["auras"] = {
     }
 }
 
+C["bags"] = {
+    ["enabled"] = false,
+    ["buttons"] = {
+        ["size"] = 32,
+        ["spacing"] = 5,
+        ["columns"] = 10,
+    }
+}
+
 C["blizzard"] = {
     ["font"] = "Tainted",
-    ["ghost"] = true,
+    ["ghost"] = E.isRetail,
     ["mirrortimers"] = true,
-    ["talkinghead"] = true,
+    ["talkinghead"] = E.isRetail,
     ["uiwidgets"] = true,
-    ["raid_utility"] = true
+    ["raid_utility"] = E.isRetail
 }
 
 C["chat"] = {
@@ -133,12 +143,12 @@ C["miscellaneous"] = {
     ["texture"] = blankTex,
     ["threatbar"] = true,
     ["screenshots"] = {
-        ["enabled"] = true,             -- enables plugin.
-        ["achievements"] = true,        -- enables screenshots of earned achievements.
-        ["boss_kills"] = false,         -- enables screenshots of successful boss encounters.
-        ["challenge_mode"] = true,      -- enables screenshots of successful challenge modes / mythic keys.
-        ["levelup"] = true,             -- enables screenshots when player level up.
-        ["dead"] = false,               -- enables screenshots when player dies.
+        ["enabled"] = true,                 -- enables plugin.
+        ["achievements"] = true,            -- enables screenshots of earned achievements.
+        ["boss_kills"] = false,             -- enables screenshots of successful boss encounters.
+        ["challenge_mode"] = E.isRetail,    -- enables screenshots of successful challenge modes / mythic keys.
+        ["levelup"] = true,                 -- enables screenshots when player level up.
+        ["dead"] = false,                   -- enables screenshots when player dies.
     },
     ["skyriding_race"] = true,
     ["mythic"] = {

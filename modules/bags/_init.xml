@@ -1,0 +1,6 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/">
+	<Script file="containers.lua"/>
+	<!-- <Script file="core.lua"/>
+	<Script file="bags.lua"/>
+	<Script file="bank.lua"/> -->
+</Ui>

@@ -130,6 +130,11 @@ do
 	-- oUF.colors.ANIMA = oUF:CreateColor(0.83, 0.83, 0.83),
 end
 
+-- classes
+if E.isClassic then
+	oUF.colors.class["SHAMAN"] = oUF:CreateColor(0.00, 0.44, 0.87)
+end
+
 -- oUF.colors.class = {
 -- 	["DRUID"]       = oUF:CreateColor(1.00, 0.49, 0.04),
 -- 	["HUNTER"]      = oUF:CreateColor(0.67, 0.83, 0.45),
@@ -213,6 +218,14 @@ oUF.colors.classification = {
 	["normal"] = oUF:CreateColor(1.00, 1.00, 1.00),
 	["trivial"] = oUF:CreateColor(0.70, 0.70, 0.70),
 	["minus"] = oUF:CreateColor(0.70, 0.70, 0.70)
+}
+
+oUF.colors.pvp = {
+    ["sanctuary"] = oUF:CreateColor(0.41, 0.80, 0.94),
+    ["arena"] = oUF:CreateColor(1.00, 0.10, 0.10),
+    ["friendly"] = oUF:CreateColor(0.10, 1.00, 0.10),
+    ["hostile"] = oUF:CreateColor(1.00, 0.10, 0.10),
+    ["contested"] = oUF:CreateColor(1.00, 0.70, 0.00)
 }
 
 oUF.colors.quality = {}
@@ -348,13 +361,14 @@ end
 
 function E.GetRelativeDifficultyColor(unitLevel, challengeLevel)
     local diff = challengeLevel - unitLevel
+	local trivialLevel = UnitQuestTrivialLevelRange and UnitQuestTrivialLevelRange("player") or GetQuestGreenRange()
     if diff >= 5 then
         return E.colors.difficulty["impossible"]
     elseif diff >= 3 then
         return E.colors.difficulty["very_difficult"]
     elseif diff >= -4 then
         return E.colors.difficulty["difficult"]
-    elseif -diff <= UnitQuestTrivialLevelRange("player") then
+    elseif -diff <= trivialLevel then
         return E.colors.difficulty["standard"]
     else
         return E.colors.difficulty["trivial"]

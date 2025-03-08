@@ -2,6 +2,10 @@
 	path = libs/oUF
 	url = https://github.com/lua-wow/oUF.git
 	branch = retail
+[submodule "libs/oUF_Classic"]
+	path = libs/oUF_Classic
+	url = https://github.com/lua-wow/oUF.git
+	branch = classic
 [submodule "libs/oUF_Atonement"]
 	path = libs/oUF_Atonement
 	url = https://github.com/lua-wow/oUF_Atonement.git

@@ -2,35 +2,46 @@ local _, ns = ...
 local E, C = ns.E, ns.C
 local MODULE = E:GetModule("ActionBars")
 
--- Blizzard
-local bar_proto = {
-    _horizontal = false
+-- Mine
+local element_proto = {
+    name = "MultiBarLeftButton",
+	horizontal = false
 }
 
-function bar_proto:UpdateAnchor()
-    self:SetPoint("RIGHT", MODULE.ActionBar4, "LEFT", -self._spacing, 0)
+do
+    function element_proto:PostCreate()
+        local element = self
+
+        local frame = _G.MultiBarLeft
+        if frame then
+            -- frame:SetShown(true)
+            -- frame:EnableMouse(false)
+            frame:SetParent(element)
+            frame.ignoreFramePositionManager = true
+            frame.ignoreInLayout = true
+        end
+    end
+
+    function element_proto:UpdateAnchor()
+        local element = self
+
+        local margin = C.general.margin or 10
+        local spacing = element.spacing or 5
+
+        local anchor = UIParent
+        if MODULE.ActionBar4 and  MODULE.ActionBar4:IsShown() then
+            anchor = MODULE.ActionBar4
+        end
+
+        element:ClearAllPoints()
+        if anchor == UIParent then
+            element:SetPoint("RIGHT", UIParent, "RIGHT", -margin, -margin)
+        elseif anchor then
+            element:SetPoint("RIGHT", anchor, "LEFT", -spacing, 0)
+        end
+    end
 end
 
 function MODULE:CreateActionBar5()
-    local element = self:CreateActionBar("ActionBar5", bar_proto)
-
-    local frame = _G.MultiBarLeft
-    frame:SetParent(element)
-    frame.ignoreFramePositionManager = true
-    frame.ignoreInLayout = true
-
-    for i = 1, element._num do
-        local button = element:StyleActionButton(_G["MultiBarLeftButton" .. i])
-        button:SetParent(element)
-        button:ClearAllPoints()
-        button._parent = element
-
-        element:SetFrameRef("Button" .. i, button)
-
-        element._buttons[i] = button
-    end
-
-    element:Update()
-
-	self.ActionBar5 = element
+	return self:CreateActionBar("ActionBar5", element_proto)
 end

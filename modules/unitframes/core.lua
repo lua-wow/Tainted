@@ -4,6 +4,7 @@ assert(oUF, "Unable to locate oUF install.")
 
 local E, C, A = ns.E, ns.C, ns.A
 local UnitFrames = E:CreateModule("UnitFrames")
+local Talents = E:GetModule("Talents")
 
 -- Blizzard
 local NUM_BOSS_FRAMES = _G.NUM_BOSS_FRAMES or 8
@@ -31,42 +32,18 @@ do
 
     local element_proto = {
         unit = "player",
+        groupThreshold = 40,
         position = DEFAULT,
-        groupThreshold = 40
+        positions = {
+            [HEALER] = { "BOTTOM", UIParent, "BOTTOM", 0, 225 },
+            [DEFAULT] = { "BOTTOMLEFT", UIParent, "BOTTOMLEFT", 10, 300 }
+        }
     }
 
-    if E.isRetail then
-        function element_proto:IsHealer()
-            local spec = GetSpecialization(false, false)
-            local specRole = GetSpecializationRole(spec)
-            return (specRole == "HEALER")
-        end
-    elseif E.isCata then
-        function element_proto:IsHealer()
-            local class = E.class
-            local spec = GetPrimaryTalentTree(false, false)
-            return (class == "DRUID" and spec == SPEC_DRUID_RESTORATION)
-                or (class == "PALADIN" and spec == SPEC_PALADIN_HOLY)
-                or (class == "PRIEST" and spec ~= SPEC_PRIEST_SHADOW)
-                or (class == "SHAMAN" and spec == SPEC_SHAMAN_RESTORATION)
-        end
-    else
-        function element_proto:IsHealer()
-            -- TODO: Implement method for classic
-            return false
-        end
-    end
-
-    function element_proto:SetDefaultPosition()
-        self:SetPoint("BOTTOMLEFT", parent, "BOTTOMLEFT", 10, 300)
-    end
-
-    function element_proto:SetHealerPosition()
-        self:SetPoint("BOTTOM", parent, "BOTTOM", 0, 225)
-    end
-
     function element_proto:GetPosition()
-        if self:IsHealer() and GetNumGroupMembers() <= self.groupThreshold then
+        local isHealer = Talents:IsHealer()
+        local groupSize = GetNumGroupMembers()
+        if isHealer and groupSize <= self.groupThreshold then
             return HEALER
         end
         return DEFAULT
@@ -80,11 +57,7 @@ do
         local position = self:GetPosition()
         if position ~= self.position then
             self:ClearAllPoints()
-            if position == HEALER then
-                self:SetHealerPosition()
-            else
-                self:SetDefaultPosition()
-            end
+            self:SetPoint(unpack(self.positions[position]))
             self.position = position
         end
     end
@@ -108,21 +81,19 @@ do
         elseif event == "PLAYER_REGEN_ENABLED" then
             self:RegisterEvent("GROUP_ROSTER_UPDATE")
 
-            if E.isCata then
-                self:RegisterEvent("PLAYER_TALENT_UPDATE")
-            elseif E.isClassic then
-                self:RegisterEvent("CHARACTER_POINTS_CHANGED")
+            if E.isRetail then
+                self:RegisterUnitEvent("PLAYER_SPECIALIZATION_CHANGED", self.unit)
             else
-                self:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED")
+                self:RegisterEvent("CHARACTER_POINTS_CHANGED")
+                self:RegisterEvent("PLAYER_TALENT_UPDATE")
             end
-
             return
-
         elseif event == "CHARACTER_POINTS_CHANGED" then
             local changes = ...
             if changes ~= -1 then return end
         end
 
+        Talents:Update()
         self:UpdatePosition()
     end
 
@@ -137,7 +108,7 @@ do
         local element = Mixin(CreateFrame("Frame", addon .. "GroupHolder", E.PetHider), element_proto)
         element:SetWidth(cols * width + (cols - 1) * colsSpacing)
         element:SetHeight(rows * height + (rows - 1) * rowsSpacing)
-        element:SetDefaultPosition()
+        element:SetPoint(unpack(element.positions[DEFAULT]))
         element:RegisterEvent("PLAYER_ENTERING_WORLD")
         element:RegisterEvent("PLAYER_REGEN_ENABLED")
         element:RegisterEvent("PLAYER_REGEN_DISABLED")
@@ -174,10 +145,10 @@ function UnitFrames:DisableBlizzard()
 		end
 
 		-- Hide Raid Interface Options.
-		if not E.isRetail then
-			InterfaceOptionsFrameCategoriesButton11:SetHeight(0.00001)
-			InterfaceOptionsFrameCategoriesButton11:SetAlpha(0)
-		end
+		-- if not E.isRetail then
+		-- 	InterfaceOptionsFrameCategoriesButton11:SetHeight(0.00001)
+		-- 	InterfaceOptionsFrameCategoriesButton11:SetAlpha(0)
+		-- end
 	end
 end
 
@@ -264,7 +235,7 @@ function UnitFrames:GetRaidAttributes()
         "showRaid", true,
         "showPlayer", true,
         "showSolo", showSolo,
-        "showPet", false,
+        "showPet", E.isClassic,
         "xOffset", C.unitframes.raid.xOffset or 5,
         "yOffset", C.unitframes.raid.yOffset or 5,
         "point", "LEFT",

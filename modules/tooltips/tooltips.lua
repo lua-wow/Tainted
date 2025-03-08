@@ -563,6 +563,99 @@ do
         end
     end
 
+    local kinds = {
+        spell = "SpellID",
+        item = "ItemID",
+        -- unit = "NPC ID",
+        -- quest = "QuestID",
+        -- talent = "TalentID",
+        -- achievement = "AchievementID",
+        -- criteria = "CriteriaID",
+        -- ability = "AbilityID",
+        -- currency = "CurrencyID",
+        -- artifactpower = "ArtifactPowerID",
+        -- enchant = "EnchantID",
+        -- bonus = "BonusID",
+        -- gem = "GemID",
+        -- mount = "MountID",
+        -- companion = "CompanionID",
+        -- macro = "MacroID",
+        -- equipmentset = "EquipmentSetID",
+        -- visual = "VisualID",
+        -- source = "SourceID",
+        -- species = "SpeciesID",
+        -- icon = "IconID"
+    }
+
+    local function addLine(tooltip, kind, spellID, sourceName)
+        -- if not id or id == "" or not tooltip or not tooltip.GetName then return end
+        -- if type(id) == "table" and #id == 1 then id = id[1] end
+        if kind == kinds.spell then
+            tooltip:AddLine(" ")
+
+            local left = SPELL_ID:format(spellID)
+            if sourceName then
+                local right = SOURCE:format(sourceName)
+                tooltip:AddDoubleLine(left, right, 1, 1, 1, color.r, color.g, color.b)
+            else
+                tooltip:AddLine(left, 1, 1, 1)
+            end
+        end
+    end
+
+    local GameTooltipHooks = {
+        ["SetAction"] = function(self, slot)
+            if (not GetActionInfo) then return end
+            local kind, id = GetActionInfo(slot)
+            addLine(self, kind, id)
+        end,
+        ["SetUnitBuff"] = function(self, ...)
+            if not UnitBuff then return end
+            local spellID = select(10, UnitBuff(...))
+            local unit, index, filter = ...
+            addLine(self, kinds.spell, spellID)
+        end,
+        ["SetUnitDebuff"] = function(self, ...)
+            if not UnitDebuff then return end
+            local spellID = select(10, UnitDebuff(...))
+            addLine(self, kinds.spell, spellID)
+        end,        
+        ["SetUnitAura"] = function(self, ...)
+            if not UnitAura then return end
+            local spellID = select(10, UnitAura(...))
+            addLine(self, kinds.spell, spellID)
+        end,        
+        ["SetSpellByID"] = function(self, spellID)
+            addLine(self, kinds.spell, spellID)
+        end,        
+        -- "SetRecipeResultItem" = function(self, id)
+        --     -- addLine(self, id, kinds.spell)
+        -- end,        
+        -- "SetRecipeRankInfo" = function(self, id)
+        --     -- addLine(self, id, kinds.spell)
+        -- end,        
+        -- "SetArtifactPowerByID" = function(self, powerID)
+        --     -- if not C_ArtifactUI or not C_ArtifactUI.GetPowerInfo then return end
+        --     -- local powerInfo = C_ArtifactUI.GetPowerInfo(powerID)
+        --     -- addLine(self, powerID, kinds.artifactpower)
+        --     -- addLine(self, powerInfo.spellID, kinds.spell)
+        -- end,        
+        -- "SetTalent" = function(self, id)
+        --     E:print("SetTalent", id)
+        --     -- if (not GetTalentInfoByID) then return end
+        --     -- local spellID = select(6, GetTalentInfoByID(id))
+        --     -- addLine(self, id, kinds.talent)
+        --     -- addLine(self, spellID, kinds.spell)
+        -- end,        
+        -- "SetPvpTalent" = function(self, id)
+        --     E:print("SetPvpTalent", id)
+        --     -- if not GetPvpTalentInfoByID then return end
+        --     -- local spellID = select(6, GetPvpTalentInfoByID(id))
+        --     -- addLine(self, id, kinds.talent)
+        --     -- addLine(self, spellID, kinds.spell)
+        -- end
+    }
+
     function MODULE:SetupHooks(owner)
         hooksecurefunc("GameTooltip_SetDefaultAnchor", function(tooltip, parent)
             tooltip:ClearAllPoints()
@@ -574,19 +667,84 @@ do
         hooksecurefunc("GameTooltip_ClearMoney", self.GameTooltip_ClearMoney)
 
         -- update comparison tooltip anchors
-        hooksecurefunc(_G.TooltipComparisonManager, "AnchorShoppingTooltips", self.AnchorShoppingTooltips)
+        local TooltipComparisonManager = _G.TooltipComparisonManager
+        if TooltipComparisonManager then
+            hooksecurefunc(TooltipComparisonManager, "AnchorShoppingTooltips", self.AnchorShoppingTooltips)
+        end
 
-        -- color tooltip border by item quality
-        TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Item, self.UpdateItemTooltip)
+        if TooltipDataProcessor then
+            -- color tooltip border by item quality
+            TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Item, self.UpdateItemTooltip)
 
-        -- display spellID
-        TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Spell, self.UpdateSpellTooltip)
+            -- display spellID
+            TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Spell, self.UpdateSpellTooltip)
 
-        -- display aura spellID and source name
-        TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.UnitAura, self.UpdateAuraTooltip)
+            -- display aura spellID and source name
+            TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.UnitAura, self.UpdateAuraTooltip)
 
-        -- unit tooltip customization
-        TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Unit, self.UpdateUnitTooltip)
+            -- unit tooltip customization
+            TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Unit, self.UpdateUnitTooltip)
+        end
+
+        if E.isClassic then
+            local GameTooltip = _G.GameTooltip
+            for fn, callback in pairs(GameTooltipHooks) do
+                if GameTooltip[fn] then
+                    hooksecurefunc(GameTooltip, fn, callback)
+                end
+            end
+
+            -- hooksecurefunc(GameTooltip, "OnTooltipSetSpell", function(self)
+            --     E:print("OnTooltipSetSpell", self:GetSpell())
+            --     local spellID = select(2, self:GetSpell())
+            --     addLine(self, kinds.spell, spellID)
+            -- end)
+
+            hooksecurefunc("SpellButton_OnEnter", function(self)
+                if not SpellBook_GetSpellBookSlot then return end
+                local slot = SpellBook_GetSpellBookSlot(self)
+                local spellID = select(2, GetSpellBookItemInfo(slot, SpellBookFrame.bookType))
+                addLine(GameTooltip, kinds.spell, spellID)
+            end)
+
+            local OnTooltipSetItem = function(self)
+                if self.GetItem then
+                    local _, itemLink = self:GetItem()
+                    if itemLink then
+                        local _, _, _, _, _, _, _, _, _, _, vendorPrice = GetItemInfo(itemLink)
+                        if vendorPrice and vendorPrice > 0 then
+                            -- Format the price into gold, silver, and copper
+                            local gold = math.floor(vendorPrice / 10000)
+                            local silver = math.floor((vendorPrice % 10000) / 100)
+                            local copper = vendorPrice % 100
+
+                            -- Create a formatted price string
+                            local priceText = ""
+                            if gold > 0 then
+                                priceText = priceText .. gold .. " |TInterface\\MoneyFrame\\UI-GoldIcon:0:0:2:0|t "
+                            end
+                            if silver > 0 then
+                                priceText = priceText .. silver .. " |TInterface\\MoneyFrame\\UI-SilverIcon:0:0:2:0|t "
+                            end
+                            if copper > 0 then
+                                priceText = priceText .. copper .. " |TInterface\\MoneyFrame\\UI-CopperIcon:0:0:2:0|t"
+                            end
+
+                            -- Add the vendor price to the tooltip
+                            self:AddLine("Vendor Price: " .. priceText, 1, 1, 1)
+                            self:Show()
+                        end
+                    end
+                end
+            end
+
+            _G.GameTooltip:HookScript("OnTooltipSetItem", OnTooltipSetItem)
+            _G.ItemRefTooltip:HookScript("OnTooltipSetItem", OnTooltipSetItem)
+            _G.ItemRefShoppingTooltip1:HookScript("OnTooltipSetItem", OnTooltipSetItem)
+            _G.ItemRefShoppingTooltip2:HookScript("OnTooltipSetItem", OnTooltipSetItem)
+            _G.ShoppingTooltip1:HookScript("OnTooltipSetItem", OnTooltipSetItem)
+            _G.ShoppingTooltip2:HookScript("OnTooltipSetItem", OnTooltipSetItem)
+        end
     end
 end
 

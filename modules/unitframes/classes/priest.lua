@@ -6,5 +6,7 @@ local UnitFrames = E:GetModule("UnitFrames")
 -- PRIEST
 --------------------------------------------------
 function UnitFrames:PRIEST(frame)
-    frame.Atonement = self:CreateAtonement(frame)
+    if E.isRetail then
+        frame.Atonement = self:CreateAtonement(frame)
+    end
 end

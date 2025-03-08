@@ -169,7 +169,7 @@ function friends_proto:CreateTooltip(tooltip)
                         local right = game
 
                         if tag.wowProjectID then
-                            local classColor = E.colors.class[tag.class]
+                            local classColor = E.colors.class[tag.class or "NONE"] or BATTLENET_COLOR
                             left = left .. " (" .. classColor:WrapTextInColorCode(tag.name)
 
                             local difficultyColor = E.GetRelativeDifficultyColor(self.level, tag.level)

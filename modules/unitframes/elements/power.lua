@@ -67,6 +67,10 @@ do
     }
         
     function UnitFrames:CreateAdditionalPower(frame)
+        if E.isClassic then
+            return nil
+        end
+        
         local height = (C.unitframes.power.height or 5) - 1
         local texture = C.unitframes.texture
 
@@ -121,6 +125,10 @@ do
     end
         
     function UnitFrames:CreateAlternativePower(frame)
+        if E.isClassic then
+            return nil
+        end
+
         local texture = C.unitframes.texture
         
         local element = Mixin(CreateFrame("StatusBar", frame:GetName() .. "AlternativePower", frame), element_proto)
@@ -182,14 +190,16 @@ do
         mainBar:SetStatusBarColor(color.r, color.g, color.b, color.a or 0.30)
         mainBar:SetReverseFill(true)
 
-        local altBar = CreateFrame("StatusBar", nil, frame.AdditionalPower)
-        altBar:SetPoint("TOP")
-        altBar:SetPoint("BOTTOM")
-        altBar:SetPoint("RIGHT", frame.AdditionalPower:GetStatusBarTexture(), "RIGHT")
-        altBar:SetWidth(width)
-        altBar:SetStatusBarTexture(texture)
-        altBar:SetStatusBarColor(color.r, color.g, color.b, color.a or 0.30)
-        altBar:SetReverseFill(true)
+        if frame.AdditionalPower then
+            local altBar = CreateFrame("StatusBar", nil, frame.AdditionalPower)
+            altBar:SetPoint("TOP")
+            altBar:SetPoint("BOTTOM")
+            altBar:SetPoint("RIGHT", frame.AdditionalPower:GetStatusBarTexture(), "RIGHT")
+            altBar:SetWidth(width)
+            altBar:SetStatusBarTexture(texture)
+            altBar:SetStatusBarColor(color.r, color.g, color.b, color.a or 0.30)
+            altBar:SetReverseFill(true)
+        end
 
         return Mixin({
             mainBar = mainBar,

@@ -20,7 +20,6 @@ local variables = {
 	["screenshotQuality"] = 10,
 	["showTutorials"] = 0,
 	["violenceLevel"] = 5,
-
 	
 	-- camera
 	["cameraSmoothStyle"] = 0,				-- default: 4
@@ -45,11 +44,12 @@ local variables = {
 	-- bags
 	["combinedBags"] = 1,
 	["expandBagBar"] = 1,
+	["displayFreeBagSlots"] = E.isClassic and 1 or 0,
 	
 	-- chat
 	["chatMouseScroll"] = 1,
 	["chatStyle"] = "classic",				-- values: "classic" or "im"
-	["whisperMode"] = "popout",				-- values: "popout", "inline", "popout_and_inline"
+	["whisperMode"] = E.isRetail and "popout" or "inline", -- values: "popout", "inline", "popout_and_inline"
 	["removeChatDelay"] = 1,
 	["profanityFilter"] = 0,
 	["chatClassColorOverride"] = 0,
@@ -83,8 +83,8 @@ local variables = {
     ["UnitNameNonCombatCreatureName"] = 0,	-- default = 0
     ["UnitNameNPC"] = 0,					-- default = 0
     ["UnitNameOwn"] = 0,					-- default = 0
-    ["UnitNamePlayerGuild"] = 0,			-- default = 1
-    ["UnitNamePlayerPVPTitle"] = 0,			-- default = 1
+    ["UnitNamePlayerGuild"] = 1,			-- default = 1
+    ["UnitNamePlayerPVPTitle"] = 1,			-- default = 1
 
 	-- ["showVKeyCastbar"] = 1,				-- if the V key display is up for your current target, show the enemy cast bar with the target's health bar in the game field
 	-- ["showVKeyCastbarOnlyOnTarget"] = 0,

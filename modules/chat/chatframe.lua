@@ -141,10 +141,12 @@ function CHAT:SetupChatFrame(frame, config)
 	end
 
 	if config.channels then
-		local channels = { EnumerateServerChannels() }
-		for k, channel in next, channels do
-			-- dont know why, but this works
-			C_Timer.After(1, function() ChatFrame_SetChannelEnabled(frame, channel, true) end)
+		if E.isRetail then
+			local channels = { EnumerateServerChannels() }
+			for k, channel in next, channels do
+				-- dont know why, but this works
+				C_Timer.After(1, function() ChatFrame_SetChannelEnabled(frame, channel, true) end)
+			end
 		end
 
 		-- Adjust Chat Colors
@@ -582,11 +584,13 @@ function CHAT:CreateBackground(side)
 end
 
 function CHAT:CreateChatFrame()
+	local margin = C.general.margin or 10
+
 	self.Left = self:CreateBackground("Left")
-	self.Left:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", 10, 10)
+	self.Left:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", margin, margin)
 
 	self.Right = self:CreateBackground("Right")
-	self.Right:SetPoint("BOTTOMRIGHT", UIParent, "BOTTOMRIGHT", -10, 10)
+	self.Right:SetPoint("BOTTOMRIGHT", UIParent, "BOTTOMRIGHT", -margin, margin)
 end
 
 function CHAT:Init()

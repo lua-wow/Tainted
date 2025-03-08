@@ -10,6 +10,18 @@ local micromenu_proto = {}
 
 function micromenu_proto:OnMouseDown()
     ActionBars:ToggleMicroMenu()
+
+    local GameMenuFrame = _G.GameMenuFrame
+    if GameMenuFrame:IsShown() then
+        PlaySound(SOUNDKIT.IG_MAINMENU_QUIT)
+        HideUIPanel(GameMenuFrame)
+        MainMenuMicroButton_SetNormal()
+    else
+        CloseMenus()
+        CloseAllWindows()
+        PlaySound(SOUNDKIT.IG_MAINMENU_OPEN)
+        ShowUIPanel(GameMenuFrame)
+    end
 end
 
 function micromenu_proto:Update()

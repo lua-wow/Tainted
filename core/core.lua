@@ -97,7 +97,10 @@ function E:PLAYER_LOGIN()
 		self:SetupUiScale()
 
 		-- fix bag sorting order
-		C_Container.SetSortBagsRightToLeft(true)
+		if E.isRetail then
+			C_Container.SetSortBagsRightToLeft(true)
+			C_Container.SetInsertItemsLeftToRight(true)
+		end
 		
 		self.db.installed = true
 	end
