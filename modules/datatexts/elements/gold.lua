@@ -2,6 +2,7 @@ local _, ns = ...
 local E, C, L = ns.E, ns.C, ns.L
 local MODULE = E:GetModule("DataTexts")
 local ActionBars = E:GetModule("ActionBars")
+local Containers = E:GetModule("Containers")
 
 -- Blizzard
 local IsLoggedIn = _G.IsLoggedIn
@@ -122,8 +123,13 @@ function gold_proto:CreateTooltip(tooltip)
 end
 
 function gold_proto:OnMouseDown()
+    E:print(Containers)
     if IsShiftKeyDown() then
-        ActionBars:ToggleBagsBar()
+        if Containers then
+            Containers:Toggle()
+        else
+            ActionBars:ToggleBagsBar()
+        end
     else
         ToggleAllBags()
     end
