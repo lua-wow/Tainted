@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+-   Added `Classic Era` support
 -   Added new dependency `oUF_Tempest`
 -   Added tempest bar to track shaman enhancement maelstorm weapon and tempest stacks
 
