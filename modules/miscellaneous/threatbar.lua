@@ -27,28 +27,33 @@ end
 function element_proto:Update()
     if not UnitAffectingCombat("player") then return end
 
-    local isTanking, status, threatPercentage, rawPercentage, threatValue = UnitDetailedThreatSituation(self.unit, "target")
+    local isTanking, status, percentage, _, _ = UnitDetailedThreatSituation(self.unit, "target")
+    
+    if not percentage then
+        percentage = 0
+    end
+
     if status then
-        self:SetValue(threatPercentage or 0)
-
+        self:SetValue(percentage)
+        
         if self.Text then
-            self.Text:SetFormattedText("%.2f%%", threatPercentage or 0)
+            self.Text:SetFormattedText("%.2f%%", percentage)
         end
-
+        
         if self.Value then
             self.Value:SetText(UnitName("target") or "")
         end
-
-        local color = E.ColorGradient(threatPercentage or 0, E.colors.threat[1], E.colors.threat[2], E.colors.threat[3])
+        
+        local color = E.ColorGradient(percentage, E.colors.threat[1], E.colors.threat[2], E.colors.threat[3])
         if color then
             self:SetStatusBarColor(color.r, color.g, color.b)
-
+            
             if self.bg then
                 local mu = self.bg.multiplier or 1
                 self.bg:SetVertexColor(color.r * mu, color.g * mu, color.b * mu)
             end
         end
-
+        
         self:SetAlpha(1)
     else
         self:SetAlpha(0)
@@ -90,6 +95,7 @@ function element_proto:OnEvent(event, ...)
     elseif event == "PLAYER_REGEN_DISABLED" then
         if not self:IsShown() then
             self:Show()
+            self:Update()
         end
     else
         if self:IsShown() then
