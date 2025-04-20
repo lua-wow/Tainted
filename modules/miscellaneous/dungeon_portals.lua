@@ -82,7 +82,7 @@ local portals = {
     [0] = { spells = { default = 373191 }, mapID = 0 }, -- Sanctum of Domination (Path of the Tormented Soul)
     [0] = { spells = { default = 373192 }, mapID = 0 }, -- Sepulcher of the First Ones (Path of the First Ones)
     
-        -- Dragonflight
+    -- Dragonflight
     [399] = { spells = { default = 393256 }, mapID = 2521 }, -- Ruby Life Pools
     [400] = { spells = { default = 393262 }, mapID = 2516 }, -- The Nokhud Offensive
     [401] = { spells = { default = 393279 }, mapID = 2515 }, -- The Azure Vault
