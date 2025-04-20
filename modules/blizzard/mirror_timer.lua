@@ -99,7 +99,6 @@ else
         local statusBar = element.StatusBar
         if (statusBar) then
             local color = E.colors.mirror[timer]
-            E:print(timer, color)
             statusBar:SetStatusBarTexture(texture)
             statusBar:SetStatusBarColor(color.r, color.g, color.b, color.a or 1)
             

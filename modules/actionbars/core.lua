@@ -325,11 +325,19 @@ function MODULE:Init()
     if E.isRetail then
         do
             local holder = CreateFrame("Frame", "TaintedExtraAbilityHolder", UIParent)
-            holder:SetPoint("BOTTOM", UIParent, "BOTTOM", 0, 50)
+            holder:SetPoint("BOTTOM", UIParent, "BOTTOM", 0, 80)
             holder:SetSize(256, 128)
             holder:SetClampedToScreen(true)
 
             self:CreateExtraActionButton(holder)
+        end
+
+        do
+            local holder = CreateFrame("Frame", "TaintedZoneAbilityHolder", UIParent)
+            holder:SetPoint("BOTTOM", UIParent, "BOTTOM", 0, 70)
+            holder:SetSize(256, 128)
+            holder:SetClampedToScreen(true)
+
             self:CreateZoneAbilityButton(holder)
         end
     end
