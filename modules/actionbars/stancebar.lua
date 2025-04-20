@@ -50,7 +50,7 @@ do
 
 		if _G.StanceBar then
 			hooksecurefunc(StanceBar, "UpdateGridLayout", function(self)
-				element:UpdateForms()
+				element:Update()
 			end)
 		end
 	end
