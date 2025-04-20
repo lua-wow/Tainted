@@ -6,7 +6,7 @@ local BACKPACK_CONTAINER = _G.BACKPACK_CONTAINER or 0
 local NUM_BAG_SLOTS = _G.NUM_BAG_SLOTS or 4
 
 -- Mine
-local KEYSTONE_PATTERN = "|cffa335ee|Hkeystone:(%d+):(%d+):(%d+):(%d+):(%d+):(%d+):(%d+)|h%[Keystone: ([^%]]+) %((%d+)%)%]|h|r"
+local KEYSTONE_PATTERN = "|cffa335ee|Hkeystone:(%d+):(%d+):(%d+)(.-)|h%[Keystone: ([^%]]+) %((%d+)%)%]|h|r"
 
 local keystone_proto = {}
 
@@ -35,25 +35,27 @@ function keystone_proto:GetAffixes()
     return self.affixes[1], self.affixes[2], self.affixes[3], self.affixes[4]
 end
 
--- "|cffa335ee|Hkeystone:180653:353:7:160:10:152:0|h[Keystone: Siege of Boralus (7)]|h|r"
+--[[
+    Season 1: "|cffa335ee|Hkeystone:180653:353:7:160:10:152:0|h[Keystone: Siege of Boralus (7)]|h|r"
+    Season 2: "|cffa335ee|Hkeystone:180653:506:4:148:0:0:0:0|h[Keystone: Cinderbrew Meadery (4)]|h|r"
+]]
 function keystone_proto:Parse(value)
-	if not value or type(value) ~= "string" then return end
-	
-	local itemID, mapID, level, affix1, affix2, affix3, affix4, mapName, _ = value:match(KEYSTONE_PATTERN)
-	
-	local affixes = {}
-	table.insert(affixes, tonumber(affix1))
-	table.insert(affixes, tonumber(affix2))
-	table.insert(affixes, tonumber(affix3))
-	table.insert(affixes, tonumber(affix4))
+    if not value or type(value) ~= "string" then return end
 
-	return {
-		itemID = tonumber(itemID),
-		mapID = tonumber(mapID),
-		mapName = mapName,
-		level = tonumber(level),
-		affixes = affixes
-	}
+    local itemID, mapID, level, affixStr, mapName, _ = value:match(KEYSTONE_PATTERN)
+
+    local affixes = {}
+    for affix in affixStr:gmatch(":(%d+)") do
+        table.insert(affixes, tonumber(affix))
+    end
+
+    return {
+        itemID = tonumber(itemID),
+        mapID = tonumber(mapID),
+        mapName = mapName,
+        level = tonumber(level),
+        affixes = affixes
+    }
 end
 
 --[[
@@ -69,12 +71,21 @@ end
 -- "|cffa335ee|Hkeystone:180653:503:6:148:10:0:0|h[Keystone: Ara-Kara, City of Echoes (6)]|h|r"
 function keystone_proto:IsCurrenWeek(value)
     local info = self:Parse(value)
+    if not info then return false end
+
     local affixes = info.affixes or {}
     local offset = (info.level >= 12) and 1 or 0
-    return affixes[1] == self.affixes[1 + offset]
-        and (affixes[2] == self.affixes[2 + offset] or affixes[2] == 0)
-        and (affixes[3] == self.affixes[3 + offset] or affixes[3] == 0)
-        and (affixes[4] == self.affixes[4 + offset] or affixes[4] == 0)
+
+    for i = 1, math.max(#self.affixes, #affixes) do
+        local actualAffix = affixes[i]
+        local expectedAffix = self.affixes[i + offset]
+
+        if expectedAffix and actualAffix and actualAffix ~= expectedAffix and actualAffix ~= 0 then
+            return false
+        end
+    end
+
+    return true
 end
 
 function keystone_proto:UpdateKeyStone()
