@@ -7,11 +7,62 @@ local UnitFrames = E:GetModule("UnitFrames")
 --------------------------------------------------
 local tempest_proto = {}
 
+function tempest_proto:OnUpdate(elapsed)
+    self.elapsed = (self.elapsed or 0) + elapsed
+	if (self.elapsed >= 0.1) then
+		local remaining = (self.tempestExpirationTime or 0) - GetTime()
+		if (remaining > 0) then
+            if self.TimerBar then
+			    self.TimerBar:SetValue(remaining)
+            end
+
+            if self.Timer then
+			    self.Timer:SetFormattedText("%d s", remaining)
+            end
+		else
+			if self.TimerBar then
+			    self.TimerBar:SetValue(0)
+            end
+
+            if self.Timer then
+			    self.Timer:SetText("")
+            end
+		end
+		self.elapsed = 0
+	end
+end
+
 function tempest_proto:PostUpdate()
     local element = self
 
     if element.Value then
-        element.Value:SetFormattedText("%d / %d (%d)", element.value, element.total, element.tempest)
+        if element.tempestReady then
+            element.Value:SetText("Tempest Ready!")
+        else
+            element.Value:SetFormattedText("%d / %d (%d / %d)", element.maelstromStacks, element.maelstromSpentTotal, element.tempestStacks, element.awakeningStacks)
+        end
+    end
+
+    if element.TimerBar then
+        if element.tempestReady and element.tempestDuration and element.tempestExpirationTime then
+            element.TimerBar:SetMinMaxValues(0, element.tempestDuration)
+            element.TimerBar:Show()
+            element:SetScript("OnUpdate", element.OnUpdate)
+        else
+            element.TimerBar:Hide()
+            element:SetScript("OnUpdate", nil)
+        end
+    end
+
+    if element.Timer then
+        if element.tempestReady and element.tempestDuration and element.tempestExpirationTime then
+            -- element.TimerBar:SetMinMaxValues(0, element.tempestDuration)
+            element.Timer:Show()
+            element:SetScript("OnUpdate", element.OnUpdate)
+        else
+            element.Timer:Hide()
+            element:SetScript("OnUpdate", nil)
+        end
     end
 end
 
@@ -46,6 +97,27 @@ function UnitFrames:CreateTempest(frame)
     value:SetTextColor(0.84, 0.75, 0.65)
     value:SetJustifyH("CENTER")
     element.Value = value
+
+    local statusbar = CreateFrame("StatusBar", nil, element)
+    -- statusbar:SetAllPoints(element)
+    statusbar:SetPoint("BOTTOM", element, "BOTTOM", 0, 0)
+    statusbar:SetPoint("BOTTOMRIGHT", element, "BOTTOMRIGHT", 0, 0)
+    statusbar:SetHeight(2)
+    statusbar:SetStatusBarTexture(texture)
+    statusbar:SetFrameLevel(element:GetFrameLevel() + 1)
+    statusbar:SetStatusBarColor(1.00, 1.00, 1.00, 0.6)
+    statusbar:SetMinMaxValues(0, 1)
+    statusbar:SetValue(0)
+    -- statusbar:SetAlpha(0.5)
+    statusbar:Hide()
+    element.TimerBar = statusbar
+
+    local timer = element:CreateFontString(nil, "OVERLAY")
+    timer:SetPoint("RIGHT", element, "RIGHT", -5, 0)
+    timer:SetFontObject(fontObject)
+    timer:SetTextColor(0.84, 0.75, 0.65)
+    timer:SetJustifyH("CENTER")
+    element.Timer = timer
 
     return element
 end
