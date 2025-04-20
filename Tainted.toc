@@ -1,6 +1,6 @@
 ## Interface: 100207, 110100
 ## Author: Luaerror
-## Version: 1.3.2
+## Version: 1.3.3
 ## Title: |cffff8000Tainted|r
 ## Notes: Minimalistic interface
 ## SavedVariables: TaintedDatabase, TaintedChatHistory
