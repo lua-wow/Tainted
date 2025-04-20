@@ -13,6 +13,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   Added new dependency `oUF_Tempest`
 -   Added tempest bar to track shaman enhancement maelstorm weapon and tempest stacks
 
+### Changed
+
+-   Update depenencies for patch 11.1.0
+-   Update keystone parser for War Within Season 2
+-   Update dungeon portal spells for War Within Season 2
+
 ## [1.3.2] - 2024-10-29
 
 ### Added
