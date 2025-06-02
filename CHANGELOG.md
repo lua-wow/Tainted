@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+-   Fix keystone parse regex
+-   Added vault activities tracker for mythic keystones
+-   Changed character datatext to display mythic keystone progress track
+
 ## [1.3.3] - 2025-04-20
 
 ### Added

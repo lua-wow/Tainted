@@ -83,3 +83,11 @@ end
 function E:SetKeyStone(value)
     TaintedDatabase[realm][name].keystone = value
 end
+
+function E:GetVault()
+    return TaintedDatabase[realm][name].vault
+end
+
+function E:SetVault(value)
+    TaintedDatabase[realm][name].vault = value
+end

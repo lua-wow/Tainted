@@ -6,7 +6,8 @@ local BACKPACK_CONTAINER = _G.BACKPACK_CONTAINER or 0
 local NUM_BAG_SLOTS = _G.NUM_BAG_SLOTS or 4
 
 -- Mine
-local KEYSTONE_PATTERN = "|cffa335ee|Hkeystone:(%d+):(%d+):(%d+)(.-)|h%[Keystone: ([^%]]+) %((%d+)%)%]|h|r"
+-- local KEYSTONE_PATTERN = "|cffa335ee|Hkeystone:(%d+):(%d+):(%d+)(.-)|h%[Keystone: ([^%]]+) %((%d+)%)%]|h|r"
+local KEYSTONE_PATTERN = "|Hkeystone:(%d+):(%d+):(%d+)(.-)|h%[Keystone: ([^%(]+)%s%((%d+)%)%]"
 
 local keystone_proto = {}
 
@@ -97,6 +98,21 @@ function keystone_proto:UpdateKeyStone()
     end
 end
 
+function keystone_proto:UpdateWeeklyRewards()
+    local data = C_WeeklyRewards.GetActivities(Enum.WeeklyRewardChestThresholdType.Activities)
+    if (#data == 0) then return end
+    
+    local level, progress, threshold, activities = 0, 0, 0, {}
+    for _, row in next, data do
+        if row.level > level then level = row.level end
+        if row.progress > progress then progress = row.progress end
+        if row.threshold > threshold then threshold = row.threshold end
+        table.insert(activities, { index = row.index, type = "mythic+", level = row.level, progress = row.progress, threshold = row.threshold })
+    end
+
+    E:SetVault({ level = level, progress = progress, threshold = threshold, activities = activities })
+end
+
 function keystone_proto:OnEvent(event, ...)
     self[event](self, ...)
 end
@@ -105,6 +121,14 @@ function keystone_proto:PLAYER_LOGIN()
     self:RegisterEvent("MYTHIC_PLUS_CURRENT_AFFIX_UPDATE")
     C_MythicPlus.RequestCurrentAffixes()
     C_MythicPlus.RequestMapInfo()
+end
+
+function keystone_proto:CHALLENGE_MODE_COMPLETED()
+    self:UpdateWeeklyRewards()
+end
+
+function keystone_proto:WEEKLY_REWARDS_UPDATE()
+    self:UpdateWeeklyRewards()
 end
 
 function keystone_proto:MYTHIC_PLUS_CURRENT_AFFIX_UPDATE()
@@ -138,6 +162,8 @@ end
 
 local frame = Mixin(CreateFrame("Frame"), keystone_proto)
 frame:RegisterEvent("PLAYER_LOGIN")
+frame:RegisterEvent("CHALLENGE_MODE_COMPLETED")
+frame:RegisterEvent("WEEKLY_REWARDS_UPDATE")
 frame:RegisterEvent("BAG_UPDATE_DELAYED")
 frame:RegisterEvent("ITEM_CHANGED")
 frame:SetScript("OnEvent", frame.OnEvent)

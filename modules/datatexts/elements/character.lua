@@ -148,10 +148,23 @@ function character_proto:UpdateKeyStones()
 
     for realm, realmData in next, TaintedDatabase do
         for name, charData in next, realmData do
+            local vault = charData.vault
+
             if charData.keystone then
                 local info = KeyStone:IsCurrenWeek(charData.keystone) and KeyStone:Parse(charData.keystone) or nil
                 if info then
-                    table.insert(self.keystones, { realm = realm, name = name, keystone = charData.keystone, level = info.level })
+                    local row = {
+                        realm = realm,
+                        name = name,
+                        keystone = charData.keystone,
+                        level = info.level,
+                        vault = {
+                            level = vault and vault.level or nil,
+                            progress = vault and vault.progress or nil,
+                            threshold = vault and vault.threshold or nil,
+                        }
+                    }
+                    table.insert(self.keystones, row)
                 end
             end
         end
@@ -334,7 +347,11 @@ function character_proto:CreateTooltip(tooltip)
             if isShiftKeyDown or index <= self.threshold then
                 local color = (row.name == E.name and row.realm == E.realm) and E.colors.class[E.class] or E.colors.white
                 local left = ("%s - %s"):format(row.name, row.realm)
-                tooltip:AddDoubleLine(left, row.keystone, color.r, color.g, color.b, 1.0, 1.0, 1.0)
+                local right = row.keystone
+                if row.vault and row.vault.progress and row.vault.threshold then
+                    right = row.vault.progress .. "/" .. row.vault.threshold .. " - " .. right
+                end
+                tooltip:AddDoubleLine(left, right, color.r, color.g, color.b, 1.0, 1.0, 1.0)
             end
         end
 
