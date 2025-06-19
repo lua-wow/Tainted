@@ -22,6 +22,26 @@
 	path = libs/oUF_TargetIndicator
 	url = https://github.com/lua-wow/oUF_TargetIndicator.git
 	branch = master
+[submodule "libs/oUF_Tempest"]
+	path = libs/oUF_Tempest
+	url = https://github.com/lua-wow/oUF_Tempest.git
+	branch = master
+[submodule "libs/LibDispel"]
+	path = libs/LibDispel
+	url = https://github.com/lua-wow/LibDispel.git
+	branch = master
+[submodule "libs/LibMobs"]
+	path = libs/LibMobs
+	url = https://github.com/lua-wow/LibMobs.git
+	branch = master
+[submodule "libs/LibStub"]
+	path = libs/LibStub
+	url = https://github.com/lua-wow/LibStub.git
+	branch = master
+[submodule "libs/TaintLess"]
+	path = libs/TaintLess
+	url = https://github.com/lua-wow/TaintLess.git
+	branch = master
 [submodule "modules/miscellaneous/dispels"]
 	path = modules/miscellaneous/dispels
 	url = https://github.com/lua-wow/dispels.git
@@ -30,27 +50,7 @@
 	path = modules/miscellaneous/interrupts
 	url = https://github.com/lua-wow/interrupts.git
 	branch = master
-[submodule "libs/LibStub"]
-	path = libs/LibStub
-	url = https://github.com/lua-wow/LibStub.git
-	branch = master
-[submodule "libs/LibDispel"]
-	path = libs/LibDispel
-	url = https://github.com/lua-wow/LibDispel.git
-	branch = master
-[submodule "libs/TaintLess"]
-	path = libs/TaintLess
-	url = https://github.com/lua-wow/TaintLess.git
-	branch = master
 [submodule "modules/miscellaneous/screenshots"]
 	path = modules/miscellaneous/screenshots
 	url = https://github.com/lua-wow/screenshots.git
-	branch = master
-[submodule "libs/LibMobs"]
-	path = libs/LibMobs
-	url = https://github.com/lua-wow/LibMobs.git
-	branch = master
-[submodule "libs/oUF_Tempest"]
-	path = libs/oUF_Tempest
-	url = https://github.com/lua-wow/oUF_Tempest.git
 	branch = master
