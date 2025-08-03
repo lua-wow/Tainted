@@ -1,0 +1,19 @@
+root = true
+
+[*]
+indent_style = space
+indent_size = 4
+insert_final_newline = true
+trim_trainling_whitespace = true
+
+[*.lua]
+indent_size = 4
+
+[*.toc]
+indent_size = 4
+
+[*.md]
+indent_size = 4
+
+[*.xml]
+indent_size = 4
