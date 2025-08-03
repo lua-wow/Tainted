@@ -1,7 +1,7 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/">
 	<Include file="dispels/init.xml"/>
 	<Include file="interrupts/init.xml"/>
-	<Include file="screenshots/screenshots.lua"/>
+	<Include file="screenshots/init.xml"/>
 	<Script file="settings.lua"/>
 	<Script file="auto_keystone.lua"/>
 	<Script file="dungeon_portals.lua"/>
