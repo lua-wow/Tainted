@@ -19,11 +19,13 @@ function MODULE:CreateExtraActionButton(holder)
     -- frame.Backdrop:SetBackdropBorderColor(0, 1, 0)
 
     local container = _G.ExtraAbilityContainer
-    container:EnableMouse(false)
-    container:SetFixedSize(size, size)
-    container.spacing = spacing
-    container.ignoreFramePositionManager = true
-    container.ignoreInLayout = true
+    if container then
+        container:EnableMouse(false)
+        container:SetFixedSize(size, size)
+        container.spacing = spacing
+        container.ignoreFramePositionManager = true
+        container.ignoreInLayout = true
+    end
 
     local button = frame.button or _G.ExtraActionButton1
     if button then
@@ -37,11 +39,13 @@ function MODULE:CreateExtraActionButton(holder)
         end
     end)
 
-    hooksecurefunc("ExtraActionBar_Update", function()
-        if HasExtraActionBar() then
-            if button.style then
-                button.style:SetTexture(nil)
+    if E.isRetail then
+        hooksecurefunc("ExtraActionBar_Update", function()
+            if HasExtraActionBar() then
+                if button.style then
+                    button.style:SetTexture(nil)
+                end
             end
-        end
-    end)
+        end)
+    end
 end

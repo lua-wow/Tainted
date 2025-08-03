@@ -113,7 +113,7 @@ function time_proto:OnMouseUp(click)
 			return
 		end
 
-		if E.isRetail or E.isCata then
+		if not E.isClassic then
 			GameTimeFrame_OnClick()
 		else
 			Stopwatch_Toggle()
@@ -144,6 +144,9 @@ function time_proto:Enable()
 
 	-- setup clock format as 24-hour (military) or 12-hour (civilian)
 	SetCVar("timeMgrUseMilitaryTime", C.datatexts.clock.format == "military" and 1 or 0)
+
+	-- make sure lock is local time
+	SetCVar("timeMgrUseLocalTime", C.datatexts.clock.timezone == "local" and 1 or 0)
 
     self:SetScript("OnUpdate", self.OnUpdate)
 	self:SetScript("OnEnter", self.OnEnter)

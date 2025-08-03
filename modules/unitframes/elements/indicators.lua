@@ -75,7 +75,7 @@ do
     local element_proto = {}
 
     function UnitFrames:CreatePhaseIndicator(frame, sublevel)
-        if E.isClassic then
+        if not E.isRetail then
             return nil
         end
         
@@ -101,7 +101,7 @@ do
     }
 
     function UnitFrames:CreatePvPClassificationIndicator(frame, sublevel)
-        if E.isClassic then
+        if not E.isRetail then
             return nil
         end
 
@@ -144,7 +144,7 @@ do
     local element_proto = {}
 
     function UnitFrames:CreateQuestIndicator(frame, sublevel)
-        if E.isClassic then
+        if not E.isRetail then
             return nil
         end
 
@@ -236,7 +236,7 @@ do
     local element_proto = {}
 
     function UnitFrames:CreateSummonIndicator(frame, sublevel)
-        if E.isClassic then
+        if not E.isRetail then
             return nil
         end
 

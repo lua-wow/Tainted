@@ -16,12 +16,28 @@ if E.isClassic then
             end
         end)
     end
-elseif E.isCata then
+elseif E.isMoP then
     function element_proto:Load()
+        local element = self
+
         local frame = _G.WatchFrame
-        local header = _G.WatchFrameHeader
-        local title = _G.WatchFrameTitle
-        E:print(frame, header, title)
+        if frame then
+            frame:SetMovable(true)
+            frame:SetUserPlaced(true)
+            frame:SetDontSavePosition(true)
+            frame:SetClampedToScreen(false)
+            frame:ClearAllPoints()
+            frame:SetPoint("TOP", element)
+            -- frame.ignoreFramePositionManager = true
+
+            hooksecurefunc(frame, "SetPoint", function(_, _, parent)
+                -- if InCombatLockdown() then return end
+                if parent ~= element then
+                    frame:ClearAllPoints()
+                    frame:SetPoint("TOP", element)
+                end
+            end)
+        end
     end
 else
     function element_proto:Load()
@@ -47,4 +63,5 @@ end
 local frame = Mixin(CreateFrame("Frame", "TaintedObjectiveTrackerContainer", UIParent), element_proto)
 frame:SetPoint("TOPRIGHT", UIParent, "TOPRIGHT", -210, -236)
 frame:SetSize(260, 80)
-frame:Load()
+
+MODULE.ObjectiveTracker = frame

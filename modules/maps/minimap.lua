@@ -71,10 +71,16 @@ do
     end
 end
 
-if E.isClassic then
+if not E.isRetail then
     function MODULE:OnMouseClick(button)
         local Minimap = _G.Minimap
-        Minimap_OnClick(Minimap)
+        if button == "RightButton" then
+            if MiniMapTrackingDropDown then
+				ToggleDropDownMenu(1, nil, MiniMapTrackingDropDown, "MiniMapTracking", 0, 0)
+			end
+        else
+            Minimap_OnClick(Minimap)
+        end
     end
 else
     function MODULE:OnMouseClick(button)
@@ -117,11 +123,11 @@ function MODULE:Style()
         ToggleButton:Hide()
     end
 
-    local Tracking = MinimapCluster.Tracking
-    if Tracking then
-        MinimapCluster.Tracking:SetAlpha(0)
-        MinimapCluster.Tracking:SetScale(0.001)
-    end
+    -- local Tracking = MinimapCluster.Tracking
+    -- if Tracking and not E.isMoP then
+    --     MinimapCluster.Tracking:SetAlpha(0)
+    --     MinimapCluster.Tracking:SetScale(0.001)
+    -- end
 
     local MinimapContainer = MinimapCluster.MinimapContainer
     if MinimapContainer then
@@ -140,7 +146,7 @@ function MODULE:Style()
     Minimap:SetMovable(false)
     Minimap:SetScript("OnMouseUp", self.OnMouseClick)
 
-    if E.isClassic then
+    if not E.isRetail then
         Minimap:SetSize(180, 180)
     end
     
@@ -198,7 +204,7 @@ function MODULE:Style()
         InstanceDifficulty:SetPoint("TOPRIGHT", Minimap, "TOPRIGHT", -1, -1)
     end
 
-    if E.isClassic then
+    if not E.isRetail then
         -- mail icon
         do
             local frame = _G.MiniMapMailFrame
@@ -219,10 +225,18 @@ function MODULE:Style()
 
         -- looking for group icon
         do
-            local frame = _G.LFGMinimapFrame
+            local frame = _G.LFGMinimapFrame or _G.MiniMapLFGFrame
             if frame then
                 frame:ClearAllPoints()
-                frame:SetPoint("TOPLEFT", Minimap, "TOPLEFT", 0, 0)
+                frame:SetPoint("BOTTOMLEFT", Minimap, "BOTTOMLEFT", 0, 0)
+            end
+        end
+
+        do
+            local frame = _G.MiniMapBattlefieldFrame
+            if frame then
+                frame:ClearAllPoints()
+                frame:SetPoint("BOTTOMLEFT", Minimap, "BOTTOMLEFT", 0, 0)
             end
         end
     end

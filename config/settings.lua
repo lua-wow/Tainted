@@ -112,7 +112,8 @@ C["datatexts"] = {
             ["military"] = "24-hour format",
             ["civilian"] = "12-hour format"
         },
-        ["format"] = "military"
+        ["format"] = "military",
+        ["timezone"] = "local" -- "local" or "server"
     },
 	["elements"] = {
         -- left chat
@@ -149,6 +150,10 @@ C["miscellaneous"] = {
         ["challenge_mode"] = true,          -- enables screenshots of successful challenge modes / mythic keys.
         ["levelup"] = true,                 -- enables screenshots when player level up.
         ["dead"] = false,                   -- enables screenshots when player dies.
+        ["messages"] = {
+            ["enabled"] = true,
+            ["tracer"] = false
+        }
     },
     ["skyriding_race"] = true,
     ["mythic"] = {

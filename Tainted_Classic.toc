@@ -1,6 +1,6 @@
 ## Interface: 11507
 ## Author: Luaerror
-## Version: 1.3.3 
+## Version: 1.3.4 
 ## Title: |cffff8000Tainted|r Classic
 ## Notes: Minimalistic interface
 ## SavedVariables: TaintedDatabase, TaintedChatHistory
@@ -16,7 +16,7 @@ core\init.lua
 ## libaries
 libs\TaintLess\TaintLess.xml
 libs\LibStub\LibStub.lua
-libs\LibDispel\LibDispel.lua
+libs\LibDispel\LibDispel.xml
 libs\LibMobs\LibMobs.lua
 libs\oUF_Classic\oUF.xml
 libs\oUF_AuraTrack\oUF_AuraTrack.lua

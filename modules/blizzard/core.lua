@@ -12,4 +12,5 @@ function BLIZZARD:Init()
     if (self.TalkingHead) then self.TalkingHead:Init() end
     if (self.UIWidgets) then self.UIWidgets:Init() end
     if (self.RaidUtility) then self.RaidUtility:Load() end
+    if (self.ObjectiveTracker) then self.ObjectiveTracker:Load() end
 end

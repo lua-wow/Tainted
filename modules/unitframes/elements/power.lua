@@ -67,7 +67,7 @@ do
     }
         
     function UnitFrames:CreateAdditionalPower(frame)
-        if E.isClassic then
+        if not E.isRetail then
             return nil
         end
         

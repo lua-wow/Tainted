@@ -2,6 +2,40 @@ local _, ns = ...
 local E, C, A = ns.E, ns.C, ns.A
 local MODULE = E:CreateModule("ActionBars")
 
+local keyReplacements = {
+    ["(s%-)"] = "|cffff8000s|r",
+    ["(a%-)"] = "|cffff8000a|r",
+    ["(c%-)"] = "|cffff8000c|r",
+    [_G.KEY_BUTTON3] = "m3",
+    [_G.KEY_BUTTON4] = "m4",
+    [_G.KEY_BUTTON5] = "m5",
+    [_G.KEY_MOUSEWHEELUP] = "mU",
+    [_G.KEY_MOUSEWHEELDOWN] = "mD",
+    [_G.KEY_NUMPAD0] = "N0",
+    [_G.KEY_NUMPAD1] = "N1",
+    [_G.KEY_NUMPAD2] = "N2",
+    [_G.KEY_NUMPAD3] = "N3",
+    [_G.KEY_NUMPAD4] = "N4",
+    [_G.KEY_NUMPAD5] = "N5",
+    [_G.KEY_NUMPAD6] = "N6",
+    [_G.KEY_NUMPAD7] = "N7",
+    [_G.KEY_NUMPAD8] = "N8",
+    [_G.KEY_NUMPAD9] = "N9",
+    [_G.KEY_NUMPADDECIMAL] = "N.",
+    [_G.KEY_NUMPADDIVIDE] = "N/",
+    [_G.KEY_NUMPADMINUS] = "N-",
+    [_G.KEY_NUMPADMULTIPLY] = "N*",
+    [_G.KEY_NUMPADPLUS] = "N+",
+    [_G.KEY_PAGEUP] = "PU",
+    [_G.KEY_PAGEDOWN] = "PD",
+    [_G.KEY_SPACE] = "SPB",
+    [_G.KEY_INSERT] = "INS",
+    [_G.KEY_HOME] = "HM",
+    [_G.KEY_DELETE] = "DEL",
+    [_G.KEY_BACKSPACE] = "BKS",
+    [_G.KEY_INSERT_MAC] = "HLP", -- mac
+}
+
 local function Hook_UpdateHotkeys(button)
     local hotkey = button.HotKey
     if not hotkey then return end
@@ -9,37 +43,9 @@ local function Hook_UpdateHotkeys(button)
     local text = hotkey:GetText()
     if not text then return end
     if text ~= _G.RANGE_INDICATOR then
-        text = text:gsub("(s%-)", "|cffff8000s|r")
-        text = text:gsub("(a%-)", "|cffff8000a|r")
-        text = text:gsub("(c%-)", "|cffff8000c|r")
-        text = text:gsub(_G.KEY_BUTTON3, "m3")
-        text = text:gsub(_G.KEY_BUTTON4, "m4")
-        text = text:gsub(_G.KEY_BUTTON5, "m5")
-        text = text:gsub(_G.KEY_MOUSEWHEELUP, "mU")
-        text = text:gsub(_G.KEY_MOUSEWHEELDOWN, "mD")
-        text = text:gsub(_G.KEY_NUMPAD0, "N0")
-        text = text:gsub(_G.KEY_NUMPAD1, "N1")
-        text = text:gsub(_G.KEY_NUMPAD2, "N2")
-        text = text:gsub(_G.KEY_NUMPAD3, "N3")
-        text = text:gsub(_G.KEY_NUMPAD4, "N4")
-        text = text:gsub(_G.KEY_NUMPAD5, "N5")
-        text = text:gsub(_G.KEY_NUMPAD6, "N6")
-        text = text:gsub(_G.KEY_NUMPAD7, "N7")
-        text = text:gsub(_G.KEY_NUMPAD8, "N8")
-        text = text:gsub(_G.KEY_NUMPAD9, "N9")
-        text = text:gsub(_G.KEY_NUMPADDECIMAL, "N.")
-        text = text:gsub(_G.KEY_NUMPADDIVIDE, "N/")
-        text = text:gsub(_G.KEY_NUMPADMINUS, "N-")
-        text = text:gsub(_G.KEY_NUMPADMULTIPLY, "N*")
-        text = text:gsub(_G.KEY_NUMPADPLUS, "N+")
-        text = text:gsub(_G.KEY_PAGEUP, "PU")
-        text = text:gsub(_G.KEY_PAGEDOWN, "PD")
-        text = text:gsub(_G.KEY_SPACE, "SPB")
-        text = text:gsub(_G.KEY_INSERT, "INS")
-        text = text:gsub(_G.KEY_HOME, "HM")
-        text = text:gsub(_G.KEY_DELETE, "DEL")
-        text = text:gsub(_G.KEY_BACKSPACE, "BKS")
-        text = text:gsub(_G.KEY_INSERT_MAC, "HLP") -- mac
+        for pattern, replacement in pairs(keyReplacements) do
+            text = text:gsub(pattern, replacement)
+        end
 
         hotkey:SetText(text)
     end
@@ -185,6 +191,7 @@ MODULE.StyleActionButton = function(button)
     if style then
         style:Hide()
         style:SetParent(E.Hider)
+        style:SetTexture(nil)
     end
 
     -- if button.UpdateFlyout then
@@ -258,17 +265,16 @@ function MODULE:DisableBlizzard()
     self:Hide(_G.ShapeshiftBarMiddle, true)
     self:Hide(_G.ShapeshiftBarRight, true)
 
-    -- -- retail
+    -- Retail
     self:Hide(_G.StatusTrackingBarManager, true)
     self:Hide(_G.MainStatusTrackingBarContainer, true)
     self:Hide(_G.SecondaryStatusTrackingBarContainer, true)
 
-    if E.isClassic then
+    if not E.isRetail then
         MultiActionBar_Update = function() end
         BeginActionBarTransition = function() end
     end
 
-    -- temporary
     local MicroMenu = _G.MicroMenu
     if MicroMenu then
         MicroMenu:ClearAllPoints()
@@ -288,20 +294,28 @@ function MODULE:Init()
     if not C.actionbars.enabled then return end
 
     -- diplay action bar grid
-    if not E.isRetail then
+    local actionbars = nil
+    if E.isRetail then
+        actionbars = {
+            true, -- bar 2
+            true, -- bar 3
+            true, -- bar 4
+            true, -- bar 5
+            C.actionbars.bar6 and true or false, -- bar 6
+            C.actionbars.bar7 and true or false, -- bar 7
+            C.actionbars.bar8 and true or false, -- bar 8
+            true -- always show action bars
+        }
+    else
         SetCVar("alwaysShowActionBars", 1)
+        actionbars = {
+            true, -- bar 2
+            true, -- bar 3
+            true, -- bar 4
+            true, -- bar 5
+            true -- always show action bars
+        }
     end
-
-    local actionbars = {
-        true, -- bar 2
-        true, -- bar 3
-        true, -- bar 4
-        true, -- bar 5
-        (not E.isClassic and C.actionbars.bar6) and true or false, -- bar 6
-        (not E.isClassic and C.actionbars.bar7) and true or false, -- bar 7
-        (not E.isClassic and C.actionbars.bar8) and true or false, -- bar 8
-        true -- always show action bars
-    }
 
     -- sets the visible state for each action bar
     SetActionBarToggles(unpack(actionbars))
@@ -315,14 +329,14 @@ function MODULE:Init()
     self:CreateActionBar3()
     self:CreateActionBar4()
     self:CreateActionBar5()
-    self:CreateActionBar6()
-    self:CreateActionBar7()
-    self:CreateActionBar8()
-
-    self:CreatePetBar()
-    self:CreateStanceBar()
 
     if E.isRetail then
+        self:CreateActionBar6()
+        self:CreateActionBar7()
+        self:CreateActionBar8()
+    end
+
+    if not E.isClassic then
         do
             local holder = CreateFrame("Frame", "TaintedExtraAbilityHolder", UIParent)
             holder:SetPoint("BOTTOM", UIParent, "BOTTOM", 0, 80)
@@ -341,4 +355,7 @@ function MODULE:Init()
             self:CreateZoneAbilityButton(holder)
         end
     end
+
+    self:CreatePetBar()
+    self:CreateStanceBar()
 end

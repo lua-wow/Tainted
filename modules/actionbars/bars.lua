@@ -119,7 +119,7 @@ do
 				element:SetAttribute("addchild", button)
 			end
 
-			if E.isClassic then
+			if not E.isRetail then
 				ActionButton_ShowGrid(button)
 			end
 

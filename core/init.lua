@@ -42,12 +42,13 @@ E.build = wowBuild
 E.releaseDate = wowReleaseDate
 E.tocVersion = tocVersion
 
--- reference: https://wowpedia.fandom.com/wiki/WOW_PROJECT_ID
+-- reference: https://warcraft.wiki.gg/wiki/WOW_PROJECT_ID
 E.isRetail = (WOW_PROJECT_ID == WOW_PROJECT_MAINLINE)
 E.isClassic = (WOW_PROJECT_ID == WOW_PROJECT_CLASSIC)
 E.isTBC = (WOW_PROJECT_ID == WOW_PROJECT_BURNING_CRUSADE_CLASSIC)
 E.isWrath = (WOW_PROJECT_ID == WOW_PROJECT_WRATH_CLASSIC)
 E.isCata = (WOW_PROJECT_ID == WOW_PROJECT_CATACLYSM_CLASSIC)
+E.isMoP = (WOW_PROJECT_ID == WOW_PROJECT_MISTS_CLASSIC)
 
 -- Hider
 E.Hider = CreateFrame("Frame", "TaintedHider", UIParent)

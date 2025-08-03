@@ -35,7 +35,13 @@ local SPEC_WARRIOR_FURY = 2
 local SPEC_WARRIOR_PROTECTION = 3
 
 -- Mine
-local element_proto = {}
+local TANK = "TANK"
+local HEALER = "HEALER"
+local DAMAGE = "DAMAGE"
+
+local element_proto = {
+    unit = "player"
+}
 
 function element_proto:OnEvent(event, ...)
     if self[event] then
@@ -69,7 +75,7 @@ function element_proto:PLAYER_SPECIALIZATION_CHANGED()
 end
 
 function element_proto:UpdateClass()
-    local _, class = UnitClass("player")
+    local _, class = UnitClass(self.unit)
     self.class = class
 end
 
@@ -80,42 +86,42 @@ if E.isClassic then
             local feral = self.talents[SPEC_DRUID_FERAL_COMBAT] or 0
             local balance = self.talents[SPEC_DRUID_BALANCE] or 0
             if feral > resto and feral > balance then
-                return "TANK"
+                return TANK
             elseif resto > feral and resto > balance then
-                return "HEALER"
+                return HEALER
             end
         elseif self.class == "PALADIN" then
             local holy = self.talents[SPEC_PALADIN_HOLY] or 0
             local prot = self.talents[SPEC_PALADIN_PROTECTION] or 0
             local retr = self.talents[SPEC_PALADIN_RETRIBUTION] or 0
             if holy > prot and holy > retr then
-                return "HEALER"
+                return HEALER
             elseif prot > holy and prot > retr then
-                return "TANK"
+                return TANK
             end
         elseif self.class == "PRIEST" then
             local disc = self.talents[SPEC_PRIEST_DISCIPLINE] or 0
             local holy = self.talents[SPEC_PRIEST_HOLY] or 0
             local shadow = self.talents[SPEC_PRIEST_SHADOW] or 0
             if disc + holy > shadow then
-                return "HEALER"
+                return HEALER
             end
         elseif self.class == "SHAMAN" then
             local elem = self.talents[SPEC_SHAMAN_ELEMENTAL] or 0
             local enha = self.talents[SPEC_SHAMAN_ENHANCEMENT] or 0
             local resto = self.talents[SPEC_SHAMAN_RESTORATION] or 0
             if resto > elem and resto > enha then
-                return "HEALER"
+                return HEALER
             end
         elseif self.class == "WARRIOR" then
             local arms = self.talents[SPEC_WARRIOR_ARMS] or 0
             local fury = self.talents[SPEC_WARRIOR_FURY] or 0
             local prot = self.talents[SPEC_WARRIOR_PROTECTION] or 0
             if (fury + prot) > arms then
-                return "TANK"
+                return TANK
             end
         end
-        return "DAMAGE"
+        return DAMAGE
     end
 
     function element_proto:UpdateTalents()
@@ -137,45 +143,50 @@ elseif E.isCata then
         self.spec = GetPrimaryTalentTree(false, false)
         if self.class == "DRUID" then
             if self.spec == SPEC_DRUID_RESTORATION then
-                return "HEALER"
+                return HEALER
             elseif self.spec == SPEC_DRUID_FERAL_COMBAT then
-                return "TANK"
+                return TANK
             end
         elseif self.class == "DEATHKNIGHT" and self.spec == SPEC_DEATHKNIGHT_FROST then
-            return "TANK"
+            return TANK
         elseif self.class == "PALADIN" and self.spec == SPEC_PALADIN_HOLY then
-            return "HEALER"
+            return HEALER
         elseif self.class == "PRIEST" and self.spec ~= SPEC_PRIEST_SHADOW then
-            return "HEALER"
+            return HEALER
         elseif self.class == "SHAMAN" and self.spec == SPEC_SHAMAN_RESTORATION then
-            return "HEALER"
+            return HEALER
         elseif self.class == "WARRIOR" and self.spec == SPEC_WARRIOR_PROTECTION then
-            return "TANK"
+            return TANK
         end
-        return "DAMAGE"
+        return DAMAGE
     end
 
     function element_proto:Update()
         self.role = self:GetRole()
         E:print("Talents Updated", self.class, self.spec, self.role)
     end
+elseif E.isMoP then
+    function element_proto:Update()
+        self.spec = C_SpecializationInfo.GetSpecialization()
+        self.role = GetSpecializationRole(self.spec) or DAMAGE
+    end
 else
     function element_proto:Update()
         self.spec = GetSpecialization(false, false)
-        self.role = GetSpecializationRole(self.spec)
+        self.role = GetSpecializationRole(self.spec) or DAMAGE
     end
 end
 
 function element_proto:IsTank()
-    return self.role == "TANK"
+    return self.role == TANK
 end
 
 function element_proto:IsHealer()
-    return self.role == "HEALER"
+    return self.role == HEALER
 end
 
 function element_proto:IsDamage()
-    return self.role == "DAMAGE"
+    return self.role == DAMAGE
 end
 
 local frame = Mixin(CreateFrame("Frame"), element_proto)

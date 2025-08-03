@@ -17,13 +17,13 @@ local PAGE_STATE = {
 	-- soar
 	["EVOKER"] = " [bonusbar:1] 7;",
 	-- stealth, shadow dance
-	["ROGUE"] = E.isCata and "[bonusbar:1] 7; [bonusbar:2] 8;" or "[bonusbar:1] 7;",
+	["ROGUE"] = E.isMoP and "[bonusbar:1] 7; [bonusbar:2] 8;" or "[bonusbar:1] 7;",
 	-- battle stance, defensive stance, berserker stance
 	["WARRIOR"] = "[bonusbar:1] 7; [bonusbar:2] 8; [bonusbar:3] 9;",
 	-- shadowform
 	["PRIEST"] = "[bonusbar:1] 7;",
 	-- ???
-	["WARLOCK"] = E.isCata and "[form:1] 7;" or nil,
+	["WARLOCK"] = E.isMoP and "[form:1] 7;" or nil,
 }
 
 local element_proto = {
@@ -116,7 +116,7 @@ do
 		local page = element:GetPageState()
 		RegisterStateDriver(element, "page", page)
 
-		if E.isRetail then
+		if not E.isClassic then
 			element:RegisterEvent("UPDATE_VEHICLE_ACTIONBAR")
 			element:RegisterEvent("UPDATE_OVERRIDE_ACTIONBAR")
 		end

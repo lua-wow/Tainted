@@ -1,0 +1,8 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/">
+	<Include file="dispels/init.xml"/>
+	<Include file="interrupts/init.xml"/>
+	<Include file="screenshots/init.xml"/>
+	<Script file="settings.lua"/>
+	<Script file="merchant.lua"/>
+	<Script file="threatbar.lua"/>
+</Ui>
