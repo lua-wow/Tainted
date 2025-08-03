@@ -1,4 +1,4 @@
-## Interface: 11506
+## Interface: 11507
 ## Author: Luaerror
 ## Version: 1.3.3 
 ## Title: |cffff8000Tainted|r Classic
