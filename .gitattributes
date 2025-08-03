@@ -1,2 +1,14 @@
 # Auto detect text files and perform LF normalization
-* text=auto
+* text=auto eol=lf
+
+# Treat common binary files as binary
+*.blp binary
+*.mp3 binary
+*.tga binary
+*.ttf binary
+
+# Exclude from release archives
+docs/ export-ignore
+.luacheckrc export-ignore
+.gitignore export-ignore
+.gitattributes export-ignore
