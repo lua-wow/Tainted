@@ -104,13 +104,20 @@ local HEALING_BONUS = L.HEALING_BONUS or "Healing Bonus"
 
 local CURRENCIES = {
     -- The War Winthin: Season 1
-    { currencyID = 2813, enabled = E.isRetail },  -- Harmonized Silk
+    { currencyID = 2813, enabled = false },  -- Harmonized Silk
     { currencyID = 3028, enabled = E.isRetail },  -- Restored Coffer Key
     { currencyID = 3008, enabled = E.isRetail },  -- Valorstones
-    { currencyID = 2914, enabled = E.isRetail },  -- Weathered Harbringer Crest
-    { currencyID = 2915, enabled = E.isRetail },  -- Carved Harbringer Crest
-    { currencyID = 2916, enabled = E.isRetail },  -- Runed Harbringer Crest
-    { currencyID = 2917, enabled = E.isRetail },  -- Gilded Harbringer Crest
+    { currencyID = 3278, enabled = E.isRetail },  -- Ethereal Strands
+    -- path 11.0.0
+    { currencyID = 2914, enabled = false },  -- Weathered Harbringer Crest
+    { currencyID = 2915, enabled = false },  -- Carved Harbringer Crest
+    { currencyID = 2916, enabled = false },  -- Runed Harbringer Crest
+    { currencyID = 2917, enabled = false },  -- Gilded Harbringer Crest
+    -- patch 11.2.0
+    { currencyID = 3284, enabled = E.isRetail },  -- Weathered Ethereal Crest
+    { currencyID = 3286, enabled = E.isRetail },  -- Carved Ethereal Crest
+    { currencyID = 3288, enabled = E.isRetail },  -- Runed Ethereal Crest
+    { currencyID = 3290, enabled = E.isRetail },  -- Gilded Ethereal Crest
 }
 
 local SchoolEnum = {

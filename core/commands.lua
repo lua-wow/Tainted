@@ -52,7 +52,8 @@ local spell = function(value)
     if value then
         local data = C_Spell.GetSpellInfo(value)
         if data then
-            E:print("Spell " .. data.name .. " (" .. data.spellID .. ")", IsPlayerSpell(data.spellID))
+            local isPlayerSpell = C_SpellBook and C_SpellBook.IsSpellKnown(data.spellID) or IsPlayerSpell(data.spellID)
+            E:print("Spell " .. data.name .. " (" .. data.spellID .. ")", isPlayerSpell)
         else
             E:print("Spell " .. value .. " not found.")
         end

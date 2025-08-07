@@ -62,6 +62,8 @@ local portals = {
     [369] = { spells = { default = 373274 }, mapID = 2097 }, -- Operation: Mechagon - Junkyard
     [370] = { spells = { default = 373274 }, mapID = 2097 }, -- Operation: Mechagon - Workshop
     
+    -- Ny'alotha, the Walking City (2217)
+
     -- Shadowlands
     [375] = { spells = { default = 354464 }, mapID = 2290 }, -- Mists of Tirna Scithe (Path of the Misty Forest)
     [376] = { spells = { default = 354462 }, mapID = 2286 }, -- The Necrotic Wake (Path of the Courageous)
@@ -77,7 +79,7 @@ local portals = {
     -- Shadowlands Raids
     ["Nathria"] = { spells = { default = 373190 }, mapID = 0 }, -- Castle Nathria (Path of the Sire)
     ["Sanctum"] = { spells = { default = 373191 }, mapID = 0 }, -- Sanctum of Domination (Path of the Tormented Soul)
-    ["Sepulcher"] = { spells = { default = 373192 }, mapID = 0 }, -- Sepulcher of the First Ones (Path of the First Ones)
+    ["Sepulcher"] = { spells = { default = 373192 }, mapID = 2481 }, -- Sepulcher of the First Ones (Path of the First Ones)
     
     -- Dragonflight
     [399] = { spells = { default = 393256 }, mapID = 2521 }, -- Ruby Life Pools
@@ -103,12 +105,15 @@ local portals = {
     [502] = { spells = { default = 445416 }, mapID = 2669 }, -- City of Threads
     [503] = { spells = { default = 445417 }, mapID = 2660 }, -- Ara-Kara, City of Echos
     [504] = { spells = { default = 445441 }, mapID = 2651 }, -- Darkflame Cleft
-    [505] = { spells = { default = 445414 }, mapID = 2651 }, -- The Dawnbreaker
+    [505] = { spells = { default = 445414 }, mapID = 2662 }, -- The Dawnbreaker
     [506] = { spells = { default = 445440 }, mapID = 2661 }, -- Cinderbrew Meadery (Path of the Flaming Brewery)
     [525] = { spells = { default = 1216786 }, mapID = 2773 }, -- Operation: Floodgate
+    [542] = { spells = { default = 1237215 }, mapID = 2830 }, -- Eco'Dome Al'dani
     
     -- The War Within Raids
-    ["Undermine"] = { spells = { default = 1226482 }, mapID = 0 }, -- Liberation of Undermine
+    ["Nerub-ar Palace"] = { spells = { default = 0}, mapID = 2657 }, -- Liberation of Undermine (Path of the Full House)
+    ["Undermine"] = { spells = { default = 1226482 }, mapID = 2769 }, -- Liberation of Undermine (Path of the Full House)
+    ["Manaforge Omega"] = { spells = { default = 1239155 }, mapID = 0 }, -- Manaforge Omega (Path of the All-Devouring)
 }
 
 local button_proto = {}
@@ -116,9 +121,11 @@ local button_proto = {}
 do
     function button_proto:OnEnter()
         if (GameTooltip:IsForbidden()) then return end
-        GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-        GameTooltip:SetSpellByID(self.spellID)
-        GameTooltip:Show()
+        if self.spellID and self.spellName then
+            GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+            GameTooltip:SetSpellByID(self.spellID)
+            GameTooltip:Show()
+        end
     end
 
     function button_proto:OnLeave()
@@ -127,21 +134,19 @@ do
     end
 
     function button_proto:UpdateVisibility()
-        if self.spellID and IsSpellKnown(self.spellID) then
-            self.isKnown = true
-            self:Show()
-        else
-            self.isKnown = false
-            self:Hide()
+        self.isKnown = (self.spellID and IsSpellKnown(self.spellID) or false)
+        local texture = self:GetNormalTexture()
+        if texture then
+            texture:SetDesaturated(not self.isKnown)
         end
     end
 
     function button_proto:UpdateCooldown()
         if not self.Cooldown then return end
-        if self.spellID then
-            local spellCooldownInfo = C_Spell.GetSpellCooldown(self.spellID)
-            if spellCooldownInfo and spellCooldownInfo.isEnabled then
-                self.Cooldown:SetCooldown(spellCooldownInfo.startTime, spellCooldownInfo.duration)
+        if self.spellID and self.spellName then
+            local info = C_Spell.GetSpellCooldown(self.spellID)
+            if info and info.isEnabled then
+                self.Cooldown:SetCooldown(info.startTime, info.duration)
             end
         end
     end
@@ -181,29 +186,30 @@ do
 
     function portal_proto:CreateButton(index, mapID)
         local fontObject = E.GetFont(C.miscellaneous.font)
-
+        
         local faction, _ = UnitFactionGroup("player")
         local mapName, _, _, mapTexture, mapBackgroundTexture = C_ChallengeMode.GetMapUIInfo(mapID)
-
+        
         local spellID = self:GetPortalSpell(mapID, faction)
         if not spellID then
-            E:error("Dungeon " .. mapName .. " (" .. mapID .. ") is missing the spellID")
+            E:error("Dungeon " .. mapName .. " (" .. mapID .. ") is missing the portal spellID")
             return nil
         end
-
+        
         local spellName = C_Spell.GetSpellName(spellID)
-        if not spellName then
-            E:error("Dungeon " .. mapName .. " (" .. mapID .. ") protal spell " .. spellID .. " do not exists")
-        end
 
         -- Create button for each known spell
         local button = Mixin(CreateFrame("Button", self:GetName() .. mapID, self, "SecureActionButtonTemplate"), button_proto)
         button:SetSize(30, 30)
         button:SetNormalTexture(mapTexture)
         button:EnableMouse(true)
-        button:RegisterForClicks("LeftButtonDown", "RightButtonDown")
-        button:SetAttribute("type", "macro")
-        button:SetAttribute("macrotext", "/cast " .. spellName)
+        if spellName then
+            button:RegisterForClicks("LeftButtonDown", "RightButtonDown")
+            button:SetAttribute("type", "macro")
+            button:SetAttribute("macrotext", "/cast " .. spellName)
+        else
+            E:error("Dungeon " .. mapName .. " (" .. mapID .. ") portal spell " .. spellID .. " do not exists")
+        end
         button:SetScript("OnEnter", button.OnEnter)
         button:SetScript("OnLeave", button.OnLeave)
         button:HookScript("OnShow", button.OnShow)
@@ -239,7 +245,7 @@ do
         for index, button in next, self.buttons do
             local intimeInfo, overtimeInfo = C_MythicPlus.GetSeasonBestForMap(button.mapID)
             button.dungeonScore = (intimeInfo and intimeInfo.dungeonScore) or (overtimeInfo and overtimeInfo.dungeonScore) or 0
-
+            
             button:UpdateVisibility()
             button:UpdateCooldown()
         end

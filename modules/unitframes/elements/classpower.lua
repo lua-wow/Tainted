@@ -2,12 +2,6 @@ local _, ns = ...
 local E, C = ns.E, ns.C
 local UnitFrames = E:GetModule("UnitFrames")
 
--- Blizzard
-local IsPlayerSpell = _G.IsPlayerSpell
-local UnitClass = _G.UnitClass
-
-local SPELL_POWER_CHI = _G.SPELL_POWER_CHI or 12
-
 --------------------------------------------------
 -- Class Power
 --------------------------------------------------
@@ -50,7 +44,7 @@ function UnitFrames:CreateClassPower(frame)
     local element = Mixin(CreateFrame("Frame", frame:GetName() .. "ClassPower", frame), element_proto)
     element:SetPoint(unpack(C.unitframes.classpower.anchor))
     element:SetSize(width, height)
-    element.__class = frame.__class or select(2, UnitClass("player"))
+    element.__class = frame.__class or "NONE"
 
     local max = NUM_MAX[frame.__class] or 5
     local sizes = element:GetElementSize(max)

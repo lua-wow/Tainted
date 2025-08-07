@@ -1,4 +1,4 @@
-## Interface: 100207, 110107
+## Interface: 110200
 ## Author: Luaerror
 ## Version: 1.3.4
 ## Title: |cffff8000Tainted|r
@@ -16,10 +16,10 @@ core\init.lua
 libs\TaintLess\TaintLess.xml
 libs\LibStub\LibStub.lua
 libs\LibDispel\LibDispel.xml
-libs\LibMobs\LibMobs.lua
+libs\LibMobs\LibMobs.xml
 libs\oUF\oUF.xml
 libs\oUF_Atonement\oUF_Atonement.lua
-libs\oUF_AuraTrack\oUF_AuraTrack.lua
+libs\oUF_AuraTrack\oUF_AuraTrack.xml
 libs\oUF_RaidDebuffs\oUF_RaidDebuffs.xml
 libs\oUF_TargetIndicator\oUF_TargetIndicator.lua
 libs\oUF_Tempest\oUF_Tempest.lua

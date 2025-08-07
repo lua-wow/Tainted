@@ -58,3 +58,7 @@
 	path = modules/miscellaneous/screenshots
 	url = https://github.com/lua-wow/screenshots.git
 	branch = master
+[submodule "libs/oUF_Harmony"]
+	path = libs/oUF_Harmony
+	url = https://github.com/lua-wow/oUF_Harmony.git
+	branch = master

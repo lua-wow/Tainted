@@ -17,9 +17,9 @@ core\init.lua
 libs\TaintLess\TaintLess.xml
 libs\LibStub\LibStub.lua
 libs\LibDispel\LibDispel.xml
-libs\LibMobs\LibMobs.lua
+libs\LibMobs\LibMobs.xml
 libs\oUF_Classic\oUF.xml
-libs\oUF_AuraTrack\oUF_AuraTrack.lua
+libs\oUF_AuraTrack\oUF_AuraTrack.xml
 libs\oUF_RaidDebuffs\oUF_RaidDebuffs.xml
 libs\oUF_TargetIndicator\oUF_TargetIndicator.lua
 
