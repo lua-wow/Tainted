@@ -12,7 +12,7 @@ local PAGE_STATE = {
 	["DEFAULT"] = "[overridebar] %d; [shapeshift] %d; [vehicleui][possessbar] %d; [bonusbar:5] 11; [bar:2] 2; [bar:3] 3; [bar:4] 4; [bar:5] 5; [bar:6] 6;",
 	-- unstealthed cat, stealthed cat, bear, owl; tree form [bonusbar:2] was removed
 	["DRUID"] = E.isRetail 
-		and "[bonusbar:1, stealth] 2; [bonusbar:1, nostealth] 7; [bonusbar:2] 8; [bonusbar:3] 9; [bonusbar:4] 10;"
+	and "[bonusbar:1, stealth] 2; [bonusbar:1, nostealth] 7; [bonusbar:2] 8; [bonusbar:3] 9; [bonusbar:4] 10;"
 		or "[bonusbar:1, stealth] 2; [bonusbar:1, nostealth] 7; [bonusbar:2] 8; [bonusbar:3] 9; [bonusbar:4] 10; [bonusbar:5] 10;",
 	-- soar
 	["EVOKER"] = " [bonusbar:1] 7;",
@@ -56,7 +56,6 @@ do
 
 	function element_proto:OnEvent(event, ...)
 		local unit = ...
-
 		local element = self
 
 		for index, button in next, element._buttons do
@@ -86,27 +85,41 @@ do
 
 		element:SetScript("OnEvent", element.OnEvent)
 
+		-- Set up frame references properly for ActionButtons
+		for i = 1, self.num do
+			local button = _G["ActionButton" .. i]
+			element:SetFrameRef("ActionButton" .. i, button)
+		end
+
 		element:Execute([[
 			buttons = table.new()
 			for i = 1, 12 do
-				table.insert(buttons, self:GetFrameRef("button" .. i))
+				table.insert(buttons, self:GetFrameRef("ActionButton" .. i))
 			end
 		]])
 
 		element:SetAttribute("_onstate-page", [[
-			self:SetAttribute("state", newstate)
+			if newstate == "possess" or newstate == "11" then
+				if HasVehicleActionBar and HasVehicleActionBar() then
+					newstate = GetVehicleBarIndex()
+				elseif HasOverrideActionBar and HasOverrideActionBar() then
+					newstate = GetOverrideBarIndex()
+				elseif HasTempShapeshiftActionBar and HasTempShapeshiftActionBar() then
+					newstate = GetTempShapeshiftBarIndex()
+				elseif HasBonusActionBar and HasBonusActionBar() then
+					newstate = GetBonusBarIndex()
+				else
+					newstate = nil
+				end
 
-			if HasVehicleActionBar and HasVehicleActionBar() then
-				newstate = GetVehicleBarIndex() or newstate
-			elseif HasOverrideActionBar and HasOverrideActionBar() then
-				newstate = GetOverrideBarIndex() or newstate
-			elseif HasTempShapeshiftActionBar and HasTempShapeshiftActionBar() then
-				newstate = GetTempShapeshiftBarIndex() or newstate
-			elseif HasBonusActionBar and HasBonusActionBar() then
-				newstate = GetBonusBarIndex() or newstate
-			else
-				newstate = GetActionBarPage() or newstate
+				if not newstate then
+					print("|cffff8000Tainted|r: Cannot determine possess/vehicle action bar page, please report this!")
+					newstate = 12
+				end
 			end
+
+			self:SetAttribute("state", newstate)
+			control:ChildUpdate("state", newstate)
 
 			for i, button in ipairs(buttons) do
 				button:SetAttribute("actionpage", tonumber(newstate))

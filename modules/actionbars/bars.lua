@@ -111,9 +111,19 @@ do
 			button:ClearAllPoints()
 			button:SetSize(size, size)
 			button:SetAttribute("showgrid", 1)
+			
+			-- For ActionButtons, ensure they have the proper action and actionpage attributes
+			if element.name == "ActionButton" then
+				button:SetAttribute("action", index)
+				button:SetAttribute("actionpage", 1) -- Start with page 1
+			end
+			
 			button._parent = element
 			
-			element:SetFrameRef("button" .. index, button)
+			-- Don't override SetFrameRef for ActionButton - it's handled in PostCreate
+			if element.name ~= "ActionButton" then
+				element:SetFrameRef("button" .. index, button)
+			end
 
 			if element.name == "PetActionButton" then
 				element:SetAttribute("addchild", button)

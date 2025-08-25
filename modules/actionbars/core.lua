@@ -259,7 +259,7 @@ end
 function MODULE:DisableBlizzard()
     self:Hide(_G.MainMenuBar, true)
     self:Hide(_G.MainMenuBarArtFrame, true)
-    -- self:Hide(_G.OverrideActionBar, true)
+    self:Hide(_G.OverrideActionBar, true)
     self:Hide(_G.PossessBarFrame, true)
     self:Hide(_G.ShapeshiftBarLeft, true)
     self:Hide(_G.ShapeshiftBarMiddle, true)
