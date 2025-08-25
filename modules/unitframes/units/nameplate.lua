@@ -181,6 +181,22 @@ if E.isRetail then
             element:SetColor(color)
         end
     end
+elseif E.isMoP then
+    function health_proto:PostUpdateColor(unit, r, g, b)
+        local element = self
+
+        local isTank = Talents:IsTank()
+        local creatureRole = LibMobs:UnitRole(unit)
+        local creatureColor = element.colors[creatureRole]
+
+        if isTank and creatureColor then
+            local threat = UnitThreatSituation("player", unit)
+            
+            if not threat or threat == 0 or threat == 3 then
+                element:SetColor(creatureColor)
+            end
+        end
+    end
 end
 
 local power_proto = {}
