@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+-   Support for Mists of Pandaria Classic - Patch 5.5.0
+
 ## [v1.3.4] - 2025-06-02
 
 ### Changed
