@@ -197,7 +197,7 @@ function MODULE:Style()
         IndicatorFrame:SetPoint("TOPLEFT", 3, -3)
     end
 
-    local InstanceDifficulty = MinimapCluster.InstanceDifficulty
+    local InstanceDifficulty = MinimapCluster.InstanceDifficulty or MiniMapInstanceDifficulty
     if InstanceDifficulty then
         InstanceDifficulty:SetParent(Minimap)
         InstanceDifficulty:ClearAllPoints()
@@ -217,9 +217,15 @@ function MODULE:Style()
         -- tracking icon (mining, herbalism, etc.)
         do
             local frame = _G.MiniMapTracking
+            -- local border = _G.MiniMapTrackingButtonBorder
             if frame then
+                frame:SetParent(Minimap)
                 frame:ClearAllPoints()
-                frame:SetPoint("TOPLEFT", Minimap, "TOPLEFT", 0, 0)
+                frame:SetPoint("TOPLEFT", Minimap, "TOPLEFT", 0, -30)
+
+                -- if border then
+                --     border:SetAlpha(0)
+                -- end
             end
         end
 
@@ -227,8 +233,18 @@ function MODULE:Style()
         do
             local frame = _G.LFGMinimapFrame or _G.MiniMapLFGFrame
             if frame then
+                frame:SetParent(Minimap)
                 frame:ClearAllPoints()
                 frame:SetPoint("BOTTOMLEFT", Minimap, "BOTTOMLEFT", 0, 0)
+            end
+        end
+
+        do
+            local frame = _G.MiniMapChallengeMode
+            if frame then
+                frame:SetParent(Minimap)
+                frame:ClearAllPoints()
+                frame:SetPoint("TOPRIGHT", Minimap, "TOPRIGHT", -3, -3)
             end
         end
 
