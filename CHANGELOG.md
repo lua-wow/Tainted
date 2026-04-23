@@ -11,6 +11,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 -   Support for Mists of Pandaria Classic - Patch 5.5.0
 
+### Changed
+
+-   Fix MoP Minimap
+-   Fix MoP nameplates coloring for challenge mode
+-   Fix tooltip border coloring
+-   Update Objective Tracker
+-   Removed oUF_Harmony submodule (added by mistake)
+
 ## [v1.3.4] - 2025-06-02
 
 ### Changed
