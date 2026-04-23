@@ -73,7 +73,7 @@ modules\actionbars\init.xml
 modules\datatexts\init.xml
 
 ### tooltips
-modules\tooltips\tooltips.lua
+modules\tooltips\init.xml
 
 ### unitframes
 modules\unitframes\core.lua

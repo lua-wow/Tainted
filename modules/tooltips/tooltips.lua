@@ -36,46 +36,14 @@ local UnitRace = _G.UnitRace
 local UnitReaction = _G.UnitReaction
 local UnitRealmRelationship = _G.UnitRealmRelationship
 local TooltipDataProcessor = _G.TooltipDataProcessor
-
-local TooltipDataAccessor = {
-    ["GetUnitAura"] = function(...)
-        local data = C_UnitAuras.GetAuraDataByIndex(unpack(...))
-        if data then
-            return data.sourceUnit
-        end
-    end,
-    ["GetUnitBuff"] = function(...)
-        local data = C_UnitAuras.GetBuffDataByIndex(unpack(...))
-        if data then
-            return data.sourceUnit
-        end
-    end,
-    ["GetUnitBuffByAuraInstanceID"] = function(...)
-        local data = C_UnitAuras.GetAuraDataByAuraInstanceID(unpack(...))
-        if data then
-            return data.sourceUnit
-        end
-    end,
-    ["GetUnitDebuff"] = function(...)
-        local data = C_UnitAuras.GetDebuffDataByIndex(unpack(...))
-        if data then
-            return data.sourceUnit
-        end
-    end,
-    ["GetUnitDebuffByAuraInstanceID"] = function(...)
-        local data = C_UnitAuras.GetAuraDataByAuraInstanceID(unpack(...))
-        if data then
-            return data.sourceUnit
-        end
-    end
-}
+local GetQuestDifficultyColor = _G.GetQuestDifficultyColor
 
 --------------------------------------------------
 -- Tooltips
 --------------------------------------------------
 if not C.tooltips.enabled then return end
 
-local MODULE = E:CreateModule("Tooltips")
+
 
 local isInit = false
 
@@ -118,29 +86,22 @@ local function GetTooltipLine(tooltip, offset, pattern)
     end
 end
 
-function MODULE:Update(element)
-    if element:IsForbidden() then return end
-
-    if not element.isSkinned then
-        element:StripTextures()
-        element:CreateBackdrop("transparent")
-
-		if element.NineSlice then
-			element.NineSlice:SetAlpha(0)
-		end
-
-        element.isSkinned = true
-    end
-
-    if element.CloseButton then
-        element.CloseButton:SkinCloseButton()
+local function GetDifficultyColor(unit, level)
+    if C_PlayerInfo and C_PlayerInfo.GetContentDifficultyCreatureForPlayer then
+        local difficulty = C_PlayerInfo.GetContentDifficultyCreatureForPlayer(unit) or "none"
+        return E.colors.difficulty[difficulty] or E.colors.white
+    else
+        local a, b = GetQuestDifficultyColor(level)
+        return E:CreateColor(a.r, a.g, a.b)
     end
 end
 
-do
-    local element_proto = {}
+local tooltip_proto = {}
 
-    function element_proto:OnValueChanged(value, smooth)
+do
+    local statusbar_proto = {}
+
+    function statusbar_proto:OnValueChanged(value, smooth)
         local _, unit = self:GetParent():GetUnit()
         if unit then
             if UnitIsDeadOrGhost(unit) then
@@ -161,8 +122,8 @@ do
         end
     end
 
-    function MODULE:UpdateStatusBar()
-        local element = Mixin(_G.GameTooltipStatusBar, element_proto)
+    function tooltip_proto:UpdateStatusBar()
+        local element = Mixin(_G.GameTooltipStatusBar, statusbar_proto)
         element:ClearAllPoints()
         element:SetPoint("BOTTOMLEFT", element:GetParent(), "TOPLEFT", 0, 3)
         element:SetPoint("BOTTOMRIGHT", element:GetParent(), "TOPRIGHT", 0, 3)
@@ -182,573 +143,465 @@ do
     end
 end
 
-do
-    function MODULE:GameTooltip_UnitColor()
-        local unit = self
-        local color = E.colors.white
+local GameTooltip_UnitColor = function(unit)
+    local color = E.colors.white
 
-        if UnitPlayerControlled(unit) then
-            if UnitCanAttack(unit, "player") then
-                -- hostile players are red
-                if UnitCanAttack("player", unit) then
-                    color = E.colors.reaction[2]
-                end
-            elseif UnitCanAttack("player", unit) then
-                -- players we can attack but which are not hostile are yellow
-                color = E.colors.reaction[4]
-            elseif UnitIsPVP(unit) then
-                -- players we can assist but are PvP flagged are green
-                color = E.colors.reaction[6]
+    local isPlayer = UnitIsPlayer(unit)
+    local isFriend = UnitIsFriend("player", unit)
+
+    if UnitPlayerControlled(unit) then
+        if UnitCanAttack(unit, "player") then
+            -- hostile players are red
+            if UnitCanAttack("player", unit) then
+                color = E.colors.reaction[2]
             else
-                local class = select(2, UnitClass(unit))
+                local _, class = UnitClass(unit)
+                if class then
+                    color = E.colors.class[class]
+                end
+            end
+        elseif UnitCanAttack("player", unit) then
+            -- players we can attack but which are not hostile are yellow
+            color = E.colors.reaction[4]
+        elseif UnitIsPVP(unit) then
+            -- players we can assist but are PvP flagged are green
+            -- color = E.colors.reaction[6]
+            local _, class = UnitClass(unit)
+            if class then
                 color = E.colors.class[class]
             end
         else
-            local reaction = UnitReaction(unit, "player");
-            if reaction then
-                color = E.colors.reaction[reaction]
-            else
-                color = C.general.border.color
+            local _, class = UnitClass(unit)
+            if class then
+                color = E.colors.class[class]
             end
         end
+    else
+        local reaction = UnitReaction(unit, "player");
+        if reaction then
+            color = E.colors.reaction[reaction]
+        else
+            color = C.general.border.color
+        end
+    end
 
-        local GameTooltip = _G.GameTooltip
-        if GameTooltip.Backdrop then
-            GameTooltip.Backdrop:SetBackdropBorderColor(color.r, color.g, color.b)
+    local GameTooltip = _G.GameTooltip
+    if GameTooltip.Backdrop then
+        GameTooltip.Backdrop:SetBackdropBorderColor(color.r, color.g, color.b)
+    end
+
+    local GameTooltipStatusBar = _G.GameTooltipStatusBar
+    GameTooltipStatusBar:SetStatusBarColor(color.r, color.g, color.b)
+    if GameTooltipStatusBar.Backdrop then
+        GameTooltipStatusBar.Backdrop:SetBackdropBorderColor(color.r, color.g, color.b)
+    end
+
+    return color.r, color.g, color.b;
+end
+
+local GameTooltip_ClearMoney = function(self)
+    local tooltip = self
+
+    local borderColor = C.general.border.color
+    local statusbarColor = E:CreateColor(0, 1, 0)
+
+    if tooltip.Backdrop then
+        tooltip.Backdrop:SetBackdropBorderColor(borderColor.r, borderColor.g, borderColor.b)
+    end
+
+    local GameTooltipStatusBar = _G.GameTooltipStatusBar
+    if GameTooltipStatusBar then
+        GameTooltipStatusBar:SetStatusBarColor(statusbarColor.r, statusbarColor.g, statusbarColor.b)
+        
+        if GameTooltipStatusBar.Text then
+            GameTooltipStatusBar.Text:Hide()
         end
 
-        local GameTooltipStatusBar = _G.GameTooltipStatusBar
-        GameTooltipStatusBar:SetStatusBarColor(color.r, color.g, color.b)
         if GameTooltipStatusBar.Backdrop then
-            GameTooltipStatusBar.Backdrop:SetBackdropBorderColor(color.r, color.g, color.b)
-        end
-
-        return color.r, color.g, color.b;
-    end
-
-    function MODULE:GameTooltip_ClearMoney()
-        local borderColor = C.general.border.color
-        local statusbarColor = E:CreateColor(0, 1, 0)
-
-        if self.Backdrop then
-            self.Backdrop:SetBackdropBorderColor(borderColor.r, borderColor.g, borderColor.b)
-        end
-
-        local GameTooltipStatusBar = _G.GameTooltipStatusBar
-        if GameTooltipStatusBar then
-            GameTooltipStatusBar:SetStatusBarColor(statusbarColor.r, statusbarColor.g, statusbarColor.b)
-            
-            if GameTooltipStatusBar.Text then
-                GameTooltipStatusBar.Text:Hide()
-            end
-
-            if GameTooltipStatusBar.Backdrop then
-                GameTooltipStatusBar.Backdrop:SetBackdropBorderColor(borderColor.r, borderColor.g, borderColor.b)
-            end
-        end
-    end
-
-    function MODULE:AnchorShoppingTooltips(primaryShown, secondaryShown)
-        local tooltip = self.tooltip;
-        local primaryTooltip = tooltip.shoppingTooltips[1];
-        local secondaryTooltip = tooltip.shoppingTooltips[2];
-        
-        primaryTooltip:SetShown(primaryShown);
-        secondaryTooltip:SetShown(secondaryShown);
-    
-        local sideAnchorFrame = self.anchorFrame;
-        if self.anchorFrame.IsEmbedded then
-            sideAnchorFrame = self.anchorFrame:GetParent():GetParent();
-        end
-    
-        local leftPos = sideAnchorFrame:GetLeft();
-        local rightPos = sideAnchorFrame:GetRight();
-    
-        local selfLeftPos = tooltip:GetLeft();
-        local selfRightPos = tooltip:GetRight();
-    
-        -- if we get the Left, we have the Right
-        if leftPos and selfLeftPos then
-            leftPos = math.min(selfLeftPos, leftPos);-- get the left most bound
-            rightPos = math.max(selfRightPos, rightPos);-- get the right most bound
-        else
-            leftPos = leftPos or selfLeftPos or 0;
-            rightPos = rightPos or selfRightPos or 0;
-        end
-    
-        -- sometimes the sideAnchorFrame is an actual tooltip, and sometimes it's a script region, so make sure we're getting the actual anchor type
-        local anchorType = sideAnchorFrame.GetAnchorType and sideAnchorFrame:GetAnchorType() or tooltip:GetAnchorType();
-    
-        local totalWidth = 0;
-        if primaryShown then
-            totalWidth = totalWidth + primaryTooltip:GetWidth();
-        end
-        if secondaryShown then
-            totalWidth = totalWidth + secondaryTooltip:GetWidth();
-        end
-    
-        local rightDist = 0;
-        local screenWidth = GetScreenWidth();
-        rightDist = screenWidth - rightPos;
-    
-        -- find correct side
-        local side;
-        if anchorType and (totalWidth < leftPos) and (anchorType == "ANCHOR_LEFT" or anchorType == "ANCHOR_TOPLEFT" or anchorType == "ANCHOR_BOTTOMLEFT") then
-            side = "left";
-        elseif anchorType and (totalWidth < rightDist) and (anchorType == "ANCHOR_RIGHT" or anchorType == "ANCHOR_TOPRIGHT" or anchorType == "ANCHOR_BOTTOMRIGHT") then
-            side = "right";
-        elseif rightDist < leftPos then
-            side = "left";
-        else
-            side = "right";
-        end
-    
-        -- see if we should slide the tooltip
-        if totalWidth > 0 and (anchorType and anchorType ~= "ANCHOR_PRESERVE") then --we never slide a tooltip with a preserved anchor
-            local slideAmount = 0;
-            if ( (side == "left") and (totalWidth > leftPos) ) then
-                slideAmount = totalWidth - leftPos;
-            elseif ( (side == "right") and (rightPos + totalWidth) >  screenWidth ) then
-                slideAmount = screenWidth - (rightPos + totalWidth);
-            end
-    
-            if slideAmount ~= 0 then -- if we calculated a slideAmount, we need to slide
-                if sideAnchorFrame.SetAnchorType then
-                    sideAnchorFrame:SetAnchorType(anchorType, slideAmount, 0);
-                else
-                    tooltip:SetAnchorType(anchorType, slideAmount, 0);
-                end
-            end
-        end
-    
-        local offset = 5
-        if secondaryShown then
-            primaryTooltip:SetPoint("TOP", self.anchorFrame, 0, 0);
-            secondaryTooltip:SetPoint("TOP", self.anchorFrame, 0, 0);
-            if side and side == "left" then
-                primaryTooltip:SetPoint("RIGHT", sideAnchorFrame, "LEFT", -offset, 0);
-            else
-                secondaryTooltip:SetPoint("LEFT", sideAnchorFrame, "RIGHT", offset, 0);
-            end
-    
-            if side and side == "left" then
-                secondaryTooltip:SetPoint("TOPRIGHT", primaryTooltip, "TOPLEFT", -offset, 0);
-            else
-                primaryTooltip:SetPoint("TOPLEFT", secondaryTooltip, "TOPRIGHT", offset, 0);
-            end
-        else
-            primaryTooltip:SetPoint("TOP", self.anchorFrame, 0, 0);
-            if side and side == "left" then
-                primaryTooltip:SetPoint("RIGHT", sideAnchorFrame, "LEFT", -offset, 0);
-            else
-                primaryTooltip:SetPoint("LEFT", sideAnchorFrame, "RIGHT", offset, 0);
-            end
-        end
-    end
-
-    MODULE.UpdateItemTooltip = function(tooltip, data)
-        if tooltip == _G.GameTooltip or tooltip == _G.ItemRefTooltip then
-            local name, link, id = tooltip:GetItem()
-            if id then
-                local _, _, quality, itemLevel, _, itemType, itemSubtype, _, _, _, _, _, _, _, _, _, isCraftingReagent = C_Item.GetItemInfo(link or id)
-                if tooltip.Backdrop then
-                    if quality then
-                        local r, g, b = GetItemQualityColor(quality)
-                        tooltip.Backdrop:SetBackdropBorderColor(r, g, b)
-                    else
-                        local color = C.general.backdrop.color
-                        tooltip.Backdrop:SetBackdropBorderColor(color.r, color.g, color.b)
-                    end
-                end
-
-                if isCraftingReagent then
-                    local count = C_Item.GetItemCount(id)
-                    if count then
-                        tooltip:AddLine(" ")
-                        tooltip:AddLine(IN_BAG:format(count), 1.0, 1.0, 1.0)
-                    end
-                end
-            end
-        end
-    end
-
-    MODULE.UpdateSpellTooltip = function(tooltip, data)
-        if tooltip == _G.GameTooltip or tooltip == _G.EmbeddedItemTooltip then
-            local name, id = tooltip:GetSpell()
-            if id then
-                tooltip:AddLine(" ")
-                tooltip:AddLine(SPELL_ID:format(id), 1, 1, 1)
-            end
-        end
-    end
-    
-    MODULE.UpdateAuraTooltip = function(tooltip, data)
-        if tooltip == _G.GameTooltip or tooltip == _G.EmbeddedItemTooltip then
-            local id = data.id
-            if id then
-                local getterName = tooltip.processingInfo and tooltip.processingInfo.getterName
-                local getterArgs = tooltip.processingInfo and tooltip.processingInfo.getterArgs
-                local accessor = TooltipDataAccessor[getterName]
-                local sourceUnit = accessor and accessor(getterArgs)
-
-                tooltip:AddLine(" ")
-                if sourceUnit then
-                    local source = UnitName(sourceUnit)
-                    local color = E.GetUnitColor(sourceUnit)
-
-                    tooltip:AddDoubleLine(SPELL_ID:format(id), SOURCE:format(source), 1, 1, 1, color.r, color.g, color.b)
-                else
-                    tooltip:AddLine(SPELL_ID:format(id), 1, 1, 1)
-                end
-            end
-        end
-    end
-
-    MODULE.UpdateUnitTooltip = function(tooltip, data)
-        if C_PetBattles.IsInBattle() then return end
-        
-        local name, unit, guid = tooltip:GetUnit()
-        if not unit then return end
-
-        local realm = select(2, UnitName(unit))
-        local class = select(2, UnitClass(unit))
-        local level = UnitIsBattlePet(unit) and UnitBattlePetLevel(unit) or UnitLevel(unit)
-        local scaledLevel = UnitIsBattlePet(unit) and UnitBattlePetLevel(unit) or UnitEffectiveLevel(unit)
-        local creatureType = UnitCreatureType(unit)
-        local classification = UnitClassification(unit)
-        local isShiftKeyDown = IsShiftKeyDown()
-
-        -- name
-        do
-            local line = _G.GameTooltipTextLeft1
-
-            if UnitIsPlayer(unit) then
-                local color = E.colors.class[class]
-                local pvpName = UnitPVPName(unit)
-                
-                local text = name
-                if pvpName and pvpName ~= "" then
-                    text = pvpName
-                end
-
-                if realm and realm ~= "" then
-                    text = NAME_FORMAT:format(text, " - " .. realm)
-                    -- if isShiftKeyDown then
-                    --     name = NAME_FORMAT:format(name, "-" .. realm)
-                    -- elseif UnitRealmRelationship(unit) ~= LE_REALM_RELATION_VIRTUAL then
-                    --     name = NAME_FORMAT:format(name, _G.FOREIGN_SERVER_LABEL)
-                    -- end
-                end
-
-                local status = ""
-                if not UnitIsConnected(unit) then
-                    status = OFFLINE
-                elseif UnitIsGhost(unit) then
-                    status = GHOST
-                elseif UnitIsDead(unit) then
-                    status = DEAD
-                elseif UnitIsAFK(unit) then
-                    status = AFK
-                elseif UnitIsDND(unit) then
-                    status = DND
-                end
-                
-                line:SetText(status .. text)
-                line:SetTextColor(color.r, color.g, color.b)
-            elseif not UnitIsBattlePet(unit) then
-                local color = E.GetUnitColor(unit)
-                line:SetText(name or "Unknown")
-                line:SetTextColor(color.r, color.g, color.b)
-            end
-        end
-
-        do
-            local line = _G.GameTooltipTextRight1
-            line:SetText(nil)
-            line:Hide()
-        end
-
-        local offset = 2
-
-        -- guild
-        do
-            local guildName, _, _, guildRealm = GetGuildInfo(unit)
-            if guildName then
-                local line, _offset = GetTooltipLine(tooltip, offset, guildName) -- offset = 3
-                offset = _offset
-
-                local guildText = guildName
-                if guildRealm and guildRealm ~= "" and guildRealm ~= realm then
-                    guildText = guildName .. " - " .. guildRealm
-                end
-                
-                line:SetText(E.colors.lawngreen:WrapTextInColorCode(guildText))
-                line:SetTextColor(1, 1, 1)
-            end
-        end
-
-        -- level
-        do
-            local line, _offset = GetTooltipLine(tooltip, offset, (scaledLevel > 0) and scaledLevel or "%?%?")
-            offset = _offset
-
-            if line then
-                local levelText = (level > 0) and level or "??"
-
-                local difficulty = C_PlayerInfo.GetContentDifficultyCreatureForPlayer(unit)
-                local difficultyColor = E.colors.difficulty[difficulty] or E.colors.white -- GetDifficultyColor(difficulty)
-
-                if UnitIsPlayer(unit) then
-                    local color = E.colors.class[class]
-                    local race = UnitRace(unit)
-
-                    line:SetText(PLAYER_LEVEL:format(difficultyColor:WrapTextInColorCode(levelText), race or "", classText))
-
-                    -- specialization
-                    local specLine = _G["GameTooltipTextLeft" .. offset]
-                    if specLine then
-                        local specText = string.trim(specLine:GetText() or "")
-                        if specText and specText ~= "" then
-                            specLine:SetTextColor(color.r, color.g, color.b)
-                        end
-                    end
-                elseif UnitIsBattlePet(unit) then
-                    local petType = UnitBattlePetType(unit)
-                    
-                    local teamLevel = C_PetJournal.GetPetTeamAverageLevel() or 0
-                    if teamLevel then
-                        difficultyColor = GetRelativeDifficultyColor(teamLevel, scaledLevel)
-                    end
-
-                    line:SetText(BATTLE_PET_LEVEL:format(difficultyColor:WrapTextInColorCode(levelText), (creatureType or ""), " (" .. _G["BATTLE_PET_NAME_" .. petType] .. ")"))
-                else
-                    local classificationText = E.GetClassification(classification) or ""
-                    line:SetText(CREATURE_LEVEL:format(difficultyColor:WrapTextInColorCode(levelText) .. classificationText, creatureType or ""))
-                end
-
-                line:SetTextColor(1, 1, 1)
-            end
-        end
-
-        -- target
-        do
-            local target = unit .. "target"
-            if UnitExists(target) then
-                local color = E.GetUnitColor(target)
-                local name = color:WrapTextInColorCode(UnitName(target))
-                tooltip:AddLine(TARGET:format(name), 1, 1, 1)
-            end
-        end
-
-        -- hunter
-        if E.isClassic and E.class == "HUNTER" and unit == "pet" and GetPetHappiness then
-            local happiness, damagePercentage, loyaltyRate = GetPetHappiness()
-            if happiness then
-                local color = E.colors.happiness[happiness]
-                local happy = ({ "Unhappy", "Content", "Happy" })[happiness]
-                local loyalty = (loyaltyRate > 0) and "gaining" or "losing"
-    
-                tooltip:AddLine(" ")
-                tooltip:AddLine(L.PET_HAPINESS:format(color:WrapTextInColorCode(happy)), 1, 1, 1)
-                tooltip:AddLine(L.PET_DAMAGE:format(color:WrapTextInColorCode(damagePercentage .. "%")), 1, 1, 1)
-                tooltip:AddLine(L.PET_LOYALTY:format(color:WrapTextInColorCode(loyalty)), 1, 1, 1)
-            end
-        end
-        
-        do
-            local guidType, _, _, _, _, guidID, _ = string.split("-", guid)
-            if IsShiftKeyDown() and guidType == "Creature" then
-                tooltip:AddDoubleLine("NPC ID", guidID, nil, nil, nil, 1.0, 1.0, 1.0)
-            end
-        end
-    end
-
-    local kinds = {
-        spell = "SpellID",
-        item = "ItemID",
-        -- unit = "NPC ID",
-        -- quest = "QuestID",
-        -- talent = "TalentID",
-        -- achievement = "AchievementID",
-        -- criteria = "CriteriaID",
-        -- ability = "AbilityID",
-        -- currency = "CurrencyID",
-        -- artifactpower = "ArtifactPowerID",
-        -- enchant = "EnchantID",
-        -- bonus = "BonusID",
-        -- gem = "GemID",
-        -- mount = "MountID",
-        -- companion = "CompanionID",
-        -- macro = "MacroID",
-        -- equipmentset = "EquipmentSetID",
-        -- visual = "VisualID",
-        -- source = "SourceID",
-        -- species = "SpeciesID",
-        -- icon = "IconID"
-    }
-
-    local function addLine(tooltip, kind, spellID, sourceName)
-        -- if not id or id == "" or not tooltip or not tooltip.GetName then return end
-        -- if type(id) == "table" and #id == 1 then id = id[1] end
-        if kind == kinds.spell then
-            tooltip:AddLine(" ")
-
-            local left = SPELL_ID:format(spellID)
-            if sourceName then
-                local right = SOURCE:format(sourceName)
-                tooltip:AddDoubleLine(left, right, 1, 1, 1, color.r, color.g, color.b)
-            else
-                tooltip:AddLine(left, 1, 1, 1)
-            end
-        end
-    end
-
-    local GameTooltipHooks = {
-        ["SetAction"] = function(self, slot)
-            if (not GetActionInfo) then return end
-            local kind, id = GetActionInfo(slot)
-            addLine(self, kind, id)
-        end,
-        ["SetUnitBuff"] = function(self, ...)
-            if not UnitBuff then return end
-            local spellID = select(10, UnitBuff(...))
-            local unit, index, filter = ...
-            addLine(self, kinds.spell, spellID)
-        end,
-        ["SetUnitDebuff"] = function(self, ...)
-            if not UnitDebuff then return end
-            local spellID = select(10, UnitDebuff(...))
-            addLine(self, kinds.spell, spellID)
-        end,        
-        ["SetUnitAura"] = function(self, ...)
-            if not UnitAura then return end
-            local spellID = select(10, UnitAura(...))
-            addLine(self, kinds.spell, spellID)
-        end,        
-        ["SetSpellByID"] = function(self, spellID)
-            addLine(self, kinds.spell, spellID)
-        end,        
-        -- "SetRecipeResultItem" = function(self, id)
-        --     -- addLine(self, id, kinds.spell)
-        -- end,        
-        -- "SetRecipeRankInfo" = function(self, id)
-        --     -- addLine(self, id, kinds.spell)
-        -- end,        
-        -- "SetArtifactPowerByID" = function(self, powerID)
-        --     -- if not C_ArtifactUI or not C_ArtifactUI.GetPowerInfo then return end
-        --     -- local powerInfo = C_ArtifactUI.GetPowerInfo(powerID)
-        --     -- addLine(self, powerID, kinds.artifactpower)
-        --     -- addLine(self, powerInfo.spellID, kinds.spell)
-        -- end,        
-        -- "SetTalent" = function(self, id)
-        --     E:print("SetTalent", id)
-        --     -- if (not GetTalentInfoByID) then return end
-        --     -- local spellID = select(6, GetTalentInfoByID(id))
-        --     -- addLine(self, id, kinds.talent)
-        --     -- addLine(self, spellID, kinds.spell)
-        -- end,        
-        -- "SetPvpTalent" = function(self, id)
-        --     E:print("SetPvpTalent", id)
-        --     -- if not GetPvpTalentInfoByID then return end
-        --     -- local spellID = select(6, GetPvpTalentInfoByID(id))
-        --     -- addLine(self, id, kinds.talent)
-        --     -- addLine(self, spellID, kinds.spell)
-        -- end
-    }
-
-    function MODULE:SetupHooks(owner)
-        hooksecurefunc("GameTooltip_SetDefaultAnchor", function(tooltip, parent)
-            tooltip:ClearAllPoints()
-            tooltip:SetPoint("BOTTOMRIGHT", owner, "BOTTOMRIGHT", 0, 0)
-        end)
-
-        -- update tooltip colors
-        hooksecurefunc("GameTooltip_UnitColor", self.GameTooltip_UnitColor)
-        hooksecurefunc("GameTooltip_ClearMoney", self.GameTooltip_ClearMoney)
-
-        -- update comparison tooltip anchors
-        local TooltipComparisonManager = _G.TooltipComparisonManager
-        if TooltipComparisonManager then
-            hooksecurefunc(TooltipComparisonManager, "AnchorShoppingTooltips", self.AnchorShoppingTooltips)
-        end
-
-        if TooltipDataProcessor then
-            -- color tooltip border by item quality
-            TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Item, self.UpdateItemTooltip)
-
-            -- display spellID
-            TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Spell, self.UpdateSpellTooltip)
-
-            -- display aura spellID and source name
-            TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.UnitAura, self.UpdateAuraTooltip)
-
-            -- unit tooltip customization
-            TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Unit, self.UpdateUnitTooltip)
-        end
-
-        if E.isClassic then
-            local GameTooltip = _G.GameTooltip
-            for fn, callback in pairs(GameTooltipHooks) do
-                if GameTooltip[fn] then
-                    hooksecurefunc(GameTooltip, fn, callback)
-                end
-            end
-
-            -- hooksecurefunc(GameTooltip, "OnTooltipSetSpell", function(self)
-            --     E:print("OnTooltipSetSpell", self:GetSpell())
-            --     local spellID = select(2, self:GetSpell())
-            --     addLine(self, kinds.spell, spellID)
-            -- end)
-
-            hooksecurefunc("SpellButton_OnEnter", function(self)
-                if not SpellBook_GetSpellBookSlot then return end
-                local slot = SpellBook_GetSpellBookSlot(self)
-                local spellID = select(2, GetSpellBookItemInfo(slot, SpellBookFrame.bookType))
-                addLine(GameTooltip, kinds.spell, spellID)
-            end)
-
-            local OnTooltipSetItem = function(self)
-                if self.GetItem then
-                    local _, itemLink = self:GetItem()
-                    if itemLink then
-                        local _, _, _, _, _, _, _, _, _, _, vendorPrice = GetItemInfo(itemLink)
-                        if vendorPrice and vendorPrice > 0 then
-                            -- Format the price into gold, silver, and copper
-                            local gold = math.floor(vendorPrice / 10000)
-                            local silver = math.floor((vendorPrice % 10000) / 100)
-                            local copper = vendorPrice % 100
-
-                            -- Create a formatted price string
-                            local priceText = ""
-                            if gold > 0 then
-                                priceText = priceText .. gold .. " |TInterface\\MoneyFrame\\UI-GoldIcon:0:0:2:0|t "
-                            end
-                            if silver > 0 then
-                                priceText = priceText .. silver .. " |TInterface\\MoneyFrame\\UI-SilverIcon:0:0:2:0|t "
-                            end
-                            if copper > 0 then
-                                priceText = priceText .. copper .. " |TInterface\\MoneyFrame\\UI-CopperIcon:0:0:2:0|t"
-                            end
-
-                            -- Add the vendor price to the tooltip
-                            self:AddLine("Vendor Price: " .. priceText, 1, 1, 1)
-                            self:Show()
-                        end
-                    end
-                end
-            end
-
-            _G.GameTooltip:HookScript("OnTooltipSetItem", OnTooltipSetItem)
-            _G.ItemRefTooltip:HookScript("OnTooltipSetItem", OnTooltipSetItem)
-            _G.ItemRefShoppingTooltip1:HookScript("OnTooltipSetItem", OnTooltipSetItem)
-            _G.ItemRefShoppingTooltip2:HookScript("OnTooltipSetItem", OnTooltipSetItem)
-            _G.ShoppingTooltip1:HookScript("OnTooltipSetItem", OnTooltipSetItem)
-            _G.ShoppingTooltip2:HookScript("OnTooltipSetItem", OnTooltipSetItem)
+            GameTooltipStatusBar.Backdrop:SetBackdropBorderColor(borderColor.r, borderColor.g, borderColor.b)
         end
     end
 end
 
-function MODULE:CreateAnchor()
+local GetTooltipItemLink = function(tooltip)
+    if tooltip.GetItem then
+        local name, link, id = tooltip:GetItem()
+        return id, link, nil
+    elseif tooltip.GetTooltipData then
+        local data = tooltip:GetTooltipData()
+        if data then
+            return data.id, C_Item.GetItemLinkByGUID(data.guid), data.guid
+        end
+    end
+    return nil, nil, nil
+end
+
+local SetItemBorderColor = function(tooltip, quality)
+    if not tooltip.Backdrop then return end
+
+    if quality then
+        local r, g, b = GetItemQualityColor(quality)
+        tooltip.Backdrop:SetBackdropBorderColor(r, g, b)
+    else
+        local color = C.general.backdrop.color
+        tooltip.Backdrop:SetBackdropBorderColor(color.r, color.g, color.b)
+    end
+end
+
+local SetItemTooltipBorderColorByQuality = function(tooltip)
+    if not tooltip then return end
+
+    local itemID, itemLink, itemGUID = GetTooltipItemLink(tooltip)
+
+    if itemLink then
+        local _, _, quality, itemLevel, _, itemType, itemSubtype, _, _, _, _, _, _, _, _, _, isCraftingReagent = C_Item.GetItemInfo(itemLink)
+        SetItemBorderColor(tooltip, quality)
+    end
+end
+
+local SetCraftingReagentsQuantityInBag = function(tooltip, id)
+    local count = C_Item.GetItemCount(id)
+    if count then
+        tooltip:AddLine(" ")
+        tooltip:AddLine(IN_BAG:format(count), 1.0, 1.0, 1.0)
+    end
+end
+
+local UpdateItemTooltip = function(tooltip, data)
+    if tooltip == _G.GameTooltip or tooltip == _G.ItemRefTooltip then
+        -- on Retail, tooltip:GetItem() returns (name, link, id)
+        -- on Classic, tooltip:GetItem() returns (name, link)
+        local link, id, guid
+
+        if data then
+            guid = data.guid
+            id = data.id
+            if data.hiperlink then
+                link = data.hyperlink
+            elseif guid then
+                link = C_Item.GetItemLinkByGUID(guid)
+            end
+        else
+            _, link, id = tooltip:GetItem()
+        end
+        
+        if link then
+            local _, _, quality, itemLevel, _, itemType, itemSubtype, _, _, _, _, _, _, _, _, _, isCraftingReagent = C_Item.GetItemInfo(link)
+
+            SetItemBorderColor(tooltip, quality)
+
+            if isCraftingReagent then
+                SetCraftingReagentsQuantityInBag(tooltip, link)
+            end
+        end
+    end
+end
+
+local UpdateUnitTooltip = function(tooltip, data)
+    if C_PetBattles.IsInBattle() then return end
+    
+    local name, unit, guid = tooltip:GetUnit()
+    if not unit then return end
+
+    guid = guid or UnitGUID(unit)
+    local _, realm = UnitName(unit)
+    local _, class = UnitClass(unit)
+    local level = UnitIsBattlePet(unit) and UnitBattlePetLevel(unit) or UnitLevel(unit)
+    local scaledLevel = UnitIsBattlePet(unit) and UnitBattlePetLevel(unit) or UnitEffectiveLevel(unit)
+    local creatureType = UnitCreatureType(unit)
+    local classification = UnitClassification(unit)
+    local isShiftKeyDown = IsShiftKeyDown()
+
+    -- name
+    do
+        local line = _G.GameTooltipTextLeft1
+
+        if UnitIsPlayer(unit) then
+            local color = E.colors.class[class]
+            local pvpName = UnitPVPName(unit)
+            
+            local text = name
+            if pvpName and pvpName ~= "" then
+                text = pvpName
+            end
+
+            text = color:WrapTextInColorCode(text)
+
+            if realm and realm ~= "" then
+                text = NAME_FORMAT:format(text, " - " .. realm)
+                -- if isShiftKeyDown then
+                --     name = NAME_FORMAT:format(name, "-" .. realm)
+                -- elseif UnitRealmRelationship(unit) ~= LE_REALM_RELATION_VIRTUAL then
+                --     name = NAME_FORMAT:format(name, _G.FOREIGN_SERVER_LABEL)
+                -- end
+            end
+
+            local status = ""
+            if not UnitIsConnected(unit) then
+                status = OFFLINE
+            elseif UnitIsGhost(unit) then
+                status = GHOST
+            elseif UnitIsDead(unit) then
+                status = DEAD
+            elseif UnitIsAFK(unit) then
+                status = AFK
+            elseif UnitIsDND(unit) then
+                status = DND
+            end
+            
+            line:SetText(status .. text)
+            line:SetTextColor(color.r, color.g, color.b)
+        elseif not UnitIsBattlePet(unit) then
+            local color = E.GetUnitColor(unit)
+            line:SetText(name or "Unknown")
+            line:SetTextColor(color.r, color.g, color.b)
+        end
+    end
+
+    do
+        local line = _G.GameTooltipTextRight1
+        line:SetText(nil)
+        line:Hide()
+    end
+
+    local offset = 2
+
+    -- guild
+    do
+        local guildName, _, _, guildRealm = GetGuildInfo(unit)
+        if guildName then
+            local line, _offset = GetTooltipLine(tooltip, offset, guildName) -- offset = 3
+            offset = _offset
+
+            local guildText = guildName
+            if guildRealm and guildRealm ~= "" and guildRealm ~= realm then
+                guildText = guildName .. " - " .. guildRealm
+            end
+            
+            line:SetText(E.colors.lawngreen:WrapTextInColorCode(guildText))
+            line:SetTextColor(1, 1, 1)
+        end
+    end
+
+    -- level
+    do
+        local line, _offset = GetTooltipLine(tooltip, offset, (scaledLevel > 0) and scaledLevel or "%?%?")
+        offset = _offset
+
+        if line then
+            local levelText = (level > 0) and level or "??"
+
+            local difficultyColor = GetDifficultyColor(unit, level)
+
+            if UnitIsPlayer(unit) then
+                local color = E.colors.class[class]
+                local race = UnitRace(unit)
+
+                line:SetText(PLAYER_LEVEL:format(difficultyColor:WrapTextInColorCode(levelText), race or "", classText))
+
+                -- specialization
+                local specLine = _G["GameTooltipTextLeft" .. offset]
+                if specLine then
+                    local specText = string.trim(specLine:GetText() or "")
+                    if specText and specText ~= "" then
+                        specLine:SetTextColor(color.r, color.g, color.b)
+                    end
+                end
+            elseif UnitIsBattlePet(unit) then
+                local petType = UnitBattlePetType(unit)
+                
+                local teamLevel = C_PetJournal.GetPetTeamAverageLevel() or 0
+                if teamLevel then
+                    difficultyColor = GetRelativeDifficultyColor(teamLevel, scaledLevel)
+                end
+
+                line:SetText(BATTLE_PET_LEVEL:format(difficultyColor:WrapTextInColorCode(levelText), (creatureType or ""), " (" .. _G["BATTLE_PET_NAME_" .. petType] .. ")"))
+            else
+                local classificationText = E.GetClassification(classification) or ""
+                line:SetText(CREATURE_LEVEL:format(difficultyColor:WrapTextInColorCode(levelText) .. classificationText, creatureType or ""))
+            end
+
+            line:SetTextColor(1, 1, 1)
+        end
+    end
+
+    -- target
+    do
+        local target = unit .. "target"
+        if UnitExists(target) then
+            local color = E.GetUnitColor(target)
+            local name = color:WrapTextInColorCode(UnitName(target))
+            tooltip:AddLine(TARGET:format(name), 1, 1, 1)
+        end
+    end
+
+    -- hunter
+    if E.isClassic and E.class == "HUNTER" and unit == "pet" and GetPetHappiness then
+        local happiness, damagePercentage, loyaltyRate = GetPetHappiness()
+        if happiness then
+            local color = E.colors.happiness[happiness]
+            local happy = ({ "Unhappy", "Content", "Happy" })[happiness]
+            local loyalty = (loyaltyRate > 0) and "gaining" or "losing"
+
+            tooltip:AddLine(" ")
+            tooltip:AddLine(L.PET_HAPINESS:format(color:WrapTextInColorCode(happy)), 1, 1, 1)
+            tooltip:AddLine(L.PET_DAMAGE:format(color:WrapTextInColorCode(damagePercentage .. "%")), 1, 1, 1)
+            tooltip:AddLine(L.PET_LOYALTY:format(color:WrapTextInColorCode(loyalty)), 1, 1, 1)
+        end
+    end
+    
+    do
+        local guidType, _, _, _, _, guidID, _ = string.split("-", guid)
+        if IsShiftKeyDown() and guidType == "Creature" then
+            tooltip:AddDoubleLine("NPC ID", guidID, nil, nil, nil, 1.0, 1.0, 1.0)
+        end
+    end
+end
+
+local GameTooltip_AnchorComparisonTooltips = function(tooltip, anchorFrame, primaryTooltip, secondaryTooltip, primaryShown, secondaryShown)
+    primaryTooltip:SetShown(primaryShown);
+    secondaryTooltip:SetShown(secondaryShown);
+
+    local sideAnchorFrame = anchorFrame;
+    if anchorFrame and anchorFrame.IsEmbedded then
+        sideAnchorFrame = anchorFrame:GetParent():GetParent();
+    end
+
+    local leftPos = sideAnchorFrame:GetLeft();
+    local rightPos = sideAnchorFrame:GetRight();
+
+    local selfLeftPos = tooltip:GetLeft();
+    local selfRightPos = tooltip:GetRight();
+
+    -- if we get the Left, we have the Right
+    if leftPos and selfLeftPos then
+        leftPos = math.min(selfLeftPos, leftPos);-- get the left most bound
+        rightPos = math.max(selfRightPos, rightPos);-- get the right most bound
+    else
+        leftPos = leftPos or selfLeftPos or 0;
+        rightPos = rightPos or selfRightPos or 0;
+    end
+
+    -- sometimes the sideAnchorFrame is an actual tooltip, and sometimes it's a script region, so make sure we're getting the actual anchor type
+    local anchorType = sideAnchorFrame.GetAnchorType and sideAnchorFrame:GetAnchorType() or tooltip:GetAnchorType();
+
+    local totalWidth = 0;
+    if primaryShown then
+        totalWidth = totalWidth + primaryTooltip:GetWidth();
+    end
+    if secondaryShown then
+        totalWidth = totalWidth + secondaryTooltip:GetWidth();
+    end
+
+    local rightDist = 0;
+    local screenWidth = GetScreenWidth();
+    rightDist = screenWidth - rightPos;
+
+    -- find correct side
+    local side;
+    if anchorType and (totalWidth < leftPos) and (anchorType == "ANCHOR_LEFT" or anchorType == "ANCHOR_TOPLEFT" or anchorType == "ANCHOR_BOTTOMLEFT") then
+        side = "left";
+    elseif anchorType and (totalWidth < rightDist) and (anchorType == "ANCHOR_RIGHT" or anchorType == "ANCHOR_TOPRIGHT" or anchorType == "ANCHOR_BOTTOMRIGHT") then
+        side = "right";
+    elseif rightDist < leftPos then
+        side = "left";
+    else
+        side = "right";
+    end
+
+    -- see if we should slide the tooltip
+    if totalWidth > 0 and (anchorType and anchorType ~= "ANCHOR_PRESERVE") then --we never slide a tooltip with a preserved anchor
+        local slideAmount = 0;
+        if ( (side == "left") and (totalWidth > leftPos) ) then
+            slideAmount = totalWidth - leftPos;
+        elseif ( (side == "right") and (rightPos + totalWidth) >  screenWidth ) then
+            slideAmount = screenWidth - (rightPos + totalWidth);
+        end
+
+        if slideAmount ~= 0 then -- if we calculated a slideAmount, we need to slide
+            if sideAnchorFrame.SetAnchorType then
+                sideAnchorFrame:SetAnchorType(anchorType, slideAmount, 0);
+            else
+                tooltip:SetAnchorType(anchorType, slideAmount, 0);
+            end
+        end
+    end
+
+    local offset = 5
+    if secondaryShown then
+        primaryTooltip:SetPoint("TOP", anchorFrame, 0, 0);
+        secondaryTooltip:SetPoint("TOP", anchorFrame, 0, 0);
+        if side and side == "left" then
+            primaryTooltip:SetPoint("RIGHT", sideAnchorFrame, "LEFT", -offset, 0);
+        else
+            secondaryTooltip:SetPoint("LEFT", sideAnchorFrame, "RIGHT", offset, 0);
+        end
+
+        if side and side == "left" then
+            secondaryTooltip:SetPoint("TOPRIGHT", primaryTooltip, "TOPLEFT", -offset, 0);
+        else
+            primaryTooltip:SetPoint("TOPLEFT", secondaryTooltip, "TOPRIGHT", offset, 0);
+        end
+    else
+        primaryTooltip:SetPoint("TOP", anchorFrame, 0, 0);
+        if side and side == "left" then
+            primaryTooltip:SetPoint("RIGHT", sideAnchorFrame, "LEFT", -offset, 0);
+        else
+            primaryTooltip:SetPoint("LEFT", sideAnchorFrame, "RIGHT", offset, 0);
+        end
+    end
+end
+
+local GameTooltip_ShowCompareItem = function(tooltip, anchorFrame)
+    for index, element in next, (tooltip.shoppingTooltips or {}) do
+        SetItemTooltipBorderColorByQuality(element or _G["ShoppingTooltip" .. index])
+    end
+end
+
+local TooltipComparisonManager_AnchorShoppingTooltips = function(self, primaryShown, secondaryShown)
+    local tooltip = self.tooltip
+    local anchorFrame = self.anchorFrame
+    local primaryTooltip = tooltip.shoppingTooltips[1];
+    local secondaryTooltip = tooltip.shoppingTooltips[2];
+    GameTooltip_AnchorComparisonTooltips(tooltip, anchorFrame, primaryTooltip, secondaryTooltip, primaryShown, secondaryShown)
+end
+
+function tooltip_proto:SetupHooks(owner)
+    hooksecurefunc("GameTooltip_SetDefaultAnchor", function(tooltip, parent)
+        tooltip:ClearAllPoints()
+        tooltip:SetPoint("BOTTOMRIGHT", owner, "BOTTOMRIGHT", 0, 0)
+    end)
+
+    -- update tooltip colors
+    hooksecurefunc("GameTooltip_UnitColor", GameTooltip_UnitColor)
+    hooksecurefunc("GameTooltip_ClearMoney", GameTooltip_ClearMoney)
+
+    -- update comparison tooltip anchors
+    local TooltipComparisonManager = _G.TooltipComparisonManager
+    if TooltipComparisonManager then
+        hooksecurefunc(TooltipComparisonManager, "AnchorShoppingTooltips", TooltipComparisonManager_AnchorShoppingTooltips)
+    else
+        hooksecurefunc("GameTooltip_AnchorComparisonTooltips", GameTooltip_AnchorComparisonTooltips)
+    end
+
+    hooksecurefunc("GameTooltip_ShowCompareItem", GameTooltip_ShowCompareItem)
+
+    if TooltipDataProcessor and TooltipDataProcessor.AddTooltipPostCall then
+        -- color tooltip border by item quality
+        TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Item, UpdateItemTooltip)
+
+        -- unit tooltip customization
+        TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Unit, UpdateUnitTooltip)
+    end
+
+    if not E.isRetail then
+		GameTooltip:HookScript("OnTooltipSetItem", UpdateItemTooltip)
+        GameTooltip:HookScript("OnTooltipSetUnit", UpdateUnitTooltip)
+    end
+end
+
+
+function tooltip_proto:CreateAnchor()
     local x = 10
     local y = C.chat.height + 10 + 5
 
@@ -762,7 +615,7 @@ function MODULE:CreateAnchor()
     return element
 end
 
-function MODULE:UpdateAnchors()
+function tooltip_proto:UpdateAnchors()
     local owner = self.Anchor
 
     do
@@ -782,7 +635,26 @@ function MODULE:UpdateAnchors()
     end
 end
 
-function MODULE:Init()
+function tooltip_proto:Update(element)
+    if element:IsForbidden() then return end
+
+    if not element.isSkinned then
+        element:StripTextures()
+        element:CreateBackdrop("transparent")
+
+		if element.NineSlice then
+			element.NineSlice:SetAlpha(0)
+		end
+
+        element.isSkinned = true
+    end
+
+    if element.CloseButton then
+        element.CloseButton:SkinCloseButton()
+    end
+end
+
+function tooltip_proto:Init()
     self.Anchor = self:CreateAnchor()
     self:UpdateAnchors()
     self:Update(_G.GameTooltip)
@@ -792,4 +664,7 @@ function MODULE:Init()
     self:Update(_G.ShoppingTooltip2)
     self:UpdateStatusBar()
     self:SetupHooks(self.Anchor)
+    self:AddMetadata()
 end
+
+E:CreateModule("Tooltips", tooltip_proto)
