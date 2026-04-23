@@ -17,6 +17,14 @@ if E.isClassic then
         end)
     end
 elseif E.isMoP then
+    local ObjectiveTracker_SetPoint = function(self, point, anchor, anchorPoint, x, y)
+        if InCombatLockdown() then return end
+        if anchor ~= self.holder then
+            self:ClearAllPoints()
+            self:SetPoint("TOP", self.holder)
+        end
+    end
+
     function element_proto:Load()
         local element = self
 
@@ -30,13 +38,9 @@ elseif E.isMoP then
             frame:SetPoint("TOP", element)
             -- frame.ignoreFramePositionManager = true
 
-            hooksecurefunc(frame, "SetPoint", function(_, _, parent)
-                -- if InCombatLockdown() then return end
-                if parent ~= element then
-                    frame:ClearAllPoints()
-                    frame:SetPoint("TOP", element)
-                end
-            end)
+            frame.holder = element
+
+            hooksecurefunc(frame, "SetPoint", ObjectiveTracker_SetPoint)
         end
     end
 else

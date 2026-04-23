@@ -22,10 +22,10 @@ do
 		return self.modules[name]
 	end
 
-	function ModuleMixin:CreateModule(name)
+	function ModuleMixin:CreateModule(name, proto)
 		assert(not self.modules[name], "Module " .. name .. " already exists.")
 		self.indexes[#self.indexes + 1] = name
-		return self:SetModule(name, {})
+		return self:SetModule(name, proto or {})
 	end
 	
 	function ModuleMixin:InitModules()
