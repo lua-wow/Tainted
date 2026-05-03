@@ -235,6 +235,11 @@ for k, v in next, Enum.ItemQuality do
 	oUF.colors.quality[v] = color
 end
 
+oUF.colors.stealable = oUF:CreateColor(0.93, 0.91, 0.55)
+
+oUF.colors.dispel[oUF.Enum.DispelType.Bleed] = oUF:CreateColor(0.90, 0.10, 0.10)
+oUF.colors.dispel[oUF.Enum.DispelType.Enrage] = oUF:CreateColor(0.78, 0.25, 0.25)
+
 E.colors = oUF.colors
 E.CreateColor = oUF.CreateColor
 

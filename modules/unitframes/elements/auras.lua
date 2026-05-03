@@ -19,9 +19,9 @@ function button_proto:UpdateTooltip()
 
     local unit = self:GetParent().__owner.unit
 	if self.auraIndex then
-		GameTooltip:SetUnitAura(unit, self.auraIndex, self.isHarmful and "HARMFUL" or "HELPFUL")
+		GameTooltip:SetUnitAura(unit, self.auraIndex, self.isHarmfulAura and "HARMFUL" or "HELPFUL")
     elseif self.auraInstanceID and GameTooltip.SetUnitDebuffByAuraInstanceID then
-        if self.isHarmful then
+        if self.isHarmfulAura then
             GameTooltip:SetUnitDebuffByAuraInstanceID(unit, self.auraInstanceID)
         else
             GameTooltip:SetUnitBuffByAuraInstanceID(unit, self.auraInstanceID)
@@ -44,25 +44,26 @@ function button_proto:OnLeave()
     GameTooltip:Hide()
 end
 
-local aura_proto = {}
+local aura_proto = {
+    showType = true,
+    -- minCount = 0,
+    -- maxCount = 10
+}
 
 function aura_proto:OnUpdate(elapsed)
+    if (not self.duration) then return end
+
     self.elapsed = (self.elapsed or 0) + elapsed
-
     if (self.elapsed >= 0.1) then
-        local remainingTime = (self.expirationTime or 0) - GetTime()
-
-        if (remainingTime > 0) then
-            self.Timer:SetText(E.FormatTime(remainingTime))
-            if (remainingTime <= 5) then
-                self.Timer:SetTextColor(0.99, 0.31, 0.31)
-            else
-                self.Timer:SetTextColor(1, 1, 1)
-            end
+        local remaining = self.duration:GetRemainingDuration(0)
+        if (remaining) then
+            local truncated = C_StringUtil.TruncateWhenZero(remaining)
+            local color = self.duration:EvaluateRemainingDuration(E.curves.auras.duration)
+            self.Timer:SetText(truncated)
+            self.Timer:SetTextColor(color.r, color.g, color.b)
         else
             self.Timer:Hide()
         end
-
         self.elapsed = 0
     end
 end
@@ -74,7 +75,6 @@ function aura_proto:CreateButton(index)
 
     local button = Mixin(CreateFrame("Button", element:GetDebugName() .. "Button" .. index, element), button_proto)
     button:CreateBackdrop()
-
     button:SetScript("OnEnter", button.OnEnter)
     button:SetScript("OnLeave", button.OnLeave)
 
@@ -90,6 +90,16 @@ function aura_proto:CreateButton(index)
     timer:SetFont(font, 12, "THINOUTLINE")
     timer:SetPoint("CENTER", 0, 0)
     button.Timer = timer
+
+    local overlay = button:CreateTexture(nil, "ARTWORK")
+    overlay:SetAllPoints()
+    overlay:SetTexCoord(unpack(E.IconCoord))
+    button.Overlay = overlay
+
+    local stealable = CreateFrame("Frame", nil, button)
+    stealable:SetAllPoints(button)
+    stealable:SetFrameLevel(button:GetFrameLevel() + 1)
+    button.Stealable = stealable
 
     local icon = button:CreateTexture(nil, "ARTWORK")
     icon:SetAllPoints()
@@ -125,39 +135,44 @@ function aura_proto:CreateButton(index)
 end
 
 function aura_proto:PostUpdateButton(button, unit, data, position)
-    local duration = data.duration or 0
+    local duration = C_UnitAuras.GetAuraDuration(unit, data.auraInstanceID)
     button.duration = duration
-    button.expirationTime = data.expirationTime
 
-    local timer = button.Timer
-    if (timer) then
+    if (button.Timer) then
         local size = button:GetSize()
-        if (duration and duration > 0 and size > 20) then
-            timer:Show()
+        if (duration) then
             button:SetScript("OnUpdate", self.OnUpdate)
+            button.Timer:Show()
         else
-            timer:Hide()
             button:SetScript("OnUpdate", nil)
+            button.Timer:Hide()
         end
     end
 
     if button.Backdrop then
-        if (data.isHarmful and UnitCanAssist(unit, "player")) or (data.isHelpful and UnitCanAttack(unit, "player") and UnitCanAttack("player", unit)) then
-            local mu = 0.8
-            local color = E.colors.debuff[data.dispelName or "none"]
-            button.Backdrop:SetBackdropBorderColor(color.r * mu, color.g * mu, color.b * mu, color.a or 1)
+        if (data.isHarmfulAura and UnitCanAssist(unit, "player")) or (data.isHelpfulAura and UnitCanAttack(unit, "player") and UnitCanAttack("player", unit)) then
+            local color = C_UnitAuras.GetAuraDispelTypeColor(unit, data.auraInstanceID, self.dispelColorCurve) or C.general.border.color
+			-- if color == nil then
+			-- 	-- BUG: this shouldn't happen but color can be nil, so default to None color
+			-- 	color = element.dispelColorCurve:Evaluate(0)
+			-- end
+            -- local mu = 0.8
+            -- local color = E.colors.dispel[data.dispelName or "none"] or C.general.border.color
+            -- print(color:WrapTextInColorCode("AURA TYPE"))
+            button.Backdrop:SetBackdropBorderColor(color.r, color.g, color.b, color.a or 1)
         else
             local color = C.general.border.color
+            -- print(color:WrapTextInColorCode("AURA"))
             button.Backdrop:SetBackdropBorderColor(color.r, color.g, color.b, color.a or 1)
         end
     end
 
     if button.Icon then
-        button.Icon:SetDesaturated(data.isHarmful and (not data.isPlayerAura) and not UnitIsUnit(unit, "player"))
+        button.Icon:SetDesaturated(data.isHarmfulAura and (not data.isPlayerAura) and not UnitIsUnit(unit, "player"))
     end
 
     if (button.Animation) then
-        if data.isDispelable or data.isStealable then
+        if (data.isDispelable) then
             if not button.Animation:IsPlaying() then
                 button.Animation:Play()
             end
@@ -169,8 +184,29 @@ function aura_proto:PostUpdateButton(button, unit, data, position)
     end
 end
 
-function aura_proto:PostProcessAuraData(unit, data)
-    data.isDispelable = LibDispel:IsDispelable(unit, data.spellId, data.dispelName, data.isHarmful)
+function aura_proto:PostProcessAuraData(unit, data, filter)
+    data.isDispelable = LibDispel:IsDispelable(unit, data.spellId, data.dispelName, data.isHarmfulAura)
+    
+    -- data.isHelpfulAura = not C_UnitAuras.IsAuraFilteredOutByInstanceID(unit, data.auraInstanceID, "HELPFUL")
+    -- data.isHarmfulAura = not C_UnitAuras.IsAuraFilteredOutByInstanceID(unit, data.auraInstanceID, "HARMFUL")
+    data.isHarmfulAura = not data.isHelpfulAura
+    
+    -- data.isPlayer = not C_UnitAuras.IsAuraFilteredOutByInstanceID(unit, data.auraInstanceID, "PLAYER")
+    -- data.isRaid = not C_UnitAuras.IsAuraFilteredOutByInstanceID(unit, data.auraInstanceID, "RAID")
+    -- data.isCancelable = not C_UnitAuras.IsAuraFilteredOutByInstanceID(unit, data.auraInstanceID, "CANCELABLE")
+    -- data.isNotCancelable = not C_UnitAuras.IsAuraFilteredOutByInstanceID(unit, data.auraInstanceID, "NOT_CANCELABLE")
+    -- data.showNameplate = not C_UnitAuras.IsAuraFilteredOutByInstanceID(unit, data.auraInstanceID, "INCLUDE_NAME_PLATE_ONLY")
+    -- data.isMaw = not C_UnitAuras.IsAuraFilteredOutByInstanceID(unit, data.auraInstanceID, "MAW")
+
+    data.isExternalDefensive = not C_UnitAuras.IsAuraFilteredOutByInstanceID(unit, data.auraInstanceID, "EXTERNAL_DEFENSIVE")
+    data.isCrowdControl = not C_UnitAuras.IsAuraFilteredOutByInstanceID(unit, data.auraInstanceID, "CROWD_CONTROL")
+    data.isRaidInCombat = not C_UnitAuras.IsAuraFilteredOutByInstanceID(unit, data.auraInstanceID, "RAID_IN_COMBAT") -- combine with PLAYER and HELPFUL to filter self-cast HoTs
+    
+    data.isRaidPlayerDispellable = not C_UnitAuras.IsAuraFilteredOutByInstanceID(unit, data.auraInstanceID, "RAID_PLAYER_DISPELLABLE")
+    
+    data.isBigDefensive = not C_UnitAuras.IsAuraFilteredOutByInstanceID(unit, data.auraInstanceID, "BIG_DEFENSIVE")
+    data.isImportant = not C_UnitAuras.IsAuraFilteredOutByInstanceID(unit, data.auraInstanceID, "IMPORTANT")
+
     return data
 end
 
@@ -179,13 +215,14 @@ end
 --------------------------------------------------
 do
     local element_proto = Mixin({
+        showBuffType = true,
         showStealableBuffs = true,
         onlyShowPlayer = false,
         size = 27,
         spacing = 3,
         initialAnchor = "BOTTOMLEFT",
-        ["growth-x"] = "RIGHT",
-        ["growth-y"] = "UP"
+        growthX = "RIGHT",
+        growthY = "UP"
     }, aura_proto)
 
     function UnitFrames:CreateBuffs(frame)
@@ -228,13 +265,14 @@ end
 --------------------------------------------------
 do
     local element_proto = Mixin({
+        showDebuffType = true,
         showStealableBuffs = nil,
         onlyShowPlayer = false,
         size = 27,
         spacing = 3,
         initialAnchor = "TOPRIGHT",
-        ["growth-x"] = "LEFT",
-        ["growth-y"] = "UP"
+        growthX = "LEFT",
+        growthY = "UP"
     }, aura_proto)
 
     function UnitFrames:CreateDebuffs(frame)

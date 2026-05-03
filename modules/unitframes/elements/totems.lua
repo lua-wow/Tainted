@@ -4,39 +4,33 @@ local UnitFrames = E:GetModule("UnitFrames")
 
 -- Blizzard
 local GetTotemInfo = _G.GetTotemInfo
+local STANDARD_TOTEM_PRIORITIES = _G.STANDARD_TOTEM_PRIORITIES
+local SHAMAN_TOTEM_PRIORITIES = _G.SHAMAN_TOTEM_PRIORITIES
 
 --------------------------------------------------
 -- Totems
 --------------------------------------------------
 local MAX_TOTEMS = _G.MAX_TOTEMS or 4
-local FIRE_TOTEM_SLOT = _G.FIRE_TOTEM_SLOT or 1;
-local EARTH_TOTEM_SLOT = _G.EARTH_TOTEM_SLOT or 2;
-local WATER_TOTEM_SLOT = _G.WATER_TOTEM_SLOT or 3;
-local AIR_TOTEM_SLOT = _G.AIR_TOTEM_SLOT or 4;
-
--- STANDARD_TOTEM_PRIORITIES = {1, 2, 3, 4};
--- SHAMAN_TOTEM_PRIORITIES = { EARTH_TOTEM_SLOT, FIRE_TOTEM_SLOT, WATER_TOTEM_SLOT, AIR_TOTEM_SLOT };
+local TOTEM_PRIORITIES = (UnitClassBase("player") == "SHAMAN") and SHAMAN_TOTEM_PRIORITIES or STANDARD_TOTEM_PRIORITIES
 
 local element_proto = {}
 
 function element_proto:OnUpdate(elapsed)
+    if (not self.duration) then return end
+
     self.elapsed = (self.elapsed or 0) + elapsed
     if (self.elapsed >= 0.1) then
-        local remaining = self.expirationTime - GetTime()
-        if (remaining >= 0) then
+        local remaining = self.duration:GetRemainingDuration(0)
+        if (remaining) then
+            local truncated = C_StringUtil.TruncateWhenZero(remaining)
+            local color = self.duration:EvaluateRemainingDuration(E.curves.auras.duration)
             self:SetValue(remaining)
-            if self.Timer then
-                self.Timer:SetText(E.FormatTime(remaining))
-                if (remaining <= 5) then
-                    self.Timer:SetTextColor(0.99, 0.31, 0.31)
-                else
-                    self.Timer:SetTextColor(1, 1, 1)
-                end
-            end
+            self.Timer:SetText(truncated)
+            self.Timer:SetTextColor(color.r, color.g, color.b)
         else
             self:SetValue(0)
             if self.Timer then
-                self.Timer:SetText("")
+                self.Timer:Hide()
             end
         end
         self.elapsed = 0
@@ -47,19 +41,21 @@ function element_proto:Override(event, slot)
     local element = self.Totems
     if (slot > #element) then return end
 
-    local totem = element[slot]
-    local haveTotem, name, start, duration, icon = GetTotemInfo(slot)
-    if (haveTotem and duration and duration > 0) then
+    local totem = element[TOTEM_PRIORITIES[slot]]
+    local haveTotem, name, start, _duration, icon = GetTotemInfo(slot)
+    local duration = GetTotemDuration(slot)
+    
+    if (duration) then
+        local max = duration:GetTotalDuration(0)
+
         totem.slot = slot
         totem.start = start or 0
         totem.duration = duration
-        totem.expirationTime = start + duration
 
         if (totem:IsObjectType("StatusBar")) then
-            totem:SetMinMaxValues(0, duration)
-            totem:SetValue(duration)
+            totem:SetMinMaxValues(0, max)
+            totem:SetTimerDuration(duration, Enum.StatusBarInterpolation.ExponentialEaseOut, Enum.StatusBarTimerDirection.RemainingTime)
             totem:SetScript("OnUpdate", element.OnUpdate)
-            
         else
             if (totem.Icon) then
                 totem.Icon:SetTexture(icon)
@@ -91,6 +87,7 @@ function UnitFrames:CreateTotems(frame)
 
     if (frame.__class == "SHAMAN") then
         element:SetPoint(unpack(C.unitframes.classpower.anchor))
+        element.priorities = SHAMAN_TOTEM_PRIORITIES
     else
         element:SetPoint("TOPLEFT", frame, "BOTTOMLEFT", -1, -3)
     end

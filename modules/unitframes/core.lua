@@ -41,7 +41,8 @@ do
     }
 
     function element_proto:GetPosition()
-        local isHealer = Talents:IsHealer()
+        -- local isHealer = Talents:IsHealer()
+        local isHealer = false
         local groupSize = GetNumGroupMembers()
         if isHealer and groupSize <= self.groupThreshold then
             return HEALER
@@ -93,7 +94,7 @@ do
             if changes ~= -1 then return end
         end
 
-        Talents:Update()
+        -- Talents:Update()
         self:UpdatePosition()
     end
 
@@ -163,7 +164,6 @@ function UnitFrames:CreateUnitFrame(frame)
     frame.TextParent = textParent
 
     frame.Health = self:CreateHealth(frame, frame.TextParent)
-    frame.HealthPrediction = self:CreateHealthPrediction(frame)
     frame.Power = self:CreatePower(frame, frame.TextParent)
     frame.Name = self:CreateName(frame, frame.TextParent)
     
@@ -216,19 +216,27 @@ local function CreateUnit(unit, parent, num)
     return units[unit]
 end
 
-function UnitFrames:GetRaidAttributes()
-    local name = addon .. "Raid"
-    local showSolo = C.unitframes.raid.solo or nil
-
+function UnitFrames:GetRaidVisibility()
     local visibility = "custom [group:raid, @raid21, noexists] show; [group:party, nogroup:raid] show; "
     if C.unitframes.raid.solo then
         visibility = visibility .. "[@player, exists, nogroup:party] show; "
     end
-    visibility = visibility ..  "hide"
+    return visibility ..  "hide"
+end
+
+function UnitFrames:GetRaidAttributes()
+    local name = addon .. "Raid"
+    local showSolo = C.unitframes.raid.solo or nil
+
+    -- local visibility = "custom [group:raid, @raid21, noexists] show; [group:party, nogroup:raid] show; "
+    -- if C.unitframes.raid.solo then
+    --     visibility = visibility .. "[@player, exists, nogroup:party] show; "
+    -- end
+    -- visibility = visibility ..  "hide"
 
     return name,
         nil,
-        visibility,
+        -- visibility,
         -- http://wowprogramming.com/docs/secure_template/Group_Headers
         -- Set header attributes
         "showParty", true,
@@ -254,13 +262,17 @@ function UnitFrames:GetRaidAttributes()
             self:SetHeight(header:GetAttribute("initial-height"))
         ]]
 end
-    
+
+function UnitFrames:GetRaid40Visibilty()
+    return "custom [@raid21, exists] show; hide"
+end
+
 function UnitFrames:GetRaid40Attributes()
     local name = addon .. "Raid40"
-    local visibility = "custom [@raid21, exists] show; hide"
+    -- local visibility = "custom [@raid21, exists] show; hide"
     return name,
         nil,
-        visibility,
+        -- visibility,
         -- http://wowprogramming.com/docs/secure_template/Group_Headers
         -- Set header attributes
         "showParty", true,
@@ -374,16 +386,44 @@ function UnitFrames:Init()
 
         if (C.unitframes.raid.enabled) then
             local raid = self:SpawnHeader(UnitFrames:GetRaidAttributes())
+            raid:SetVisibility(UnitFrames:GetRaidVisibility())
             raid:SetParent(RaidHolder)
             raid:SetPoint("BOTTOMLEFT", 0, 0)
 
             local raid40 = self:SpawnHeader(UnitFrames:GetRaid40Attributes())
+            raid40:SetVisibility(UnitFrames:GetRaid40Visibilty())
             raid40:SetParent(RaidHolder)
             raid40:SetPoint("BOTTOMLEFT", 0, 0)
         end
 
         if (C.unitframes.nameplate.enabled) then
-            self:SpawnNamePlates(addon, UnitFrames.NameplateCallback, UnitFrames.NameplateCVars)
+            local nameplates = self:SpawnNamePlates(addon)
+            nameplates:SetSize(200, 20)
+
+            for k, v in next, UnitFrames.Nameplates.cvars do
+                local value, _, _, _, _, isSecure, isReadOnly = C_CVar.GetCVarInfo(k)
+                if (not value) then
+                    E:error("CVar " .. k .. " is not accessible.")
+                    UnitFrames.Nameplates.cvars[k] = nil
+                end
+            end
+
+            nameplates:SetCVars(UnitFrames.Nameplates.cvars or {})
+
+            if UnitFrames.Nameplates.SetAddedCallback then
+                nameplates:SetAddedCallback(UnitFrames.Nameplates.SetAddedCallback)
+            end
+
+            if UnitFrames.Nameplates.SetRemovedCallback then
+                nameplates:SetRemovedCallback(UnitFrames.Nameplates.SetRemovedCallback)
+            end
+
+            if UnitFrames.Nameplates.SetTargetCallback then
+                nameplates:SetTargetCallback(UnitFrames.Nameplates.SetTargetCallback)
+            end
+
+            -- nameplates:SetEnemyInteractible(state)
+            -- nameplates:SetFriendlyInteractible(state)
         end
     end)
 end

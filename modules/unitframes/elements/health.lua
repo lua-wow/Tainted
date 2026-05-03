@@ -33,7 +33,7 @@ do
         self:SetColor(color)
     end
 
-    function element_proto:PostUpdateColor(unit, r, g, b)
+    function element_proto:PostUpdateColor(unit, color)
         -- nameplates should not be monochrome
         if unit:match("^nameplate%d") then return end
         if C.unitframes.monochrome then
@@ -72,11 +72,11 @@ do
         
         element.TempLoss = temploss
         
-        local bg = element:CreateTexture(nil, "BACKGROUND")
-        bg:SetAllPoints(element)
-        bg:SetTexture(texture)
-        bg.multiplier = C.general.background.multiplier or 0.15
-        element.bg = bg
+        -- local bg = element:CreateTexture(nil, "BACKGROUND")
+        -- bg:SetAllPoints(element)
+        -- bg:SetTexture(texture)
+        -- bg.multiplier = C.general.background.multiplier or 0.15
+        -- element.bg = bg
 
         local tag = frame.__config.tags.health
         if (tag) then
@@ -99,6 +99,8 @@ do
             element.colorReaction = false
         end
 
+        self:CreateHealthPrediction(element, frame.__config.width or 200)
+
         return element
     end
 end
@@ -107,80 +109,92 @@ end
 -- Health Prediction
 --------------------------------------------------
 do
-    local element_proto = {
-        maxOverflow = 1
-    }
-
-    function UnitFrames:CreateHealthPrediction(frame)
-        local parent = frame.Health
+    function UnitFrames:CreateHealthPrediction(parent, width)
         local level = parent:GetFrameLevel()
-        local width = frame.__config.width or 200
         local texture = C.unitframes.texture
 
-        local myBar = CreateFrame("StatusBar", nil, parent)
-        myBar:SetPoint("TOP")
-        myBar:SetPoint("BOTTOM")
-        myBar:SetPoint("LEFT", parent:GetStatusBarTexture(), "RIGHT")
-        myBar:SetWidth(width)
-        myBar:SetStatusBarTexture(texture)
-        do
-            local color = C.unitframes.health.prediction.colors.self
-            myBar:SetStatusBarColor(color.r, color.g, color.b, color.a or 0.30)
-        end
+        local healingColor = C.unitframes.health.prediction.colors.healing
+        local absorbColor = C.unitframes.health.prediction.colors.absorb
 
-        local otherBar = CreateFrame("StatusBar", nil, parent)
-        otherBar:SetPoint("TOP")
-        otherBar:SetPoint("BOTTOM")
-        otherBar:SetPoint("LEFT", myBar:GetStatusBarTexture(), "RIGHT")
-        otherBar:SetWidth(width)
-        otherBar:SetStatusBarTexture(texture)
-        do
-            local color = C.unitframes.health.prediction.colors.other
-            otherBar:SetStatusBarColor(color.r, color.g, color.b, color.a or 0.30)
-        end
+        local HealingAll = CreateFrame("StatusBar", nil, parent)
+        HealingAll:SetPoint("TOP")
+        HealingAll:SetPoint("BOTTOM")
+        HealingAll:SetPoint("LEFT", parent:GetStatusBarTexture(), "RIGHT")
+        -- HealingAll:SetWidth(width)
+        HealingAll:SetStatusBarTexture(texture)
+        HealingAll:SetStatusBarColor(healingColor:GetRGBA())
+        parent.HealingAll = HealingAll
+        
+        local HealingPlayer = CreateFrame("StatusBar", nil, parent)
+        HealingPlayer:SetPoint("TOP")
+        HealingPlayer:SetPoint("BOTTOM")
+        HealingPlayer:SetPoint("LEFT", parent:GetStatusBarTexture(), "RIGHT")
+        HealingPlayer:SetWidth(width)
+        HealingPlayer:SetStatusBarTexture(texture)
+        HealingPlayer:SetStatusBarColor(healingColor:GetRGBA())
+        parent.HealingPlayer = HealingPlayer
+        
+        local HealingOther = CreateFrame("StatusBar", nil, parent)
+        HealingOther:SetPoint("TOP")
+        HealingOther:SetPoint("BOTTOM")
+        HealingOther:SetPoint("LEFT", parent:GetStatusBarTexture(), "RIGHT")
+        HealingOther:SetWidth(width)
+        HealingOther:SetStatusBarTexture(texture)
+        HealingOther:SetStatusBarColor(healingColor:GetRGBA())
+        parent.HealingOther = HealingOther
+        
+        local OverHealIndicator = CreateFrame("StatusBar", nil, parent)
+        OverHealIndicator:SetPoint("TOP")
+        OverHealIndicator:SetPoint("BOTTOM")
+        OverHealIndicator:SetPoint("LEFT", parent:GetStatusBarTexture(), "RIGHT")
+        OverHealIndicator:SetWidth(width)
+        OverHealIndicator:SetStatusBarTexture(texture)
+        OverHealIndicator:SetStatusBarColor(healingColor:GetRGBA())
+        parent.OverHealIndicator = OverHealIndicator
+        
+        local DamageAbsorb = CreateFrame("StatusBar", nil, parent)
+        DamageAbsorb:SetPoint("TOP")
+        DamageAbsorb:SetPoint("BOTTOM")
+        DamageAbsorb:SetPoint("LEFT", parent:GetStatusBarTexture(), "RIGHT")
+        DamageAbsorb:SetWidth(width)
+        DamageAbsorb:SetStatusBarTexture(texture)
+        DamageAbsorb:SetStatusBarColor(absorbColor:GetRGBA())
+        parent.DamageAbsorb = DamageAbsorb
+        
+        local OverDamageAbsorbIndicator = CreateFrame("StatusBar", nil, parent)
+        OverDamageAbsorbIndicator:SetPoint("TOP")
+        OverDamageAbsorbIndicator:SetPoint("BOTTOM")
+        OverDamageAbsorbIndicator:SetPoint("LEFT", parent:GetStatusBarTexture(), "RIGHT")
+        OverDamageAbsorbIndicator:SetWidth(5)
+        OverDamageAbsorbIndicator:SetStatusBarTexture(texture)
+        OverDamageAbsorbIndicator:SetStatusBarColor(absorbColor:GetRGBA())
+        parent.OverDamageAbsorbIndicator = OverDamageAbsorbIndicator
+        
+        local HealAbsorb = CreateFrame("StatusBar", nil, parent)
+        HealAbsorb:SetPoint("TOP")
+        HealAbsorb:SetPoint("BOTTOM")
+        HealAbsorb:SetPoint("LEFT", parent:GetStatusBarTexture())
+        HealAbsorb:SetWidth(width)
+        HealAbsorb:SetStatusBarTexture(texture)
+        HealAbsorb:SetStatusBarColor(absorbColor:GetRGBA())
+        parent.HealAbsorb = HealAbsorb
+        
+        local OverHealAbsorbIndicator = CreateFrame("StatusBar", nil, parent)
+        OverHealAbsorbIndicator:SetPoint("TOP")
+        OverHealAbsorbIndicator:SetPoint("BOTTOM")
+        OverHealAbsorbIndicator:SetPoint("RIGHT", parent:GetStatusBarTexture(), "LEFT")
+        OverHealAbsorbIndicator:SetWidth(5)
+        OverHealAbsorbIndicator:SetStatusBarTexture(texture)
+        OverHealAbsorbIndicator:SetStatusBarColor(absorbColor:GetRGBA())
+        parent.OverHealAbsorbIndicator = OverHealAbsorbIndicator
 
-        local absorbBar = CreateFrame("StatusBar", nil, parent)
-        absorbBar:SetPoint("TOP")
-        absorbBar:SetPoint("BOTTOM")
-        absorbBar:SetPoint("LEFT", otherBar:GetStatusBarTexture(), "RIGHT")
-        absorbBar:SetWidth(width)
-        absorbBar:SetStatusBarTexture(texture)
-        do
-            local color = C.unitframes.health.prediction.colors.absorb
-            absorbBar:SetStatusBarColor(color.r, color.g, color.b, color.a or 0.30)
-        end
-
-        local healAbsorbBar = CreateFrame("StatusBar", nil, parent)
-        healAbsorbBar:SetPoint("TOP")
-        healAbsorbBar:SetPoint("BOTTOM")
-        healAbsorbBar:SetPoint("RIGHT", parent:GetStatusBarTexture())
-        healAbsorbBar:SetWidth(width)
-        healAbsorbBar:SetReverseFill(true)
-        healAbsorbBar:SetStatusBarTexture(texture)
-        do
-            local color = C.unitframes.health.prediction.colors.healAbsorb
-            healAbsorbBar:SetStatusBarColor(color.r, color.g, color.b, color.a or 0.30)
-        end
-
-        -- local overAbsorb = self.Health:CreateTexture(nil, "OVERLAY")
-        -- overAbsorb:SetPoint("TOP")
-        -- overAbsorb:SetPoint("BOTTOM")
-        -- overAbsorb:SetPoint("LEFT", self.Health, "RIGHT")
-        -- overAbsorb:SetWidth(10)
-
-        -- local overHealAbsorb = self.Health:CreateTexture(nil, "OVERLAY")
-        -- overHealAbsorb:SetPoint("TOP")
-        -- overHealAbsorb:SetPoint("BOTTOM")
-        -- overHealAbsorb:SetPoint("RIGHT", self.Health, "LEFT")
-        -- overHealAbsorb:SetWidth(10)
-
-        return Mixin({
-            myBar = myBar,
-            otherBar = otherBar,
-            absorbBar = absorbBar,
-            healAbsorbBar = healAbsorbBar,
-            overAbsorb = nil,
-            overHealAbsorb = nil
-        }, element_proto)
+        parent.HealingAll = HealingAll               
+        parent.HealingPlayer = HealingPlayer            
+        parent.HealingOther = HealingOther             
+        parent.OverHealIndicator = OverHealIndicator        
+        parent.DamageAbsorb = DamageAbsorb             
+        parent.OverDamageAbsorbIndicator = OverDamageAbsorbIndicator
+        parent.HealAbsorb = HealAbsorb               
+        parent.OverHealAbsorbIndicator = OverHealAbsorbIndicator
     end
 end

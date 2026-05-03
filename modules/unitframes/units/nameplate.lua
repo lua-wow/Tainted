@@ -15,6 +15,9 @@ local UnitPlayerControlled = _G.UnitPlayerControlled
 local UnitIsTapDenied = _G.UnitIsTapDenied
 local UnitIsPlayer = _G.UnitIsPlayer
 
+local UnitNameplateShowsWidgetsOnly = _G.UnitNameplateShowsWidgetsOnly
+local UnitWidgetSet = _G.UnitWidgetSet
+
 -- Mine
 local selectionTypes = {
 	[0] = 0,
@@ -38,10 +41,12 @@ local selectionTypes = {
 --------------------------------------------------
 local config = C.unitframes.nameplate
 
+local nameplates_proto = {}
+
 -- reference: https://warcraft.wiki.gg/wiki/Console_variables
-UnitFrames.NameplateCVars = {
+nameplates_proto.cvars = {
     nameplateMaxAlpha = 1.0,                                -- the max alpha of nameplates. default: 1.0
-    nameplateMaxAlphaDistance = 40,                         -- the distance from the camera that nameplates will reach their maximum alpha. default: 40
+    nameplateMaxAlphaDistance = 40.0,                       -- the distance from the camera that nameplates will reach their maximum alpha. default: 40
     nameplateMaxScale = 1.0,                                -- the max scale of nameplates. default: 1.0
     nameplateMaxDistance = E.isRetail and 61 or 41,         -- the max distance to show nameplates. default: 40
     nameplateMinAlpha = config.minAlpha or 0.6,             -- the minimum alpha of nameplates. default: 0.6
@@ -52,17 +57,63 @@ UnitFrames.NameplateCVars = {
     -- nameplateMotionSpeed = 0.025,                           -- controls the rate at which nameplate animates into their target locations [0.0-1.0] detault: 0.025
     nameplateSelectedAlpha = config.selectedAlpha or 1.0,   -- the alpha of the selected nameplate. detault: 1.0
     nameplateSelectedScale = config.selectedScale or 1.2,   -- the scale of the selected nameplate. detault: 1.2
-    nameplateNotSelectedAlpha = (not E.isRetail) and config.notSelectedAlpha,
+    -- nameplateNotSelectedAlpha = (not E.isRetail) and config.notSelectedAlpha,
     nameplateOccludedAlphaMult = 0.4,                       -- alpha multiplier of nameplates for occluded targets. default: 0.4
     nameplateShowAll = 1,
     nameplateShowSelf = 0,
 
-    nameplateMotion = 1,                                    -- defines the movement/collision model for nameplates. detault: 2 (0 = overlapping, 1 = stacking, 2 = spreading)
-    nameplateMotionSpeed = 0.015,                           -- controls the rate at which nameplate animates into their target locations [0.0-1.0] detault: 0.025
-    nameplateLargeBottomInset = 0.35,   -- the inset from the bottom (in screen percent) that large nameplates are clamped to. (default: 0.15)
-    nameplateLargeTopInset = 0.20,      -- the inset from the top (in screen percent) that large nameplates are clamped to. (default: 0.10)
+    -- nameplateMotion = 1,                                    -- defines the movement/collision model for nameplates. detault: 2 (0 = overlapping, 1 = stacking, 2 = spreading)
+    -- nameplateMotionSpeed = 0.015,                           -- controls the rate at which nameplate animates into their target locations [0.0-1.0] detault: 0.025
+    -- nameplateLargeBottomInset = 0.35,   -- the inset from the bottom (in screen percent) that large nameplates are clamped to. (default: 0.15)
+    -- nameplateLargeTopInset = 0.20,      -- the inset from the top (in screen percent) that large nameplates are clamped to. (default: 0.10)
     nameplateOverlapH = 0.50,   -- percentage amount for horizontal overlap of nameplates (default: 0.80)
     nameplateOverlapV = 0.70,   -- percentage amount for vertical overlap of nameplates. (default: 0.10)
+
+    -- nameplateAuraScale = 1.000000 -- Account	Controls the size multiplier for buffs and debuffs on nameplates. (12.0.0)
+    -- nameplateDebuffPadding = 0 -- Account	The padding between the debuff list and the health bar on nameplates. (12.0.0)
+    -- nameplateGameObjectMaxDistance = 30.000000 -- Character	The max distance to show player nameplates for game objects (10.1.0)
+    -- nameplateMaxAlpha = 1.000000 -- Character	The max alpha of nameplates. (7.0.3)
+    -- nameplateMaxAlphaDistance = 40.000000 -- Character	The distance from the camera that nameplates will reach their maximum alpha. (7.0.3)
+    -- nameplateMaxDistance = 60.000000 -- Character	The max distance to show nameplates. (7.0.3)
+    -- nameplateMaxScale = 1.000000 -- Character	The max scale of nameplates. (7.0.3)
+    -- nameplateMaxScaleDistance = 10.000000 -- Character	The distance from the camera that nameplates will reach their maximum scale. (7.0.3)
+    -- nameplateMinAlpha = 0.600000 -- Character	The minimum alpha of nameplates. (7.0.3)
+    -- nameplateMinAlphaDistance = 10.000000 -- Character	The distance from the max distance that nameplates will reach their minimum alpha. (7.0.3)
+    -- nameplateMinScale = 0.800000 -- Character	The minimum scale of nameplates. (7.0.3)
+    -- nameplateMinScaleDistance = 10.000000 -- Character	The distance from the max distance that nameplates will reach their minimum scale. (7.0.3)
+    -- nameplateOccludedAlphaMult = 0.400000 -- Character	Alpha multiplier of nameplates for occluded targets. (7.2.0)
+    -- nameplateOtherAtBase = 0 -- Account	Position other nameplates at the base, rather than overhead (7.0.3)
+    -- nameplateOverlapH = 0.800000 -- 	Percentage amount for horizontal overlap of nameplates (4.x)
+    -- nameplateOverlapV = 1.100000 -- 	Percentage amount for vertical overlap of nameplates (4.x)
+    -- nameplatePlayerMaxDistance = 60.000000 -- Character	The max distance to show player nameplates. (10.0.0)
+    -- nameplateSelectedAlpha = 1.000000 -- Character	The alpha of the selected nameplate. (7.0.3)
+    -- nameplateSelectedScale = 1.200000 -- Character	The scale of the selected nameplate. (7.0.3)
+    -- nameplateShowAll = 0 -- Account	Whether all nameplates are shown, including enemies, friendly NPCs, pets, guardians, and totems. (7.0.3)
+    -- nameplateShowCastBars = 1 -- Character	Show cast bars for unit nameplates. (12.0.0)
+    -- nameplateShowClassColor = 1 -- 	Used to display the class color in enemy nameplate health bars (12.0.0)
+    -- nameplateShowDebuffsOnFriendly = 1 -- Character	Whether debuffs are shown on friendly nameplates. (7.3.0)
+    -- nameplateShowEnemies = 1 -- Account	Whether enemy nameplates are shown. (3.x)
+    -- nameplateShowEnemyGuardians = 0 -- Account	Whether enemy guardian nameplates are shown. (3.x)
+    -- nameplateShowEnemyMinions = 0 -- Account	Whether enemy minion nameplates are shown. (7.0.3)
+    -- nameplateShowEnemyMinus = 1 -- Account	Whether enemy nameplates for entities with a minus sign (indicating they are weaker than the player) are shown. (6.0.2)
+    -- nameplateShowEnemyPets = 0 -- Account	Whether enemy pet nameplates are shown. (3.x)
+    -- nameplateShowEnemyTotems = 0 -- Account	Whether enemy totem nameplates are shown. (3.x)
+    -- nameplateShowFriendlyClassColor = 1 -- 	Used to display the class color in friendly nameplate health bars (12.0.0)
+    nameplateShowFriendlyNpcs = 0, -- Account	Whether nameplates are shown for friendly npcs. (7.1.0)
+    -- nameplateShowFriendlyPlayerGuardians = 0 -- Account	Whether friendly player guardian nameplates are shown. (12.0.0)
+    -- nameplateShowFriendlyPlayerMinions = 0 -- Account	Whether friendly player minion nameplates are shown. (12.0.0)
+    -- nameplateShowFriendlyPlayerPets = 0 -- Account	Whether friendly player pet nameplates are shown. (12.0.0)
+    -- nameplateShowFriendlyPlayers = 0 -- Account	Whether nameplates are shown for friendly players. (12.0.0)
+    -- nameplateShowFriendlyPlayerTotems = 0 -- Account	Whether friendly player totem nameplates are shown. (12.0.0)
+    -- nameplateShowOffscreen = 0 -- Account	When enabled, the nameplate is always shown if owner is in combat with player or player's group member. (12.0.0)
+    -- nameplateShowOnlyNameForFriendlyPlayerUnits = 0 -- 	Used to hide every part of the nameplate but the name for friendly player units. (12.0.0)
+    -- nameplateShowSelf = 0 -- Character	Whether the personal resource display is shown. (7.0.3)
+    -- nameplateSimplifiedScale = 0.300000 -- 	Scale used for simplified nameplates. (12.0.1)
+    -- nameplateSize = 1 -- Account	Provides discrete values that are translated into specific horizontal and vertical scales defined in lua for displaying nameplates. (12.0.0)
+    -- nameplateStyle = 0 -- Account	Determines how nameplate contents are displayed. (12.0.0)
+    -- nameplateTargetBehindMaxDistance = 0.100000 -- Character	The max distance to show the target nameplate when the target is behind the camera. (7.0.3)
+    -- nameplateTargetRadialPosition = 0 -- Account	When target is off screen, position its nameplate radially around sides and bottom. 1: Target Only. 2: All In Combat (7.2.0)
+    -- nameplateUseClassColorForFriendlyPlayerUnitNames = 0 -- 	Used to display the class color in friendly player unit nameplate names. (12.0.1)
 }
 
 local function UpdateAlpha(self, alpha)
@@ -75,42 +126,54 @@ local function UpdateAlpha(self, alpha)
     if self.Backdrop and self.Backdrop.BottomEdge then self.Backdrop.BottomEdge:SetAlpha(alpha) end
 end
 
--- reference: https://github.com/trincasidra/TrincaUI/blob/main/unitframes/nameplate.lua
-UnitFrames.NameplateCallback = function(self, event, unit)
-    if (event == "NAME_PLATE_UNIT_ADDED") then
-        if unit then
-            self.widgetsOnly = UnitNameplateShowsWidgetsOnly(unit)
-            self.widgetSet = UnitWidgetSet(unit)
-        end
+nameplates_proto.SetAddedCallback = function(self, event, unit)
+    print("Nameplate Added Callback", event, unit)
 
-        local blizzPlate = self:GetParent().UnitFrame
-        if blizzPlate then
-            self.blizzPlate = blizzPlate
-            self.widgetContainer = self.blizzPlate.WidgetContainer
-        end
-        
-        if self.widgetsOnly then
-            UpdateAlpha(self, 0)
-            if self.widgetContainer then
-                self.widgetContainer:SetScale(2.0)
-                self.widgetContainer:SetParent(self)
-                self.widgetContainer:ClearAllPoints()
-                self.widgetContainer:SetPoint("BOTTOM", self, "BOTTOM")
-            end
-        end
-    elseif (event == "NAME_PLATE_UNIT_REMOVED") then
-        if self.widgetContainer and self.widgetsOnly then
-            UpdateAlpha(self, 1)
-            self.widgetContainer:SetParent(self.blizzPlate)
-            self.widgetContainer:ClearAllPoints()
-            self.widgetContainer:SetPoint("TOP", self.blizzPlate.castBar, "BOTTOM")
-        end
+    if unit then
+        self.showWidgetsOnly = UnitNameplateShowsWidgetsOnly(unit)
+        self.widgetSet = UnitWidgetSet(unit)
+    end
+
+    local parent = self:GetParent()
+    local blizzPlate = parent.UnitFrame
+    self.blizzPlate = blizzPlate
+    self.widgetContainer = blizzPlate and blizzPlate.WidgetContainer or nil
+
+    if self.widgetContainer then
+        self.widgetContainer:SetScale(2.0)
+        self.widgetContainer:SetParent(self)
+        self.widgetContainer:SetIgnoreParentAlpha(true)
+        self.widgetContainer:ClearAllPoints()
+        self.widgetContainer:SetPoint("BOTTOM", self, "BOTTOM")
+    end
+
+    if self.showWidgetsOnly then
+        UpdateAlpha(self, 0)
+    else
+        UpdateAlpha(self, 1)
     end
 end
 
-if not E.isRetail then
-    UnitFrames.NameplateCallback = function(self, event, unit) end
+nameplates_proto.SetRemovedCallback = function(self, event, unit)
+    print("Nameplate Removed Callback", event, unit)
 end
+
+nameplates_proto.SetTargetCallback = function(self, event, unit)
+    print("Nameplate Target Callback", event, unit)
+
+    -- if self.showWidgetsOnly then
+    --     UpdateAlpha(self, 1)
+    -- end
+
+    if self.widgetContainer then
+        self.widgetContainer:SetParent(self.blizzPlate)
+        self.widgetContainer:SetIgnoreParentAlpha(false)
+        self.widgetContainer:ClearAllPoints()
+        self.widgetContainer:SetPoint("TOP", self.blizzPlate.castBar, "BOTTOM")
+    end
+end
+
+UnitFrames.Nameplates = nameplates_proto
 
 local health_proto = {
     colorDisconnected = true,
@@ -141,7 +204,8 @@ if E.isRetail then
         
         local element = self.Health
 
-        local isTank = Talents:IsTank()
+        -- local isTank = Talents:IsTank()
+        local isTank = false
 
         local threat = UnitThreatSituation("player", unit)
         local selection = element:UnitSelectionType(unit, element.considerSelectionInCombatHostile)
@@ -273,8 +337,6 @@ function UnitFrames:CreateNameplateFrame(frame)
     frame.Health.TempLoss:SetPoint("RIGHT", frame, "RIGHT", 0, 0)
     frame.Health.TempLoss:SetPoint("BOTTOM", frame, "BOTTOM", 0, 0)
 
-    frame.HealthPrediction = self:CreateHealthPrediction(frame)
-    -- frame.Power = Mixin(self:CreatePower(frame, frame), power_proto)
     frame.Name = self:CreateName(frame, textParent)
     frame.Castbar = self:CreateCastbar(frame, frame)
     frame.Debuffs = self:CreateDebuffs(frame)

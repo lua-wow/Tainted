@@ -37,11 +37,11 @@ local GHOST = L.GHOST or "Ghost"
 --------------------------------------------------
 local events = {
     -- health
-    ["curhp"]           = "UNIT_HEALTH UNIT_MAXHEALTH",
-    ["maxhp"]           = "UNIT_MAXHEALTH",
+    -- ["curhp"]           = "UNIT_HEALTH UNIT_MAXHEALTH",
+    -- ["maxhp"]           = "UNIT_MAXHEALTH",
     -- power
-    ["curpp"]           = "UNIT_POWER_UPDATE UNIT_POWER_FREQUENT UNIT_MAXPOWER",
-    ["maxpp"]           = "UNIT_MAXPOWER",
+    -- ["curpp"]           = "UNIT_POWER_UPDATE UNIT_POWER_FREQUENT UNIT_MAXPOWER",
+    -- ["maxpp"]           = "UNIT_MAXPOWER",
     -- names
     ["name"]            = "UNIT_NAME_UPDATE",
     ["nameshort"]       = "UNIT_NAME_UPDATE PARTY_LEADER_CHANGED GROUP_ROSTER_UPDATE",
@@ -62,28 +62,28 @@ local events = {
 
 local tags = {
     -- health
-    ["curhp"] = function(unit)
-        local value = UnitHealth(unit)
-        return E.ShortValue(value)
-    end,
-    ["maxhp"] = function(unit)
-        local value = UnitHealthMax(unit)
-        return E.ShortValue(value)
-    end,
+    -- ["curhp"] = function(unit)
+    --     local value = UnitHealth(unit)
+    --     return E.ShortValue(value)
+    -- end,
+    -- ["maxhp"] = function(unit)
+    --     local value = UnitHealthMax(unit)
+    --     return E.ShortValue(value)
+    -- end,
     -- power
-    ["curpp"] = function(unit)
-        local powerType, powerToken = UnitPowerType(unit)
-        local color = oUF.colors.power[powerToken or "MANA"]
-        if UnitIsDeadOrGhost(unit) then
-            return ""
-        end
-        local value = UnitPower(unit, powerType)
-        return E.ShortValue(value)
-    end,
-    ["maxpp"] = function(unit)
-        local value = UnitPowerMax(unit)
-        return E.ShortValue(value)
-    end,
+    -- ["curpp"] = function(unit)
+    --     local powerType, powerToken = UnitPowerType(unit)
+    --     local color = oUF.colors.power[powerToken or "MANA"]
+    --     if UnitIsDeadOrGhost(unit) then
+    --         return ""
+    --     end
+    --     local value = UnitPower(unit, powerType)
+    --     return E.ShortValue(value)
+    -- end,
+    -- ["maxpp"] = function(unit)
+    --     local value = UnitPowerMax(unit)
+    --     return E.ShortValue(value)
+    -- end,
     -- names
     ["name"] = function(unit, r)
         local name = UnitName(unit or r) or "???"

@@ -11,26 +11,25 @@ local STAGGER_GREEN_INDEX = _G.STAGGER_GREEN_INDEX or 1
 local STAGGER_YELLOW_INDEX = _G.STAGGER_YELLOW_INDEX or 2
 local STAGGER_RED_INDEX = _G.STAGGER_RED_INDEX or 3
 
+local issecretvalue = _G.issecretvalue
+
 --------------------------------------------------
 -- Stagger
 --------------------------------------------------
 local element_proto = {}
 
-function element_proto:GetColor(cur, max)
-    local perc = cur / max
-	if (perc >= STAGGER_RED_TRANSITION) then
-		return E.colors.power[STAGGER_RED_INDEX]
-    elseif (perc > STAGGER_YELLOW_TRANSITION) then
-        return E.colors.power[STAGGER_YELLOW_INDEX]
+function element_proto:PostUpdateColor(color)
+    local element = self
+    if (color or not issecretvalue(color)) then
+        local bg = element.bg
+        if (bg) then
+            local mu = bg.multiplier or 1
+            bg:SetVertexColor(color.r * mu, color.g * mu, color.b * mu)
+        end
     end
-    return E.colors.power[STAGGER_GREEN_INDEX]
 end
 
 function element_proto:PostUpdate(cur, max)
-	local color = self:GetColor(cur, max)
-
-	self:SetStatusBarColor(color.r, color.g, color.b, color.a or 1)
-
     if (self.Value) then
 	    self.Value:SetFormattedText("%s / %s - %d%%", E.ShortValue(cur), E.ShortValue(max), 100 * (cur / max))
     end
@@ -44,7 +43,7 @@ end
 
 function UnitFrames:CreateStagger(frame)
     local texture = C.unitframes.texture
-    local fontObject = E.GetFont(C.unitframes.font)
+    local fontObject = E.GetFont(C.unitframes.font) 
 
     local width = C.unitframes.classpower.width or 200
     local height = C.unitframes.classpower.height or 18

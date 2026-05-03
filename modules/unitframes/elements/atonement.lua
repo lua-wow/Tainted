@@ -23,7 +23,7 @@ function UnitFrames:CreateAtonement(frame)
     element:SetHeight((C.unitframes.power.height or 4) - 1)
     element:SetStatusBarTexture(texture)
 
-    local bg = element:CreateTexture(nil, "BORDER")
+    local bg = element:CreateTexture(nil, "BACKGROUND")
     bg:SetAllPoints()
     bg:SetTexture(texture)
     bg.multiplier = C.general.background.multiplier or 0.15

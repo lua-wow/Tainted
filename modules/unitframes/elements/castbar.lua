@@ -2,16 +2,22 @@ local _, ns = ...
 local E, C, A = ns.E, ns.C, ns.A
 local UnitFrames = E:GetModule("UnitFrames")
 
+local issecretvalue = _G.issecretvalue
+
 local element_proto = {
-    timeToHold = 0.4
+    timeToHold = 0.4,
+    smoothing = Enum.StatusBarInterpolation.ExponentialEaseOut,
 }
 
 function element_proto:CustomDelayText(duration)
-    self.Time:SetFormattedText("%.1f |cffaf5050%s %.1f|r", self.channeling and duration or (self.max - duration), self.channeling and "- " or "+", self.delay)
+    local value = duration:GetRemainingDuration()
+    self.Time:SetFormattedText("%.1f |cffaf5050%s %.1f|r", value, self.channeling and "- " or "+", self.delay)
 end
 
 function element_proto:CustomTimeText(duration)
-    self.Time:SetFormattedText("%.1f / %.1f", self.channeling and duration or (self.max - duration), self.max)
+    local value = duration:GetRemainingDuration()
+    local max = duration:GetTotalDuration()
+    self.Time:SetFormattedText("%.1f / %.1f", value, max)
 end
 
 function element_proto:UpdateStatusBarColor(color)
@@ -40,7 +46,7 @@ function element_proto:UpdateColor(unit)
         element:UpdateStatusBarColor(C.unitframes.castbar.colors.empowering)
     end
     
-    if (element.notInterruptible) then
+    if (not issecretvalue(element.notInterruptible) and element.notInterruptible) then
         element:UpdateStatusBarColor(C.unitframes.castbar.colors.notInterruptible)
     end
 end

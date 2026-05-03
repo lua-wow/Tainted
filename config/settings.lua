@@ -180,10 +180,9 @@ C["unitframes"] = {
         },
         ["prediction"] = {
             ["colors"] = {
-                ["self"] = E:CreateColor(0.31, 0.45, 0.63, 0.40),
-                ["other"] = E:CreateColor(0.31, 0.45, 0.63, 0.40),
+                ["healing"] = E:CreateColor(0.31, 0.45, 0.63, 0.40),
                 ["absorb"] = E:CreateColor(0.82, 0.71, 0.23, 0.35),
-                ["healAbsorb"] = E:CreateColor(0.82, 0.71, 0.23, 0.35)
+                -- ["healAbsorb"] = E:CreateColor(0.82, 0.71, 0.23, 0.35)
             }
         }
     },

@@ -8,10 +8,13 @@ local UnitFrames = E:GetModule("UnitFrames")
 local tempest_proto = {}
 
 function tempest_proto:OnUpdate(elapsed)
+    local duration = self.duration
+    if (not duration) then return end
+
     self.elapsed = (self.elapsed or 0) + elapsed
 	if (self.elapsed >= 0.1) then
-		local remaining = (self.tempestExpirationTime or 0) - GetTime()
-		if (remaining > 0) then
+		local remaining = duration:GetRemainingDuration(0)
+		if (remaining) then
             if self.TimerBar then
 			    self.TimerBar:SetValue(remaining)
             end
@@ -32,20 +35,17 @@ function tempest_proto:OnUpdate(elapsed)
 	end
 end
 
-function tempest_proto:PostUpdate()
+function tempest_proto:PostUpdate(cur, max, total, ready)
     local element = self
 
-    if element.Value then
-        if element.tempestReady then
-            element.Value:SetText("Tempest Ready!")
-        else
-            element.Value:SetFormattedText("%d / %d (%d / %d)", element.maelstromStacks, element.maelstromSpentTotal, element.tempestStacks, element.awakeningStacks)
-        end
-    end
+    local duration = element.tempest and element.tempest.duration
+    element.duration = duration
+
+    print("PostUpdate", cur, max, total, ready, duration)
 
     if element.TimerBar then
-        if element.tempestReady and element.tempestDuration and element.tempestExpirationTime then
-            element.TimerBar:SetMinMaxValues(0, element.tempestDuration)
+        if ready and duration then
+            element.TimerBar:SetTimerDuration(duration, Enum.StatusBarInterpolation.Immediate, Enum.StatusBarTimerDirection.RemainingTime)
             element.TimerBar:Show()
             element:SetScript("OnUpdate", element.OnUpdate)
         else
@@ -55,13 +55,13 @@ function tempest_proto:PostUpdate()
     end
 
     if element.Timer then
-        if element.tempestReady and element.tempestDuration and element.tempestExpirationTime then
-            -- element.TimerBar:SetMinMaxValues(0, element.tempestDuration)
+        if ready and duration then
+            -- element.Timer:SetTimerDuration(duration, Enum.StatusBarInterpolation.Immediate, Enum.StatusBarTimerDirection.RemainingTime)
             element.Timer:Show()
-            element:SetScript("OnUpdate", element.OnUpdate)
+            -- element:SetScript("OnUpdate", element.OnUpdate)
         else
             element.Timer:Hide()
-            element:SetScript("OnUpdate", nil)
+            -- element:SetScript("OnUpdate", nil)
         end
     end
 end
@@ -124,6 +124,6 @@ end
 
 function UnitFrames:SHAMAN(frame)
     if E.isRetail then
-        frame.Tempest = self:CreateTempest(frame)
+        -- frame.Tempest = self:CreateTempest(frame)
     end
 end

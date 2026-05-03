@@ -26,11 +26,12 @@ do
         element:SetPoint("BOTTOM", frame, "BOTTOM", 0, 0)
         element:SetClipsChildren(false)
         
-        local bg = element:CreateTexture(nil, "BACKGROUND")
-        bg:SetAllPoints(element)
-        bg:SetTexture(texture)
-        bg.multiplier = C.general.background.multiplier or 0.15
-        element.bg = bg
+        local prediction = CreateFrame("StatusBar", nil, element)
+        prediction:SetReverseFill(true)
+        prediction:SetPoint("TOP")
+        prediction:SetPoint("BOTTOM")
+        prediction:SetPoint("RIGHT", element:GetStatusBarTexture())
+        element.CostPrediction = prediction
 
         local tag = frame.__config.tags.power
         if (tag) then
@@ -60,10 +61,10 @@ end
 --------------------------------------------------
 do
     local element_proto = {
+        -- smoothing = Enum.StatusBarInterpolation.ExponentialEaseOut,
         frequentUpdates = true,
         colorPower = true,
-        colorClass = false,
-        colorSmooth = false
+        colorPowerSmooth = false
     }
         
     function UnitFrames:CreateAdditionalPower(frame)
@@ -81,11 +82,12 @@ do
         element:SetStatusBarTexture(texture)
         element:CreateBackdrop()
 
-        local bg = element:CreateTexture(nil, "BACKGROUND")
-        bg:SetAllPoints(element)
-        bg:SetTexture(texture)
-        bg.multiplier = C.general.background.multiplier or 0.15
-        element.bg = bg
+        local prediction = CreateFrame("StatusBar", nil, element)
+        prediction:SetReverseFill(true)
+        prediction:SetPoint("TOP")
+        prediction:SetPoint("BOTTOM")
+        prediction:SetPoint("RIGHT", element:GetStatusBarTexture())
+        element.CostPrediction = prediction
 
         return element
     end
@@ -100,7 +102,9 @@ do
     local GetUnitPowerBarStringsByID = _G.GetUnitPowerBarStringsByID
     
     local element_proto = {
-        colorPower = true
+        -- smoothing = Enum.StatusBarInterpolation.ExponentialEaseOut,
+        colorPower = true,
+        colorPowerSmooth = false
     }
 
     function element_proto:PostUpdate(unit, cur, min, max)
@@ -135,12 +139,6 @@ do
         element:SetStatusBarTexture(texture)
         element:CreateBackdrop()
         element:EnableMouse(true)
-        
-        local bg = element:CreateTexture(nil, "BACKGROUND")
-        bg:SetAllPoints(element)
-        bg:SetTexture(texture)
-        bg.multiplier = C.general.background.multiplier or 0.15
-        element.bg = bg
         
         if (frame.unit == "player") then
             local font = A.fonts.normal

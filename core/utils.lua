@@ -122,6 +122,14 @@ E.CalcSegmentsNumber = function(width, size, spacing)
 	return floor((width + spacing) / (size + spacing))
 end
 
+local CLASSIFICATION_SYMBOLS = {
+	worldboss = "B",
+	rareelite = "R+",
+	elite = "+",
+	rare = "R",
+	minus = "-",
+}
+
 --[[ Function: E.GetClassification(value)
     Returns a classification symbol based on unit classification.
 
@@ -131,18 +139,11 @@ end
 --]]
 E.GetClassification = function(value)
 	local color = E.colors.classification[value]
-	if (value == "worldboss") then
-		return CLASSIFICATION:format(color.hex, "B") -- "|cffff0000B |r"
-	elseif (value == "rareelite") then
-		return CLASSIFICATION:format(color.hex, "R+") -- "|cffff4500R+ |r"
-	elseif (value == "elite") then
-		return CLASSIFICATION:format(color.hex, "+") -- "|cffffa500+ |r"
-	elseif (value == "rare") then
-		return CLASSIFICATION:format(color.hex, "R") -- "|cffffff00R |r"
-	elseif (value == "minus") then
-		return CLASSIFICATION:format(color.hex, "-") -- "|cff888888- |r"
+	local symbol = CLASSIFICATION_SYMBOLS[value] or ""
+	if (color) then
+		return color:WrapTextInColorCode(symbol) .. " "
 	end
-	return ""
+	return symbol and symbol .. " " or ""
 end
 
 E.Round = round
