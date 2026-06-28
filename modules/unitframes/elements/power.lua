@@ -16,6 +16,7 @@ do
         local ref = textParent or frame.Health
         local texture = C.unitframes.texture
         local font = E.GetFont(C.unitframes.font)
+        local color = C.unitframes.power.prediction.color
 
         local element = Mixin(CreateFrame("StatusBar", frame:GetName() .. "Power", frame), element_proto)
         element:SetStatusBarTexture(texture)
@@ -30,7 +31,9 @@ do
         prediction:SetReverseFill(true)
         prediction:SetPoint("TOP")
         prediction:SetPoint("BOTTOM")
-        prediction:SetPoint("RIGHT", element:GetStatusBarTexture())
+        prediction:SetPoint("RIGHT", element:GetStatusBarTexture(), "RIGHT")
+        prediction:SetStatusBarTexture(texture)
+        prediction:SetStatusBarColor(color:GetRGBA())
         element.CostPrediction = prediction
 
         local tag = frame.__config.tags.power
@@ -74,6 +77,7 @@ do
         
         local height = (C.unitframes.power.height or 5) - 1
         local texture = C.unitframes.texture
+        local color = C.unitframes.power.prediction.color
 
         local element = Mixin(CreateFrame("StatusBar", frame:GetName() .. "AdditionalPower", frame), element_proto)
         element:SetPoint("TOPLEFT", frame, "BOTTOMLEFT", 0, -3)
@@ -86,7 +90,9 @@ do
         prediction:SetReverseFill(true)
         prediction:SetPoint("TOP")
         prediction:SetPoint("BOTTOM")
-        prediction:SetPoint("RIGHT", element:GetStatusBarTexture())
+        prediction:SetPoint("RIGHT", element:GetStatusBarTexture(), "RIGHT")
+        prediction:SetStatusBarTexture(texture)
+        prediction:SetStatusBarColor(color:GetRGBA())
         element.CostPrediction = prediction
 
         return element
