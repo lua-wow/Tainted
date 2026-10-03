@@ -46,7 +46,7 @@ local events = {
     ["name"]            = "UNIT_NAME_UPDATE",
     ["nameshort"]       = "UNIT_NAME_UPDATE PARTY_LEADER_CHANGED GROUP_ROSTER_UPDATE",
     ["namemedium"]      = "UNIT_NAME_UPDATE",
-    ["namelarge"]       = "UNIT_NAME_UPDATE",
+    ["namelong"]        = "UNIT_NAME_UPDATE",
     -- colors
     ["healthcolor"]     = "UNIT_HEALTH UNIT_MAXHEALTH",
     ["namecolor"]       = "UNIT_POWER_UPDATE",
@@ -56,7 +56,6 @@ local events = {
     -- others
     ["classification"]  = "UNIT_CLASSIFICATION_CHANGED",
     ["dead"]            = "UNIT_HEALTH",
-    ["offline"]         = "UNIT_HEALTH UNIT_CONNECTION",
     -- ["afk"]             = "PLAYER_FLAGS_CHANGED",
 }
 
@@ -147,7 +146,7 @@ local tags = {
     ["dead"] = function(unit)
         if UnitIsDead(unit) then
 			return DEAD
-		elseif UnitIsGhost(u) then
+		elseif UnitIsGhost(unit) then
 			return GHOST
 		end
     end,

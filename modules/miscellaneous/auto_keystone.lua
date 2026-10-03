@@ -8,7 +8,7 @@ local NUM_BAG_SLOTS = _G.NUM_BAG_SLOTS or 4
 --------------------------------------------------
 -- Auto Keystone
 --------------------------------------------------
-if not C.miscellaneous.mythic.portals then return end
+if not C.miscellaneous.mythic.autokeystone then return end
 
 local IsKeystone = function(itemID)
     local classID, subclassID = select(12, C_Item.GetItemInfo(itemID))

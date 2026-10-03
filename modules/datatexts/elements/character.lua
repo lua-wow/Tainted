@@ -157,7 +157,7 @@ function character_proto:UpdateKeyStones()
         for name, charData in next, realmData do
             local vault = charData.vault
 
-            if charData.keystone then
+            if KeyStone and charData.keystone then
                 local info = KeyStone:IsCurrenWeek(charData.keystone) and KeyStone:Parse(charData.keystone) or nil
                 if info then
                     local row = {

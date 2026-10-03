@@ -4,7 +4,7 @@ local E, C = ns.E, ns.C
 --------------------------------------------------
 -- Dungeon Portals
 --------------------------------------------------
-if not C.miscellaneous.mythic.autokeystone then return end
+if not C.miscellaneous.mythic.portals then return end
 
 local portals = {
     -- Cataclysm
