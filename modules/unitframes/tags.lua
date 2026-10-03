@@ -28,6 +28,12 @@ local UnitHealthMax = _G.UnitHealthMax
 local UnitIsAFK = _G.UnitIsAFK
 local UnitClassification = _G.UnitClassification
 local UnitPowerType = _G.UnitPowerType
+local issecretvalue = _G.issecretvalue
+
+-- secret booleans (Midnight) can't be tested; treat them as false
+local function IsTrue(value)
+    return not (issecretvalue and issecretvalue(value)) and value
+end
 
 -- Constants
 local GHOST = L.GHOST or "Ghost"
@@ -90,8 +96,8 @@ local tags = {
     end,
     ["nameshort"] = function(unit)
         local name = UnitName(unit) or "???"
-        local isLeader = UnitIsGroupLeader(unit)
-        local isAssistant = UnitIsGroupAssistant(unit) or UnitIsRaidOfficer(unit)
+        local isLeader = IsTrue(UnitIsGroupLeader(unit))
+        local isAssistant = IsTrue(UnitIsGroupAssistant(unit)) or IsTrue(UnitIsRaidOfficer(unit))
         local assist = isAssistant and "[A] " or ""
         local lead = isLeader and "[L] " or ""
         return E.UTF8Sub(lead .. assist .. name, 10, false)

@@ -52,6 +52,11 @@ end
 E.UTF8Sub = function(value, i, dots)
 	if not value then return end
 
+	-- secret strings (Midnight) can't be measured or sliced; return them untruncated
+	if (issecretvalue and issecretvalue(value)) then
+		return value
+	end
+
 	local bytes = value:len()
 	if (bytes <= i) then
 		return value
