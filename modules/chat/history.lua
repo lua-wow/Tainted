@@ -58,8 +58,8 @@ function frame_proto:Save(event, ...)
     table.insert(database, 1, tmp)
 
     -- remove old entries, keeping only a limited number of entries
-    for index = self.threshold, #database do
-        table.remove(database, self.threshold)
+    while #database > self.threshold do
+        table.remove(database)
     end
 end
 
@@ -89,6 +89,6 @@ function frame_proto:OnEvent(event, ...)
     end
 end
 
-local history = Mixin(CreateFrame("Frame", "TaintedChatHistory"), frame_proto)
+local history = Mixin(CreateFrame("Frame", "TaintedChatHistoryFrame"), frame_proto)
 history:RegisterEvent("PLAYER_LOGIN")
 history:SetScript("OnEvent", history.OnEvent)
