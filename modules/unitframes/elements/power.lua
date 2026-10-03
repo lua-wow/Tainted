@@ -184,6 +184,9 @@ do
     local element_proto = {}
 
     function UnitFrames:CreatePowerPrediction(frame)
+        -- retail oUF has no PowerPrediction element; it uses Power.CostPrediction instead
+        if (not E.isRetail) then return end
+
         local parent = frame.Power
         local width = frame.__config.width or 200
         local texture = C.unitframes.texture
@@ -198,8 +201,9 @@ do
         mainBar:SetStatusBarColor(color.r, color.g, color.b, color.a or 0.30)
         mainBar:SetReverseFill(true)
 
+        local altBar
         if frame.AdditionalPower then
-            local altBar = CreateFrame("StatusBar", nil, frame.AdditionalPower)
+            altBar = CreateFrame("StatusBar", nil, frame.AdditionalPower)
             altBar:SetPoint("TOP")
             altBar:SetPoint("BOTTOM")
             altBar:SetPoint("RIGHT", frame.AdditionalPower:GetStatusBarTexture(), "RIGHT")
