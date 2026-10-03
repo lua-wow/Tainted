@@ -123,8 +123,11 @@ function E:PLAYER_ENTERING_WORLD(isInitialLogin, isReloadingUi)
     self:SetupDefaultsCVars()
 
 	if not self.db.chat then
+		-- chat module is not loaded on every TOC
 		local Chat = self:GetModule("Chat")
-		Chat:Reset()
-		self.db.chat = true
+		if Chat then
+			Chat:Reset()
+			self.db.chat = true
+		end
 	end
 end
