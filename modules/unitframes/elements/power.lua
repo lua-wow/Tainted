@@ -185,7 +185,7 @@ do
 
     function UnitFrames:CreatePowerPrediction(frame)
         -- retail oUF has no PowerPrediction element; it uses Power.CostPrediction instead
-        if (not E.isRetail) then return end
+        if (E.isRetail) then return end
 
         local parent = frame.Power
         local width = frame.__config.width or 200
