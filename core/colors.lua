@@ -230,9 +230,14 @@ oUF.colors.pvp = {
 
 oUF.colors.quality = {}
 
+local GetItemQualityColor = C_Item and C_Item.GetItemQualityColor or _G.GetItemQualityColor
 for k, v in next, Enum.ItemQuality do
-	oUF.colors.quality[k] = color
-	oUF.colors.quality[v] = color
+	local r, g, b = GetItemQualityColor(v)
+	if r then
+		local color = oUF:CreateColor(r, g, b)
+		oUF.colors.quality[k] = color
+		oUF.colors.quality[v] = color
+	end
 end
 
 oUF.colors.stealable = oUF:CreateColor(0.93, 0.91, 0.55)
