@@ -1,5 +1,5 @@
 local _, ns = ...
-local E, C, L = ns.E, ns.c, ns.L
+local E, C, L = ns.E, ns.C, ns.L
 
 -- Blizzard
 local CanMerchantRepair = _G.CanMerchantRepair

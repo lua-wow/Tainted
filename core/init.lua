@@ -8,7 +8,7 @@ _G[addon] = frame
 -- Engine, Config, Assets, Locales, Private
 local E, C, A, L, P = frame, {}, {}, {}, {}
 ns.E, ns.C, ns.A, ns.L, ns.P = E, C, A, L, P
-ns[1], ns[2], ns[2], ns[3], ns[4] = E, C, A, L, P
+ns[1], ns[2], ns[3], ns[4], ns[5] = E, C, A, L, P
 
 local GetAddOnMetadata = C_AddOns and C_AddOns.GetAddOnMetadata or _G.GetAddOnMetadata
 local physicalScreenWidth, physicalScreenHeight = GetPhysicalScreenSize()
