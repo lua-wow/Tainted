@@ -3,13 +3,11 @@ local E, C, A = ns.E, ns.C, ns.A
 
 -- Lua
 local floor = math.floor
-local modf = math.modf
 local infinity = math.huge
 
--- constants
-local CLASSIFICATION = "|c%s%s |r"
-local MILLION = 1E6
-local THOUSAND = 1E3
+-- Blizzard
+local issecretvalue = _G.issecretvalue
+local AbbreviateNumbers = _G.AbbreviateNumbers
 
 local round = function(value)
 	return floor(value + 0.5)
@@ -17,13 +15,19 @@ end
 
 -- return short value of a number!
 E.ShortValue = function(value)
-	local v = math.abs(value)
-	if (v >= 1E6) then
-		return ("%.1fm"):format(value / 1E6):gsub("%.?0+([km])$", "%1")
-	elseif (v >= 1E3) then
-		return ("%.1fk"):format(value / 1E3):gsub("%.?0+([km])$", "%1")
+	-- secret values (Midnight) can't be compared or used in arithmetic
+	if (issecretvalue and issecretvalue(value)) then
+		return AbbreviateNumbers(value)
 	end
-	return value
+
+	local v = math.abs(value)
+	-- values that would round up to "1000k" are shown as millions
+	if (v >= 1E6 - 50) then
+		return (("%.1fm"):format(value / 1E6):gsub("%.?0+([km])$", "%1"))
+	elseif (v >= 1E3) then
+		return (("%.1fk"):format(value / 1E3):gsub("%.?0+([km])$", "%1"))
+	end
+	return tostring(round(value))
 end
 
 -- format seconds to minutes, hours or days
@@ -64,6 +68,9 @@ E.UTF8Sub = function(value, i, dots)
 				position = position + 3
 			elseif (c >= 240 and c <= 247) then
 				position = position + 4
+			else
+				-- malformed byte: skip it so the scan keeps advancing
+				position = position + 1
 			end
 			if (length == i) then break end
 		end
@@ -143,7 +150,7 @@ E.GetClassification = function(value)
 	if (color) then
 		return color:WrapTextInColorCode(symbol) .. " "
 	end
-	return symbol and symbol .. " " or ""
+	return symbol ~= "" and symbol .. " " or ""
 end
 
 E.Round = round
