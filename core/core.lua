@@ -8,47 +8,49 @@ E.IconCoord = { 0.08, 0.92, 0.08, 0.92 }
 -- Module
 --------------------------------------------------
 do
-	local ModuleMixin = {
-		indexes = {},
-		modules = {}
-	}
+	-- registry lives in the closure, so it is never shared through Mixin
+	local indexes, modules = {}, {}
+
+	local ModuleMixin = {}
+
+	-- one failing call reports through the error handler instead of aborting the caller
+	function ModuleMixin:Call(func, ...)
+		return xpcall(func, geterrorhandler(), ...)
+	end
 
 	function ModuleMixin:GetModule(name)
-		return self.modules[name]
+		return modules[name]
 	end
 
 	function ModuleMixin:SetModule(name, module)
-		self.modules[name] = module
-		return self.modules[name]
+		modules[name] = module
+		return modules[name]
 	end
 
 	function ModuleMixin:CreateModule(name, proto)
-		assert(not self.modules[name], "Module " .. name .. " already exists.")
-		self.indexes[#self.indexes + 1] = name
+		assert(not modules[name], "Module " .. name .. " already exists.")
+		indexes[#indexes + 1] = name
 		return self:SetModule(name, proto or {})
 	end
 	
 	function ModuleMixin:InitModules()
-		if not self.modules then return end
-		for index, name in ipairs(self.indexes) do
-			local module = self.modules[name]
-			assert(module.Init, "Module " .. name .. " do not have 'Init' function.")
-			module:Init()
-		end
-	end
-
-	function ModuleMixin:UpdateModules()
-		if not self.modules then return end
-		for name, module in next, self.modules do
-			if module.Update then
-				module:Update()
+		for _, name in ipairs(indexes) do
+			local module = modules[name]
+			if module.Init then
+				self:Call(module.Init, module)
 			else
-				E:error("Module " .. name .. " do not have Update")
+				self:error("Module " .. name .. " do not have 'Init' function.")
 			end
 		end
 	end
 
-	E.ModuleMixin = ModuleMixin
+	function ModuleMixin:UpdateModules()
+		for _, module in next, modules do
+			if module.Update then
+				self:Call(module.Update, module)
+			end
+		end
+	end
 
 	-- set engine as 'module'
 	E = Mixin(E, ModuleMixin)
@@ -81,8 +83,9 @@ E:SetScript("OnEvent", function (self, event, ...)
 end)
 
 function E:ADDON_LOADED(name, containsBindings)
-    if (name == "Tainted") then
+    if (name == self.addon) then
 		self:InitDatabase()
+		self:UnregisterEvent("ADDON_LOADED")
 	end
 end
 
@@ -111,10 +114,13 @@ function E:PLAYER_LOGIN()
 end
 
 function E:SETTINGS_LOADED(...)
-	Settings.SetValue("PROXY_SHOW_ACTIONBAR_2", true)
-	Settings.SetValue("PROXY_SHOW_ACTIONBAR_3", true)
-	Settings.SetValue("PROXY_SHOW_ACTIONBAR_4", true)
-	Settings.SetValue("PROXY_SHOW_ACTIONBAR_5", true)
+	-- only write when needed, to avoid redundant addon-side writes on the multi-bar path
+	for i = 2, 5 do
+		local variable = "PROXY_SHOW_ACTIONBAR_" .. i
+		if Settings.GetValue(variable) ~= true then
+			Settings.SetValue(variable, true)
+		end
+	end
 	-- Settings.SetValue("PROXY_SHOW_ACTIONBAR_6", false)
 	-- Settings.SetValue("PROXY_SHOW_ACTIONBAR_7", false)
 	-- Settings.SetValue("PROXY_SHOW_ACTIONBAR_8", false)
