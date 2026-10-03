@@ -235,8 +235,8 @@ if E.isRetail then
             end
         elseif (element.colorReaction and UnitReaction(unit, "player")) then
             color = self.colors.reaction[UnitReaction(unit, "player")]
-        elseif (element.colorSmooth) then
-            color = E:ColorGradient(element.cur or 1, element.max or 1, unpack(element.smoothGradient or self.colors.smooth))
+        elseif (element.colorSmooth and self.colors.health:GetCurve()) then
+            color = element.values:EvaluateCurrentHealthPercent(self.colors.health:GetCurve())
         elseif (element.colorHealth) then
             color = self.colors.health
         end

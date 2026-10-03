@@ -31,7 +31,6 @@ local UnitLevel = _G.UnitLevel
 local UnitName = _G.UnitName
 local UnitPlayerControlled = _G.UnitPlayerControlled
 local UnitPVPName = _G.UnitPVPName
-local UnitQuestTrivialLevelRange = _G.UnitQuestTrivialLevelRange
 local UnitRace = _G.UnitRace
 local UnitReaction = _G.UnitReaction
 local UnitRealmRelationship = _G.UnitRealmRelationship
@@ -61,21 +60,6 @@ local NAME_FORMAT = "%s%s"
 local PLAYER_LEVEL = "%s %s (" .. _G.PLAYER .. ")"
 local BATTLE_PET_LEVEL = "%s %s%s"
 local CREATURE_LEVEL = "%s %s"
-
-local function GetRelativeDifficultyColor(unitLevel, challengeLevel)
-    local diff = challengeLevel - unitLevel
-    if diff >= 5 then
-        return E.colors.difficulty["impossible"]
-    elseif diff >= 3 then
-        return E.colors.difficulty["very_difficult"]
-    elseif diff >= -4 then
-        return E.colors.difficulty["difficult"]
-    elseif -diff <= UnitQuestTrivialLevelRange("player") then
-        return E.colors.difficulty["standard"]
-    else
-        return E.colors.difficulty["trivial"]
-    end
-end
 
 local function GetTooltipLine(tooltip, offset, pattern)
     for i = offset, tooltip:NumLines() do
@@ -412,7 +396,7 @@ local UpdateUnitTooltip = function(tooltip, data)
                 
                 local teamLevel = C_PetJournal.GetPetTeamAverageLevel() or 0
                 if teamLevel then
-                    difficultyColor = GetRelativeDifficultyColor(teamLevel, scaledLevel)
+                    difficultyColor = E.GetRelativeDifficultyColor(teamLevel, scaledLevel)
                 end
 
                 line:SetText(BATTLE_PET_LEVEL:format(difficultyColor:WrapTextInColorCode(levelText), (creatureType or ""), " (" .. _G["BATTLE_PET_NAME_" .. petType] .. ")"))
