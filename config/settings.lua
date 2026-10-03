@@ -5,6 +5,7 @@ local blankTex = A.textures.blank
 
 C["general"] = {
     ["uiScale"] = 0.64, -- 0.52,
+    ["taintLog"] = false, -- enable taint.log on install (development)
     ["backdrop"] = {
         ["color"] = E:CreateColor(0.15, 0.15, 0.15),
         ["texture"] = blankTex

@@ -14,7 +14,6 @@ local variables = {
 	["scriptErrors"] = 1,
 	["scriptWarnings"] = 1,
 	["luaErrorExceptions"] = 1,
-	["taintLog"] = 1,						-- enable taint log
 
 	-- system
 	["screenshotQuality"] = 10,
@@ -120,7 +119,15 @@ local variables = {
 
 function E:SetupDefaultsCVars()
 	for name, value in next, variables do
-		SetCVar(name, value)
+		-- not every cvar exists on every game version
+		if (GetCVar(name) ~= nil) then
+			SetCVar(name, value)
+		end
+	end
+
+	-- writes taint.log continuously, so it is opt-in
+	if C.general.taintLog then
+		SetCVar("taintLog", 1)
 	end
 
 	if SetAutoDeclineGuildInvites then
