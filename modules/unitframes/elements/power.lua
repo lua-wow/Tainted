@@ -106,7 +106,8 @@ end
 do
     local GetUnitPowerBarStrings = _G.GetUnitPowerBarStrings
     local GetUnitPowerBarStringsByID = _G.GetUnitPowerBarStringsByID
-    
+    local UnitPowerBarID = _G.UnitPowerBarID
+
     local element_proto = {
         -- smoothing = Enum.StatusBarInterpolation.ExponentialEaseOut,
         colorPower = true,
@@ -114,11 +115,14 @@ do
     }
 
     function element_proto:PostUpdate(unit, cur, min, max)
-        -- if (not cur) then cur = 0 end
-        -- if (not min) then min = 0 end
-        -- if (not max) then max = 0 end
+        -- bar is hidden / no alternative power
+        if (not cur) then
+            return
+        end
 
-        local name, tooltip, cost = GetUnitPowerBarStringsByID(self.__barID) or GetUnitPowerBarStrings(unit)
+        -- retail oUF keeps barID internal; oUF_Mists still exposes __barID
+        local barID = self.__barID or UnitPowerBarID(unit)
+        local name = GetUnitPowerBarStringsByID(barID) or GetUnitPowerBarStrings(unit)
 
         if (self.Text) then
             self.Text:SetText(name)
