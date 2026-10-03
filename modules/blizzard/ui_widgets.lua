@@ -47,13 +47,13 @@ function UIWidgets:Setup(widgetInfo, widgetContainer)
         bar:CreateBackdrop()
         -- bar.Backdrop:SetOutside()
 
+        local texture = A.textures.blank
+
         -- create a background
         bar.bg = bar:CreateTexture(nil, "BACKGROUND")
         bar.bg:SetAllPoints(bar)
         bar.bg:SetTexture(texture)
         bar.bg.multiplier = C.general.background.multiplier or 0.15
-
-        local texture = A.textures.blank
 
         if (not isTorghast) then
             bar:SetStatusBarTexture(texture)

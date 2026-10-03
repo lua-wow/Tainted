@@ -377,7 +377,7 @@ do
             GameTooltip:AddLine(REPUTATION)
         else
             local left = self.color:WrapTextInColorCode(self.standing)
-            local right EXP_PATTERN:format(self.value, self.maxBar, self.percentage)
+            local right = EXP_PATTERN:format(self.value, self.maxBar, self.percentage)
             GameTooltip:AddLine(self.name)
             GameTooltip:AddDoubleLine(left, right)
         end

@@ -86,7 +86,7 @@ do
 
         local icon = element:CreateTexture(nil, "OVERLAY")
         icon:SetAllPoints()
-        element.Icon = Icon
+        element.Icon = icon
 
         return element
     end

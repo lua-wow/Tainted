@@ -4,7 +4,7 @@
 
 This document provides documentation for the functions implemented in the Lua script project. Each section corresponds to a different function, explaining its purpose, parameters, and usage.
 
-## Function: `Tainted:CreateColor`
+## Function: `E:CreateColor`
 
 ### Description
 
@@ -20,16 +20,16 @@ Creates a color object based in RGB values.
 
 ```lua
 local _, ns = ...
-local tainted = ns.tainted
+local E = ns.E
 
 -- create color from fractions
-local colorA = tainted:CreateColor(0.78, 0, 0.22)
+local colorA = E:CreateColor(0.78, 0, 0.22)
 
 -- create color from values (0-255)
-local colorB = tainted:CreateColor(199, 0, 57)
+local colorB = E:CreateColor(199, 0, 57)
 ```
 
-## Function: `Tainted.GetFont`
+## Function: `E.GetFont`
 
 ### Description
 
@@ -43,11 +43,11 @@ Get a FontObject by its name, if not found, then return the default value.
 
 ```lua
 local _, ns = ...
-local tainted = ns.tainted
-local font = tainted.GetFont("Tainted")
+local E = ns.E
+local font = E.GetFont("Tainted")
 ```
 
-## Function: `Tainted.GetTexture`
+## Function: `E.GetTexture`
 
 ### Description
 
@@ -61,6 +61,6 @@ Get a texture path by its name, if not found, then else return the default textu
 
 ```lua
 local _, ns = ...
-local tainted = ns.tainted
-local glow_texture = tainted.GetTexture("glow")
+local E = ns.E
+local glow_texture = E.GetTexture("glow")
 ```

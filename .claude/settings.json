@@ -6,8 +6,17 @@
             "Bash(git add:*)",
             "Bash(git submodule update:*)",
             "Bash(gh:*)",
+            "Read(./docs/_old/)",
             "Edit(./libs/oUF/**)",
             "Write(./libs/oUF/**)"
+        ],
+        "additionalDirectories": [
+            "../_source/wow-ui-source",
+            "../_source/wow-ui-source/worktrees/forever",
+            "../_source/wow-ui-source/worktrees/classic",
+            "../_source/ElvUI",
+            "../_source/Tukui",
+            "../_source/ls_UI"
         ]
     }
 }

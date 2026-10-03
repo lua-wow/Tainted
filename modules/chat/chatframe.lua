@@ -145,7 +145,7 @@ function CHAT:SetupChatFrame(frame, config)
 			local channels = { EnumerateServerChannels() }
 			for k, channel in next, channels do
 				-- dont know why, but this works
-				C_Timer.After(1, function() ChatFrame_SetChannelEnabled(frame, channel, true) end)
+				C_Timer.After(1, function() frame:SetChannelEnabled(channel, true) end)
 			end
 		end
 
@@ -277,10 +277,6 @@ function CHAT:SetChatFramePosition()
 	local IsMovable = frame:IsMovable()
 
 	if Tab:IsShown() then
-		if IsRightChatFound and not frame.isDocked then
-			Dock(frame)
-		end
-
 		if id == 1 then
 			local anchor = _G["TaintedChatLeft"]
 			frame:SetParent(anchor)

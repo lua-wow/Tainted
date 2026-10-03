@@ -68,6 +68,30 @@ git submodule update --init --recursive
 git update-index --assume-unchanged core/development.lua
 ```
 
+### Linting
+
+Static analysis uses [luacheck](https://github.com/lunarmodules/luacheck), configured in [.luacheckrc](./.luacheckrc).
+
+Requirements: **Lua 5.1** and **LuaRocks** (e.g. via [mise](https://mise.jdx.dev): `mise use lua@5.1`).
+
+```bash
+# install luacheck
+luarocks install luacheck
+
+# list available make commands
+make help
+
+# lint the whole addon (submodules under libs/ are excluded)
+make check
+
+# lint a directory or a single file, showing warning codes
+luacheck core/
+luacheck modules/chat/chatframe.lua --codes
+```
+
+When using a new WoW API function, frame or constant, add it to `read_globals` in `.luacheckrc`.
+Globals the addon intentionally sets or mutates go in `globals`.
+
 ## License
 
 Please, see [LICENSE](./LICENSE) file.

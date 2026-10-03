@@ -2,7 +2,6 @@ local _, ns = ...
 local E, C, L = ns.E, ns.C, ns.L
 
 -- Blizzard
-local GetDifficultyColor = _G.GetDifficultyColor
 local GetGuildInfo = _G.GetGuildInfo
 local GetItemQualityColor = _G.GetItemQualityColor
 local GetPetHappiness = _G.GetPetHappiness  -- only classic

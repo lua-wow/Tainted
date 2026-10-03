@@ -48,7 +48,7 @@ function MirrorTimer:Skin(element)
         border:SetTexture(nil)
     end
     
-    local border = element.TextBorder or _G[element:GetName() .. "TextBorder"]
+    local textBorder = element.TextBorder or _G[element:GetName() .. "TextBorder"]
     if (textBorder) then
         textBorder:SetTexture(nil)
     end

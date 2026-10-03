@@ -60,7 +60,6 @@ local GetSpeed = _G.GetSpeed
 local GetSpellBonusDamage = _G.GetSpellBonusDamage
 local GetSpellBonusHealing = _G.GetSpellBonusHealing
 local GetSpellCritChance = _G.GetSpellCritChance
-local GetSpellCritChance = _G.GetSpellCritChance
 local GetSpellHitModifier = _G.GetSpellHitModifier
 local IsShiftKeyDown = _G.IsShiftKeyDown
 local UnitClass = _G.UnitClass
@@ -378,7 +377,7 @@ function character_proto:GetCriticalStrike()
     self.spellCrit = table.wipe(self.spellCrit or {})
     self.spellCrit[holySchool] = minCrit
     for school = (holySchool+1), MAX_SPELL_SCHOOLS do
-        spellCrit = GetSpellCritChance(school)
+        local spellCrit = GetSpellCritChance(school)
         minCrit = min(minCrit, spellCrit)
         self.spellCrit[school] = spellCrit
     end

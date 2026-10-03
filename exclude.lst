@@ -5,6 +5,7 @@
 *.idea
 Makefile
 exclude.lst
+.luacheckrc
 
 **/.git
 **/.github/*

@@ -15,8 +15,6 @@ local GetFramerate = _G.GetFramerate
 local GetNetIpTypes = _G.GetNetIpTypes
 local GetNetStats = _G.GetNetStats
 local GetNumAddOns = C_AddOns and C_AddOns.GetNumAddOns or _G.GetNumAddOns
-local GetTotalCpuUsage = _G.GetTotalCpuUsage
-local GetTotalMemory = _G.GetTotalMemory
 local IsAddOnLoaded = C_AddOns and C_AddOns.IsAddOnLoaded or _G.IsAddOnLoaded
 local ResetCPUUsage = _G.ResetCPUUsage
 local UpdateAddOnCPUUsage = _G.UpdateAddOnCPUUsage
@@ -152,7 +150,6 @@ function system_proto:CreateTooltip(tooltip)
     local useIPv6 = GetCVarBool("useIPv6")
     if useIPv6 then
         local ipTypeHome, ipTypeWorld = GetNetIpTypes();
-		string = format(MAINMENUBAR_PROTOCOLS_LABEL, ipTypes[ipTypeHome or 0] or UNKNOWN, ipTypes[ipTypeWorld or 0] or UNKNOWN);
 		tooltip:AddLine(" ")
 		tooltip:AddLine(PROTOCOL)
 		tooltip:AddDoubleLine(HOME, ipTypes[ipTypeHome or 0] or UNKNOWN, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0)
