@@ -35,11 +35,11 @@ locales\init.xml
 config\settings.lua
 
 ## core
+core\scaling.lua
 core\api.lua
 core\utils.lua
 core\core.lua
 core\database.lua
-core\scaling.lua
 core\install.lua
 core\dropdown.lua
 core\commands.lua

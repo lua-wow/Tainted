@@ -4,32 +4,10 @@ local E, C, A = ns.E, ns.C, ns.A
 -- Lua
 local getmetatable = getmetatable
 
--- Blizzard
-local GetCVar = C_CVar and C_CVar.GetCVar or _G.GetCVar
-local BackdropTemplateMixin = _G.BackdropTemplateMixin
-
 --------------------------------------------------
 -- API
 --------------------------------------------------
 E.API = {}
-
-E.Scale = function(size)
-	-- Ensure 'size' is a valid number, default to 1 if not
-	size = tonumber(size) or 1
-
-	-- Retrieve the UI scale value and ensure it is valid
-	-- Default to 1 if 'uiScale' is not a valid number
-	local uiScale = tonumber(GetCVar("uiScale"))
-	if not uiScale then
-		uiScale = 1
-	end
-
-	-- Calculate the scaling multiplier
-    local mult = E.pixelPerfectScale / uiScale
-
-	-- Return the scaled size, rounded to the nearest integer
-    return mult * math.floor(size / mult + 0.5)
-end
 
 E.API.Kill = function(self)
 	if self.UnregisterAllEvents then

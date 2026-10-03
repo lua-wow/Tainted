@@ -107,6 +107,8 @@ function E:PLAYER_LOGIN()
 		end
 		
 		self.db.installed = true
+	else
+		self:ApplyUiScale()
 	end
 
 	-- load modules
