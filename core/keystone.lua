@@ -1,18 +1,22 @@
 local _, ns = ...
 local E = ns.E
 
+-- mythic+ keystones only exist on Retail (Tainted.toc is also loaded by Forever)
+if not E.isRetail then return end
+
 -- Blizzard
 local BACKPACK_CONTAINER = _G.BACKPACK_CONTAINER or 0
 local NUM_BAG_SLOTS = _G.NUM_BAG_SLOTS or 4
 
 -- Mine
--- local KEYSTONE_PATTERN = "|cffa335ee|Hkeystone:(%d+):(%d+):(%d+)(.-)|h%[Keystone: ([^%]]+) %((%d+)%)%]|h|r"
-local KEYSTONE_PATTERN = "|Hkeystone:(%d+):(%d+):(%d+)(.-)|h%[Keystone: ([^%(]+)%s%((%d+)%)%]"
+-- only the link fields are parsed, the "[Keystone: ...]" text is localized
+local KEYSTONE_PATTERN = "|Hkeystone:(%d+):(%d+):(%d+)([:%d]*)|h"
 
 local keystone_proto = {}
 
 function keystone_proto:IsKeystone(itemID)
-    local classID, subclassID = select(12, C_Item.GetItemInfo(itemID))
+    -- instant variant: works for items not yet in the client cache
+    local classID, subclassID = select(6, C_Item.GetItemInfoInstant(itemID))
     return (classID == Enum.ItemClass.Reagent and subclassID == Enum.ItemReagentSubclass.Keystone)
 end
 
@@ -43,7 +47,11 @@ end
 function keystone_proto:Parse(value)
     if not value or type(value) ~= "string" then return end
 
-    local itemID, mapID, level, affixStr, mapName, _ = value:match(KEYSTONE_PATTERN)
+    local itemID, mapID, level, affixStr = value:match(KEYSTONE_PATTERN)
+    if not itemID then return end
+
+    mapID = tonumber(mapID)
+    local mapName = C_ChallengeMode.GetMapUIInfo(mapID)
 
     local affixes = {}
     for affix in affixStr:gmatch(":(%d+)") do
@@ -52,7 +60,7 @@ function keystone_proto:Parse(value)
 
     return {
         itemID = tonumber(itemID),
-        mapID = tonumber(mapID),
+        mapID = mapID,
         mapName = mapName,
         level = tonumber(level),
         affixes = affixes
@@ -70,7 +78,7 @@ end
 -- "|cffa335ee|Hkeystone:180653:375:10:148:10:152:9|h[Keystone: Mists of Tirna Scithe (9)]|h|r"
 -- "|cffa335ee|Hkeystone:180653:375:9:148:10:152:0|h[Keystone: Mists of Tirna Scithe (9)]|h|r"
 -- "|cffa335ee|Hkeystone:180653:503:6:148:10:0:0|h[Keystone: Ara-Kara, City of Echoes (6)]|h|r"
-function keystone_proto:IsCurrenWeek(value)
+function keystone_proto:IsCurrentWeek(value)
     local info = self:Parse(value)
     if not info then return false end
 
@@ -132,19 +140,11 @@ function keystone_proto:WEEKLY_REWARDS_UPDATE()
 end
 
 function keystone_proto:MYTHIC_PLUS_CURRENT_AFFIX_UPDATE()
-    self.affixes = table.wipe(self.affixes or {})
-    
-    local mapID = C_MythicPlus.GetOwnedKeystoneMapID()
-    if mapID then
-        local mapName, _ = C_ChallengeMode.GetMapUIInfo(mapID)
-    end
-    
-    local level = C_MythicPlus.GetOwnedKeystoneLevel()
-    
+    table.wipe(self.affixes)
+
     local affixesInfo = C_MythicPlus.GetCurrentAffixes()
     if affixesInfo then
-        for index, data in next, affixesInfo do
-            local name, description, _ = C_ChallengeMode.GetAffixInfo(data.id)
+        for _, data in next, affixesInfo do
             table.insert(self.affixes, data.id)
         end
     end
@@ -161,6 +161,8 @@ function keystone_proto:ITEM_CHANGED()
 end
 
 local frame = Mixin(CreateFrame("Frame"), keystone_proto)
+-- filled on MYTHIC_PLUS_CURRENT_AFFIX_UPDATE; empty until then
+frame.affixes = {}
 frame:RegisterEvent("PLAYER_LOGIN")
 frame:RegisterEvent("CHALLENGE_MODE_COMPLETED")
 frame:RegisterEvent("WEEKLY_REWARDS_UPDATE")

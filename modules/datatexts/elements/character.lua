@@ -158,7 +158,7 @@ function character_proto:UpdateKeyStones()
             local vault = charData.vault
 
             if KeyStone and charData.keystone then
-                local info = KeyStone:IsCurrenWeek(charData.keystone) and KeyStone:Parse(charData.keystone) or nil
+                local info = KeyStone:IsCurrentWeek(charData.keystone) and KeyStone:Parse(charData.keystone) or nil
                 if info then
                     local row = {
                         realm = realm,
