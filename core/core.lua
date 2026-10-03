@@ -39,7 +39,7 @@ do
 
 	function ModuleMixin:UpdateModules()
 		if not self.modules then return end
-		for _, module in next, self.modules do
+		for name, module in next, self.modules do
 			if module.Update then
 				module:Update()
 			else
@@ -94,6 +94,7 @@ end
 function E:PLAYER_LOGIN()
 	if (not self.db.installed) then
 		-- setup cvars
+		self:SetupDefaultsCVars()
 		self:SetupUiScale()
 
 		-- fix bag sorting order
@@ -120,8 +121,6 @@ function E:SETTINGS_LOADED(...)
 end
 
 function E:PLAYER_ENTERING_WORLD(isInitialLogin, isReloadingUi)
-    self:SetupDefaultsCVars()
-
 	if not self.db.chat then
 		-- chat module is not loaded on every TOC
 		local Chat = self:GetModule("Chat")

@@ -8,21 +8,13 @@ local ReloadUI = _G.ReloadUI
 -- Slash Commands
 --------------------------------------------------
 local keys = {}
-local commands = {
-    ["reset"] = {
-        description = "reset Tainted settings",
-        func = function()
-            E:ResetDatabase()
-            ReloadUI()
-        end
-    }
-}
+local commands = {}
 
 SLASH_TAINTED1 = "/tainted"
 SlashCmdList["TAINTED"] = function(cmd)
     local msg = cmd:gsub("^ +", "")
     local command, arg = string.split(" ", msg, 2)
-    arg = arg and arg:gsub(" ", "")
+    arg = arg and arg:match("^%s*(.-)%s*$")
     
     if commands[command] then
         commands[command].func(arg)
@@ -62,7 +54,13 @@ local spell = function(value)
     end
 end
 
+local reset = function()
+    E:ResetDatabase()
+    ReloadUI()
+end
+
 E:AddCommand("", help)
+E:AddCommand("reset", reset, "reset Tainted settings")
 E:AddCommand("spell", spell, "Look for spell information based on spellID or name.")
 
 SLASH_RELOADUI1 = "/rl"

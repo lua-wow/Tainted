@@ -189,7 +189,7 @@ E.API.SkinCloseButton = function(self, xOffset, yOffset, closeSize)
 
 	self.Texture = self:CreateTexture(nil, "OVERLAY")
 	self.Texture:SetPoint("CENTER", xOffset or 0, yOffset or 0)
-	self.Texture:SetSize(size or 12, size or 12)
+	self.Texture:SetSize(closeSize or 12, closeSize or 12)
 	self.Texture:SetTexture(A.textures.close)
 
 	self:SetScript("OnEnter", function(self) self.Texture:SetVertexColor(1, 0, 0) end)
