@@ -9,15 +9,13 @@ local element_proto = {
     smoothing = Enum.StatusBarInterpolation.ExponentialEaseOut,
 }
 
+-- Classic/Mists oUF only (duration is a number); retail oUF drives Time via Time.binding
 function element_proto:CustomDelayText(duration)
-    local value = duration:GetRemainingDuration()
-    self.Time:SetFormattedText("%.1f |cffaf5050%s %.1f|r", value, self.channeling and "- " or "+", self.delay)
+    self.Time:SetFormattedText("%.1f |cffaf5050%s %.1f|r", self.channeling and duration or (self.max - duration), self.channeling and "- " or "+", self.delay)
 end
 
 function element_proto:CustomTimeText(duration)
-    local value = duration:GetRemainingDuration()
-    local max = duration:GetTotalDuration()
-    self.Time:SetFormattedText("%.1f / %.1f", value, max)
+    self.Time:SetFormattedText("%.1f / %.1f", self.channeling and duration or (self.max - duration), self.max)
 end
 
 function element_proto:UpdateStatusBarColor(color)
@@ -31,32 +29,35 @@ function element_proto:UpdateStatusBarColor(color)
     end
 end
 
-function element_proto:UpdateColor(unit)
+-- retail oUF keeps casting/channeling/empowering state internal, so derive it from the API
+function element_proto:UpdateColor(unit, notInterruptible)
     local element = self
+    local colors = C.unitframes.castbar.colors
 
-    if (element.casting) then
-        element:UpdateStatusBarColor(C.unitframes.castbar.colors.casting)
+    local color = colors.casting
+    local channel, _, _, _, _, _, _, _, isEmpowered = UnitChannelInfo(unit)
+    if (channel) then
+        color = isEmpowered and colors.empowering or colors.channeling
     end
-    
-    if (element.channeling) then
-        element:UpdateStatusBarColor(C.unitframes.castbar.colors.channeling)
+
+    -- classic/mists oUF don't pass it, but still expose it on the element
+    if (notInterruptible == nil) then
+        notInterruptible = element.notInterruptible
     end
-    
-    if (element.empowering) then
-        element:UpdateStatusBarColor(C.unitframes.castbar.colors.empowering)
+
+    if (not issecretvalue(notInterruptible) and notInterruptible) then
+        color = colors.notInterruptible
     end
-    
-    if (not issecretvalue(element.notInterruptible) and element.notInterruptible) then
-        element:UpdateStatusBarColor(C.unitframes.castbar.colors.notInterruptible)
-    end
+
+    element:UpdateStatusBarColor(color)
 end
 
-function element_proto:PostCastInterruptible(unit)
-    self:UpdateColor(unit)
+function element_proto:PostCastInterruptible(unit, _, notInterruptible)
+    self:UpdateColor(unit, notInterruptible)
 end
 
-function element_proto:PostCastStart(unit)
-    self:UpdateColor(unit)
+function element_proto:PostCastStart(unit, _, notInterruptible)
+    self:UpdateColor(unit, notInterruptible)
     -- 	if C.NamePlates.ClassIcon and unit:find("nameplate") and self.Button and self.Button.Shadow then
     -- 		self.Button.Shadow:SetBackdropBorderColor(self:GetStatusBarColor())
     -- 	end
