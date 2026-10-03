@@ -18,17 +18,22 @@ SlashCmdList["TAINTED"] = function(cmd)
     
     if commands[command] then
         commands[command].func(arg)
+    elseif commands[""] then
+        -- unknown subcommand: show help
+        commands[""].func()
     end
 end
 
 function E:AddCommand(command, handler, description)
+    if not commands[command] then
+        table.insert(keys, command)
+        table.sort(keys)
+    end
+
     commands[command] = {
         func = handler,
         description = description
     }
-
-    table.insert(keys, command)
-    table.sort(keys)
 end
 
 local help = function()
@@ -42,10 +47,10 @@ end
 
 local spell = function(value)
     if value then
-        local data = C_Spell.GetSpellInfo(value)
+        local data = C_Spell.GetSpellInfo(tonumber(value) or value)
         if data then
-            local isPlayerSpell = C_SpellBook and C_SpellBook.IsSpellKnown(data.spellID) or IsPlayerSpell(data.spellID)
-            E:print("Spell " .. data.name .. " (" .. data.spellID .. ")", isPlayerSpell)
+            local isKnown = C_SpellBook.IsSpellKnown(data.spellID)
+            E:print("Spell " .. data.name .. " (" .. data.spellID .. ")", isKnown)
         else
             E:print("Spell " .. value .. " not found.")
         end
