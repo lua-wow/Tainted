@@ -33,12 +33,13 @@ end
 E.API.StripTextures = function(self, kill)
 	for _, region in next, { self:GetRegions() } do
 		if (region:GetObjectType() == "Texture") then
-			if (kill and type(kill) == "boolean") then
+			if (kill == true) then
 				region:Kill()
-			elseif (region:GetDrawLayer() == kill) then
-				region:SetTexture(nil)
-			elseif (kill and type(kill) == "string" and region:GetTexture() ~= kill) then
-				region:SetTexture(nil)
+			elseif (type(kill) == "string") then
+				-- a string is a draw layer: only strip textures on that layer
+				if (region:GetDrawLayer() == kill) then
+					region:SetTexture(nil)
+				end
 			else
 				region:SetTexture(nil)
 			end
@@ -117,6 +118,7 @@ E.API.CreateBackdrop = function(self, template)
 	self.Backdrop:SetPoint("BOTTOMRIGHT", inset, -inset)
 	self.Backdrop:SetBackdrop(backdrop)
 	self.Backdrop:SetBackdropColor(backdropColor.r, backdropColor.g, backdropColor.b, backdropAlpha)
+	self.Backdrop.__alpha = backdropAlpha
 	self.Backdrop:SetBackdropBorderColor(borderColor.r, borderColor.g, borderColor.b)
 
 	-- draw it below the element
@@ -127,12 +129,13 @@ E.API.CreateBackdrop = function(self, template)
 end
 
 E.API.SkinButton = function(button)
+	if button.__skinned then return end
 	button:CreateBackdrop()
 	button:HookScript("OnEnter", function (self)
 		if (self.Backdrop) then
 			local backdropColor = C.general.backdrop.color
 			local highlightColor = C.general.highlight.color
-			self.Backdrop:SetBackdropColor(backdropColor.r, backdropColor.g, backdropColor.b, backdropColor.a or 1)
+			self.Backdrop:SetBackdropColor(backdropColor.r, backdropColor.g, backdropColor.b, self.Backdrop.__alpha or 1)
 			self.Backdrop:SetBackdropBorderColor(highlightColor.r, highlightColor.g, highlightColor.b, highlightColor.a or 1)
 		end
 	end)
@@ -140,10 +143,11 @@ E.API.SkinButton = function(button)
 		if (self.Backdrop) then
 			local backdropColor = C.general.backdrop.color
 			local borderColor = C.general.border.color
-			self.Backdrop:SetBackdropColor(backdropColor.r, backdropColor.g, backdropColor.b, backdropColor.a or 1)
+			self.Backdrop:SetBackdropColor(backdropColor.r, backdropColor.g, backdropColor.b, self.Backdrop.__alpha or 1)
 			self.Backdrop:SetBackdropBorderColor(borderColor.r, borderColor.g, borderColor.b, borderColor.a or 1)
 		end
 	end)
+	button.__skinned = true
 end
 
 E.API.GetCooldownTimer = function(self)
@@ -159,7 +163,7 @@ end
 
 E.API.SkinCloseButton = function(self, xOffset, yOffset, closeSize)
 	if self.SetNormalTexture then self:SetNormalTexture(0) end
-	if self.SetNormalTexture then self:SetPushedTexture(0) end
+	if self.SetPushedTexture then self:SetPushedTexture(0) end
 	if self.SetHighlightTexture then self:SetHighlightTexture(0) end
 	if self.SetDisabledTexture then self:SetDisabledTexture(0) end
 
@@ -170,8 +174,9 @@ E.API.SkinCloseButton = function(self, xOffset, yOffset, closeSize)
 	self.Texture:SetSize(closeSize or 12, closeSize or 12)
 	self.Texture:SetTexture(A.textures.close)
 
-	self:SetScript("OnEnter", function(self) self.Texture:SetVertexColor(1, 0, 0) end)
-	self:SetScript("OnLeave", function(self) self.Texture:SetVertexColor(1, 1, 1) end)
+	-- hook to keep Blizzard's own tooltip/highlight handlers
+	self:HookScript("OnEnter", function(self) self.Texture:SetVertexColor(1, 0, 0) end)
+	self:HookScript("OnLeave", function(self) self.Texture:SetVertexColor(1, 1, 1) end)
 end
 
 --------------------------------------------------
@@ -195,9 +200,9 @@ Object = EnumerateFrames()
 
 while (Object) do
     local t = Object:GetObjectType()
-    if (not Object:IsForbidden() and not Handled[Object:GetObjectType()]) then
+    if (not Object:IsForbidden() and not Handled[t]) then
         AddAPI(Object)
-        Handled[Object:GetObjectType()] = true
+        Handled[t] = true
     end
     Object = EnumerateFrames(Object)
 end
