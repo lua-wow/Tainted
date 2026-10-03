@@ -4,16 +4,17 @@ local E = ns.E
 -- Blizzard
 local UnitClass = _G.UnitClass
 local GetNumTalentTabs = _G.GetNumTalentTabs
-local GetTalentTabInfo = _G.GetTalentTabInfo
+local GetSpecializationInfo = C_SpecializationInfo and C_SpecializationInfo.GetSpecializationInfo
 local GetSpecialization = _G.GetSpecialization
 local GetSpecializationRole = _G.GetSpecializationRole
 
 local SPEC_DEATHKNIGHT_BLOOD = 1
 local SPEC_DEATHKNIGHT_FROST = 2
 local SPEC_DEATHKNIGHT_UNHOLY = 3
-local SPEC_DRUID_RESTORATION = 1
-local SPEC_DRUID_FERAL_COMBAT = 2
-local SPEC_DRUID_BALANCE = 3
+local SPEC_DRUID_BALANCE = _G.SPEC_DRUID_BALANCE or 1
+local SPEC_DRUID_FERAL = _G.SPEC_DRUID_FERAL or 2
+local SPEC_DRUID_GUARDIAN = _G.SPEC_DRUID_GUARDIAN or 3
+local SPEC_DRUID_RESTORATION = 4 -- _G.SPEC_DRUID_RESTORATION is nil
 local SPEC_MAGE_ARCANE = _G.SPEC_MAGE_ARCANE or 1
 local SPEC_MONK_BREWMASTER = _G.SPEC_MONK_BREWMASTER or 1
 local SPEC_MONK_MISTWEAVER = _G.SPEC_MONK_MISTWEAVER or 2
@@ -37,7 +38,7 @@ local SPEC_WARRIOR_PROTECTION = 3
 -- Mine
 local TANK = "TANK"
 local HEALER = "HEALER"
-local DAMAGE = "DAMAGE"
+local DAMAGE = "DAMAGER"
 
 local element_proto = {
     unit = "player"
@@ -83,7 +84,7 @@ if E.isClassic then
     function element_proto:GetRole()
         if self.class == "DRUID" then
             local resto = self.talents[SPEC_DRUID_RESTORATION] or 0
-            local feral = self.talents[SPEC_DRUID_FERAL_COMBAT] or 0
+            local feral = self.talents[SPEC_DRUID_FERAL] or 0
             local balance = self.talents[SPEC_DRUID_BALANCE] or 0
             if feral > resto and feral > balance then
                 return TANK
@@ -114,12 +115,8 @@ if E.isClassic then
                 return HEALER
             end
         elseif self.class == "WARRIOR" then
-            local arms = self.talents[SPEC_WARRIOR_ARMS] or 0
-            local fury = self.talents[SPEC_WARRIOR_FURY] or 0
-            local prot = self.talents[SPEC_WARRIOR_PROTECTION] or 0
-            if (fury + prot) > arms then
-                return TANK
-            end
+            -- every warrior tanks on Classic Era; use `/tainted tank` to swap
+            return TANK
         end
         return DAMAGE
     end
@@ -129,7 +126,7 @@ if E.isClassic then
         
         local tabs = GetNumTalentTabs(false)
         for index = 1, tabs do
-            local _, name, _, _, pointsSpent, _, _, _ = GetTalentTabInfo(index, false)
+            local _, _, _, _, _, _, pointsSpent = GetSpecializationInfo(index, false, false)
             self.talents[index] = pointsSpent
         end
     end
@@ -137,17 +134,18 @@ if E.isClassic then
     function element_proto:Update()
         self:UpdateTalents()
         self.role = self:GetRole()
+        self:ApplyOverride()
     end
 elseif E.isCata then
     function element_proto:GetRole()
-        self.spec = GetPrimaryTalentTree(false, false)
+        self.spec = C_SpecializationInfo.GetSpecialization(false, false)
         if self.class == "DRUID" then
             if self.spec == SPEC_DRUID_RESTORATION then
                 return HEALER
-            elseif self.spec == SPEC_DRUID_FERAL_COMBAT then
+            elseif self.spec == SPEC_DRUID_FERAL then
                 return TANK
             end
-        elseif self.class == "DEATHKNIGHT" and self.spec == SPEC_DEATHKNIGHT_FROST then
+        elseif self.class == "DEATHKNIGHT" and self.spec == SPEC_DEATHKNIGHT_BLOOD then
             return TANK
         elseif self.class == "PALADIN" and self.spec == SPEC_PALADIN_HOLY then
             return HEALER
@@ -163,17 +161,29 @@ elseif E.isCata then
 
     function element_proto:Update()
         self.role = self:GetRole()
-        E:print("Talents Updated", self.class, self.spec, self.role)
+        self:ApplyOverride()
     end
 elseif E.isMoP then
     function element_proto:Update()
         self.spec = C_SpecializationInfo.GetSpecialization()
         self.role = GetSpecializationRole(self.spec) or DAMAGE
+        self:ApplyOverride()
     end
 else
     function element_proto:Update()
         self.spec = GetSpecialization(false, false)
         self.role = GetSpecializationRole(self.spec) or DAMAGE
+        self:ApplyOverride()
+    end
+end
+
+-- manual override set by `/tainted tank`, stored per character
+function element_proto:ApplyOverride()
+    local tank = E.db and E.db.tank
+    if tank == true then
+        self.role = TANK
+    elseif tank == false and self.role == TANK then
+        self.role = DAMAGE
     end
 end
 
@@ -194,3 +204,9 @@ frame:RegisterEvent("PLAYER_LOGIN")
 frame:SetScript("OnEvent", frame.OnEvent)
 
 E:SetModule("Talents", frame)
+
+E:AddCommand("tank", function()
+    E.db.tank = not frame:IsTank()
+    frame:Update()
+    E:print("Role:", frame.role)
+end, "Toggle tank role.")
