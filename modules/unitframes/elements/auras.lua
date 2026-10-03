@@ -17,7 +17,8 @@ local button_proto = {}
 function button_proto:UpdateTooltip()
     if (GameTooltip:IsForbidden()) then return end
 
-    local unit = self:GetParent().__owner.unit
+    local owner = self:GetParent().__owner
+    local unit = owner.__unit or owner.unit
 	if self.auraIndex then
 		GameTooltip:SetUnitAura(unit, self.auraIndex, self.isHarmfulAura and "HARMFUL" or "HELPFUL")
     elseif self.auraInstanceID and GameTooltip.SetUnitDebuffByAuraInstanceID then
@@ -230,7 +231,7 @@ do
         local size = C.unitframes.auras.size or 27
         local spacing = C.unitframes.auras.spacing or 3
 
-        local isCompact = (frame.__unit ~= "player" and frame.__unit ~= "target" and frame.__unit ~= "nameplate")
+        local isCompact = (frame.__key ~= "player" and frame.__key ~= "target" and frame.__key ~= "nameplate")
 
         if isCompact then
             size = math.max(size - 4, 20)
@@ -254,7 +255,7 @@ do
         element.size = size
         element.spacing = spacing
         element.onlyShowPlayer = frame.__config.buffs and frame.__config.buffs.selfBuffs or false
-        element.showStealableBuffs = (frame.unit ~= "player")
+        element.showStealableBuffs = (frame.__key ~= "player")
 
         return element
     end
@@ -280,7 +281,7 @@ do
         local size = C.unitframes.auras.size or 27
         local spacing = C.unitframes.auras.spacing or 3
 
-        local isCompact = (frame.__unit ~= "player" and frame.__unit ~= "target" and frame.__unit ~= "nameplate")
+        local isCompact = (frame.__key ~= "player" and frame.__key ~= "target" and frame.__key ~= "nameplate")
 
         if isCompact then
             size = math.max(size - 4, 20)
@@ -295,7 +296,7 @@ do
 
         if isCompact then
             element:SetPoint("BOTTOMRIGHT", frame, "TOPRIGHT", 0, 3)
-        elseif (frame.__unit == "nameplate") then
+        elseif (frame.__key == "nameplate") then
             element:SetPoint("BOTTOMRIGHT", frame, "TOPRIGHT", 0, 5)
         else
             if (frame.Buffs) then
@@ -309,7 +310,7 @@ do
         element.num = num
         element.size = size
         element.spacing = spacing
-        element.onlyShowPlayer = (frame.__unit == "nameplate")
+        element.onlyShowPlayer = (frame.__key == "nameplate")
 
         return element
     end

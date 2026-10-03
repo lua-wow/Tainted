@@ -200,7 +200,7 @@ end
 
 if E.isRetail then
     function health_proto:UpdateColor(event, unit)
-        if (not unit or self.unit ~= unit) then return end
+        if (not unit or self.__unit ~= unit) then return end
         
         local element = self.Health
 
@@ -269,7 +269,7 @@ function power_proto:PostUpdate(unit, cur, min, max)
     local frame = self:GetParent()
 
     if not unit then
-        unit = frame.unit
+        unit = frame.__unit or frame.unit
     end
 
     if not unit then return end

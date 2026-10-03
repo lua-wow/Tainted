@@ -153,6 +153,26 @@ function UnitFrames:DisableBlizzard()
 	end
 end
 
+-- Blizzard's UnitFrame_OnEnter reads frame.unit, which Retail oUF no longer sets,
+-- so read the secure unit attribute instead (works with every oUF version).
+local function UnitFrame_UpdateTooltip(self)
+    local unit = SecureButton_GetModifiedUnit(self)
+    if (not unit or GameTooltip:IsForbidden()) then
+        self.UpdateTooltip = nil
+        return
+    end
+
+    GameTooltip_SetDefaultAnchor(GameTooltip, self)
+    GameTooltip:SetUnit(unit)
+    GameTooltip:Show()
+
+    self.UpdateTooltip = UnitFrame_UpdateTooltip
+end
+
+local function UnitFrame_OnEnter(self)
+    UnitFrame_UpdateTooltip(self)
+end
+
 function UnitFrames:CreateUnitFrame(frame)
     frame:RegisterForClicks("AnyUp")
     frame:SetScript("OnEnter", UnitFrame_OnEnter)
@@ -176,7 +196,7 @@ function UnitFrames:CreateUnitFrame(frame)
         frame.Debuffs = self:CreateDebuffs(frame)
     end
 
-    if frame.unit == "player" or frame.unit == "target" then
+    if frame.__key == "player" or frame.__key == "target" then
         frame.Portrait = self:CreatePortrait(frame)
     end
     
@@ -309,10 +329,11 @@ function UnitFrames:Init()
     self.RaidHolder = RaidHolder
 
     oUF:RegisterStyle(addon, function(frame, unit)
-        frame.__unit = unit:gsub("%d+", "")
-        frame.__config = C.unitframes[frame.__unit]
+        -- Retail oUF owns frame.__unit, so the style key needs its own field.
+        frame.__key = unit:gsub("%d+", "")
+        frame.__config = C.unitframes[frame.__key]
 
-        if frame.__unit ~= "raid" then
+        if frame.__key ~= "raid" then
             local width = frame.__config.width or 200
             local height = frame.__config.height or 32
             frame:SetSize(width, height)
@@ -433,11 +454,14 @@ function UnitFrames:RunTest()
         local length = #frame
         if (length > 0) then
             for i = 1, length do
+                -- Retail oUF reads __unit, Classic/MoP oUF read unit
+                frame[i].__unit = "player"
                 frame[i].unit = "player"
                 frame[i].Hide = function() end
                 frame[i]:Show()
             end
         else
+            frame.__unit = "player"
             frame.unit = "player"
             frame.Hide = function() end
             frame:Show()

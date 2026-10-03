@@ -126,7 +126,7 @@ function UnitFrames:CreateCastbar(frame, parent)
     text:SetFontObject(fontObject)
     text:SetTextColor(C.unitframes.castbar.colors.text:GetRGB())
     
-    if (frame.__unit == "player") and frame.__config.castbar.latency then
+    if (frame.__key == "player") and frame.__config.castbar.latency then
         local color = C.unitframes.castbar.colors.latency
         local safezone = element:CreateTexture(nil, "OVERLAY")
         safezone:SetTexture(texture)

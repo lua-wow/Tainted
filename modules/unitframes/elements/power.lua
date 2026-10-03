@@ -49,7 +49,7 @@ do
             element.Value = value
         end
 
-        if (frame.__unit == "nameplate") then
+        if (frame.__key == "nameplate") then
             element.isHidden = true
             element.PostUpdate = UnitFrames.PostUpdateNameplatePower
         end
@@ -150,7 +150,7 @@ do
         element:CreateBackdrop()
         element:EnableMouse(true)
         
-        if (frame.unit == "player") then
+        if (frame.__key == "player") then
             local font = A.fonts.normal
 
             element:SetPoint("TOP", E.PetHider, "TOP", 0, -10)

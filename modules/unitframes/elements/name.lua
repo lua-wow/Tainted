@@ -13,10 +13,10 @@ function UnitFrames:CreateName(frame, parent)
     element:SetFontObject(fontObject)
     element:SetWordWrap(false)
     
-    if (frame.unit == "player") then
+    if (frame.__key == "player") then
         element:SetJustifyH("CENTER")
         element:SetPoint("CENTER", ref, "CENTER", 0, 0)
-    elseif (frame.__unit == "raid") then
+    elseif (frame.__key == "raid") then
         element:SetJustifyH("CENTER")
         element:SetPoint("CENTER", ref, "CENTER", 0, 7)
     else
