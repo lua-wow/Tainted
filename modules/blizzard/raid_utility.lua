@@ -160,7 +160,7 @@ do
     }
 
     function restrict_ping_proto:OnClick(button, down)
-        E:CreateDropDown(menuItems, menuFrame, "cursor", 0, 0, "Menu", 5)
+        E:CreateDropDown(menuItems, menuFrame, "cursor", 0, 0, "MENU", 5)
     end
 end
 
