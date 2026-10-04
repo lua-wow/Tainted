@@ -352,7 +352,16 @@ do
         end
     else
         function reputation_proto:Update()
-            local name, reaction, min, max, value, factionID = GetWatchedFactionInfo()
+            local name, reaction, min, max, value, factionID
+            if C_Reputation and C_Reputation.GetWatchedFactionData then
+                local data = C_Reputation.GetWatchedFactionData()
+                if data then
+                    name, reaction, factionID = data.name, data.reaction, data.factionID
+                    min, max, value = data.currentReactionThreshold, data.nextReactionThreshold, data.currentStanding
+                end
+            else
+                name, reaction, min, max, value, factionID = GetWatchedFactionInfo()
+            end
 
             self.name = name
             self.minBar = 0

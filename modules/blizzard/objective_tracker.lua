@@ -4,19 +4,7 @@ local MODULE = E:GetModule("Blizzard")
 
 local element_proto = {}
 
-if E.isClassic then
-    function element_proto:Load()
-        local element = self
-
-        hooksecurefunc("FramePositionDelegate_Override_QuestWatchFrameOffsets", function(anchorYStartValue, rightActionBars, buffsAnchorY)
-            local QuestWatchFrame = _G.QuestWatchFrame
-            if QuestWatchFrame then
-                QuestWatchFrame:ClearAllPoints()
-                QuestWatchFrame:SetPoint("TOPLEFT", element, 0, 0)
-            end
-        end)
-    end
-elseif E.isMoP then
+if E.isClassic or E.isMoP then
     local ObjectiveTracker_SetPoint = function(self, point, anchor, anchorPoint, x, y)
         if InCombatLockdown() then return end
         if anchor ~= self.holder then
@@ -28,7 +16,7 @@ elseif E.isMoP then
     function element_proto:Load()
         local element = self
 
-        local frame = _G.WatchFrame
+        local frame = _G.QuestWatchFrame or _G.WatchFrame
         if frame then
             frame:SetMovable(true)
             frame:SetUserPlaced(true)

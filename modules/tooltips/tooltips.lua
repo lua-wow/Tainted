@@ -288,7 +288,7 @@ local UpdateUnitTooltip = function(tooltip, data)
 
     guid = guid or UnitGUID(unit)
     local _, realm = UnitName(unit)
-    local _, class = UnitClass(unit)
+    local classText, class = UnitClass(unit)
     local level = UnitIsBattlePet(unit) and UnitBattlePetLevel(unit) or UnitLevel(unit)
     local scaledLevel = UnitIsBattlePet(unit) and UnitBattlePetLevel(unit) or UnitEffectiveLevel(unit)
     local creatureType = UnitCreatureType(unit)
@@ -354,15 +354,17 @@ local UpdateUnitTooltip = function(tooltip, data)
         local guildName, _, _, guildRealm = GetGuildInfo(unit)
         if guildName then
             local line, _offset = GetTooltipLine(tooltip, offset, guildName) -- offset = 3
-            offset = _offset
+            if line then
+                offset = _offset
 
-            local guildText = guildName
-            if guildRealm and guildRealm ~= "" and guildRealm ~= realm then
-                guildText = guildName .. " - " .. guildRealm
+                local guildText = guildName
+                if guildRealm and guildRealm ~= "" and guildRealm ~= realm then
+                    guildText = guildName .. " - " .. guildRealm
+                end
+
+                line:SetText(E.colors.lawngreen:WrapTextInColorCode(guildText))
+                line:SetTextColor(1, 1, 1)
             end
-            
-            line:SetText(E.colors.lawngreen:WrapTextInColorCode(guildText))
-            line:SetTextColor(1, 1, 1)
         end
     end
 

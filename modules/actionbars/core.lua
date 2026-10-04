@@ -275,6 +275,13 @@ function MODULE:DisableBlizzard()
         BeginActionBarTransition = function() end
     end
 
+    -- Classic Era: container has no anchor until Edit Mode applies its layout, and hiding
+    -- the micro buttons triggers a Layout() that calls GetCenter() on it
+    local MicroMenuContainer = _G.MicroMenuContainer
+    if MicroMenuContainer and not MicroMenuContainer:GetPoint() then
+        MicroMenuContainer:SetPoint("BOTTOMRIGHT", UIParent, -10, 220)
+    end
+
     local MicroMenu = _G.MicroMenu
     if MicroMenu then
         MicroMenu:ClearAllPoints()
