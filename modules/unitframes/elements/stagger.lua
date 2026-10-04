@@ -20,7 +20,7 @@ local element_proto = {}
 
 function element_proto:PostUpdateColor(color)
     local element = self
-    if (color or not issecretvalue(color)) then
+    if (color and not issecretvalue(color)) then
         local bg = element.bg
         if (bg) then
             local mu = bg.multiplier or 1
