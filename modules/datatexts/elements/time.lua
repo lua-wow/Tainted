@@ -113,10 +113,11 @@ function time_proto:OnMouseUp(click)
 			return
 		end
 
-		if not E.isClassic then
-			GameTimeFrame_OnClick()
+		-- vanilla and tbc clients have no calendar
+		if _G.ToggleCalendar then
+			_G.ToggleCalendar()
 		else
-			Stopwatch_Toggle()
+			TimeManager_Toggle()
 		end
 	end
 end
