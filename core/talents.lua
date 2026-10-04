@@ -80,7 +80,7 @@ function element_proto:UpdateClass()
     self.class = class
 end
 
-if E.isClassic then
+if E.isClassic or E.isTBC or E.isWrath then
     function element_proto:GetRole()
         if self.class == "DRUID" then
             local resto = self.talents[SPEC_DRUID_RESTORATION] or 0

@@ -139,12 +139,13 @@ do
     end
         
     function UnitFrames:CreateAlternativePower(frame)
-        if E.isClassic then
+        -- only retail oUF and oUF_Mists have the AlternativePower element
+        if not (E.isRetail or E.isMoP) then
             return nil
         end
 
         local texture = C.unitframes.texture
-        
+
         local element = Mixin(CreateFrame("StatusBar", frame:GetName() .. "AlternativePower", frame), element_proto)
         element:SetStatusBarTexture(texture)
         element:CreateBackdrop()
