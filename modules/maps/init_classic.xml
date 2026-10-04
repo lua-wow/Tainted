@@ -1,7 +1,7 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/">
 	<Script file="core.lua"/>
 	<Script file="minimap.lua"/>
-	<Script file="minimap_mainline.lua"/>
+	<Script file="minimap_classic.lua"/>
 	<Script file="worldmap.lua"/>
 	<Script file="zonemap.lua"/>
 </Ui>

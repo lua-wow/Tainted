@@ -59,7 +59,7 @@ modules\chat\copy_text.lua
 modules\chat\copy_url.lua
 
 ### maps
-modules\maps\init.xml
+modules\maps\init_classic.xml
 
 ### blizzard
 modules\blizzard\init_classic.xml

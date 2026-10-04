@@ -60,7 +60,7 @@ core\development.lua
 # modules\chat\copy_url.lua
 
 ### maps
-# modules\maps\init.xml
+modules\maps\init.xml
 
 ### blizzard
 # modules\blizzard\init.xml

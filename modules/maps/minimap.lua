@@ -6,13 +6,21 @@ local UnitOnTaxi = _G.UnitOnTaxi
 local TaxiRequestEarlyLanding = _G.TaxiRequestEarlyLanding
 local VehicleExit = _G.VehicleExit
 local CanExitVehicle = _G.CanExitVehicle
+local C_Calendar = _G.C_Calendar
 
 --------------------------------------------------
 -- Minimap
 --------------------------------------------------
+-- flavor specific code lives in 'minimap_mainline.lua' and 'minimap_classic.lua',
+-- which define 'MODULE:OnMouseClick' and 'MODULE:StyleBlizzard'.
 if not C.maps.enabled then return end
 
 local MODULE = E:CreateModule("Minimap")
+
+-- LibDBIcon and similar libraries read this global to place their buttons
+_G.GetMinimapShape = function()
+    return "SQUARE"
+end
 
 do
     local button_proto = {}
@@ -71,73 +79,70 @@ do
     end
 end
 
-if not E.isRetail then
-    function MODULE:OnMouseClick(button)
-        local Minimap = _G.Minimap
-        if button == "RightButton" then
-            if MiniMapTrackingDropDown then
-				ToggleDropDownMenu(1, nil, MiniMapTrackingDropDown, "MiniMapTracking", 0, 0)
-			end
-        else
-            Minimap_OnClick(Minimap)
-        end
+do
+    local invite_proto = {}
+
+    function invite_proto:OnEvent()
+        self:SetShown(C_Calendar.GetNumPendingInvites() > 0)
     end
-else
-    function MODULE:OnMouseClick(button)
-        local MinimapCluster = _G.MinimapCluster
-        local ExpansionLandingPageMinimapButton = _G.ExpansionLandingPageMinimapButton
-        if (button == "RightButton") then
-            local button = MinimapCluster and MinimapCluster.Tracking and MinimapCluster.Tracking.Button
-            if button then
-                button:OpenMenu()
-                if button.menu then
-                    button.menu:ClearAllPoints()
-                    button.menu:SetPoint("TOPRIGHT", Minimap, "TOPLEFT", -5, 0);
-                end
-            else
-                ToggleDropDownMenu(1, nil, MinimapCluster.TrackingFrame.DropDown, MinimapCluster.TrackingFrame, 8, 5);
-            end
-        elseif (button == "MiddleButton" and ExpansionLandingPageMinimapButton) then
-            ExpansionLandingPageMinimapButton:ToggleLandingPage()
-        else
-            local Minimap = _G.Minimap
-            if Minimap.OnClick then
-                Minimap:OnClick()
-            else
-                Minimap_OnClick(Minimap)
-            end
-        end
+
+    function invite_proto:OnClick()
+        _G.ToggleCalendar()
+    end
+
+    function invite_proto:OnEnter()
+        GameTooltip:SetOwner(self, "ANCHOR_BOTTOMLEFT")
+        GameTooltip:AddLine(_G.GAMETIME_TOOLTIP_CALENDAR_INVITES)
+        GameTooltip:Show()
+    end
+
+    function invite_proto:OnLeave()
+        GameTooltip:Hide()
+    end
+
+    -- replaces the pending invites icon of the killed 'GameTimeFrame'
+    function MODULE:CreateInviteIndicator()
+        -- vanilla and tbc clients have no calendar
+        if not (C_Calendar and C_Calendar.GetNumPendingInvites and _G.ToggleCalendar) then return end
+
+        local Minimap = _G.Minimap
+
+        local button = Mixin(CreateFrame("Button", nil, Minimap), invite_proto)
+        button:SetPoint("BOTTOMRIGHT", Minimap, "BOTTOMRIGHT", -3, 3)
+        button:SetSize(14, 16)
+        button:SetFrameLevel(Minimap:GetFrameLevel() + 10)
+        button:RegisterForClicks("AnyUp")
+        button:RegisterEvent("CALENDAR_UPDATE_PENDING_INVITES")
+        button:RegisterEvent("PLAYER_ENTERING_WORLD")
+        button:SetScript("OnEvent", button.OnEvent)
+        button:SetScript("OnClick", button.OnClick)
+        button:SetScript("OnEnter", button.OnEnter)
+        button:SetScript("OnLeave", button.OnLeave)
+        button:Hide()
+
+        local icon = button:CreateTexture(nil, "ARTWORK")
+        icon:SetAllPoints()
+        icon:SetTexture([[Interface\Calendar\EventNotification]])
+        icon:SetTexCoord(0.03125, 0.6484375, 0.03125, 0.8671875)
+        button.Icon = icon
+
+        return button
     end
 end
 
 function MODULE:Style()
     local MinimapCluster = _G.MinimapCluster
-    
-    local BorderTop = MinimapCluster.BorderTop or _G.MinimapBorderTop
+    -- the emptied cluster still sits over the minimap
+    MinimapCluster:EnableMouse(false)
+
+    local BorderTop = MinimapCluster.BorderTop
     if BorderTop then
         BorderTop:Hide()
     end
 
-    local ToggleButton = _G.MinimapToggleButton
-    if ToggleButton then
-        ToggleButton:Hide()
-    end
-
-    -- local Tracking = MinimapCluster.Tracking
-    -- if Tracking and not E.isMoP then
-    --     MinimapCluster.Tracking:SetAlpha(0)
-    --     MinimapCluster.Tracking:SetScale(0.001)
-    -- end
-
-    local MinimapContainer = MinimapCluster.MinimapContainer
-    if MinimapContainer then
-        MinimapContainer:ClearAllPoints()
-        MinimapContainer:SetAllPoints()
-    end
-
     local margin = C.general.margin or 10
 
-    local Minimap = MinimapContainer and MinimapContainer.Minimap or _G.Minimap
+    local Minimap = _G.Minimap
     Minimap:SetParent(E.PetHider)
     Minimap:ClearAllPoints()
     Minimap:SetPoint("TOPRIGHT", -margin, -margin)
@@ -146,32 +151,11 @@ function MODULE:Style()
     Minimap:SetMovable(false)
     Minimap:SetScript("OnMouseUp", self.OnMouseClick)
 
-    if not E.isRetail then
-        Minimap:SetSize(180, 180)
-    end
-    
-    local ZoomHitArea = Minimap.ZoomHitArea
-    
-    local ZoomIn = Minimap.ZoomIn
-    if (ZoomIn) then
-        Minimap.ZoomIn:Kill()
-    end
-    
-    local ZoomOut = Minimap.ZoomOut
-    if (ZoomOut) then
-        Minimap.ZoomOut:Kill()
-    end
-            
     local MinimapBackdrop = _G.MinimapBackdrop
     MinimapBackdrop:Hide()
 
     local MinimapCompassTexture = _G.MinimapCompassTexture
     MinimapCompassTexture:Hide()
-
-    local ExpansionLandingPageMinimapButton = _G.ExpansionLandingPageMinimapButton
-    if ExpansionLandingPageMinimapButton then
-        ExpansionLandingPageMinimapButton:SetAlpha(0)
-    end
 
     -- calendar
     local GameTimeFrame = _G.GameTimeFrame
@@ -179,7 +163,9 @@ function MODULE:Style()
 
     -- clock
     local TimeManagerClockButton = _G.TimeManagerClockButton
-    TimeManagerClockButton:Kill()
+    if TimeManagerClockButton then
+        TimeManagerClockButton:Kill()
+    end
 
     local ZoneTextButton = MinimapCluster.ZoneTextButton or _G.MinimapZoneTextButton
     if (ZoneTextButton) then
@@ -190,71 +176,8 @@ function MODULE:Style()
         MinimapZoneText:Hide()
     end
 
-    local IndicatorFrame = MinimapCluster.IndicatorFrame
-    if IndicatorFrame then
-        IndicatorFrame:SetParent(Minimap)
-        IndicatorFrame:ClearAllPoints()
-        IndicatorFrame:SetPoint("TOPLEFT", 3, -3)
-    end
-
-    local InstanceDifficulty = MinimapCluster.InstanceDifficulty or MiniMapInstanceDifficulty
-    if InstanceDifficulty then
-        InstanceDifficulty:SetParent(Minimap)
-        InstanceDifficulty:ClearAllPoints()
-        InstanceDifficulty:SetPoint("TOPRIGHT", Minimap, "TOPRIGHT", -1, -1)
-    end
-
-    if not E.isRetail then
-        -- mail icon
-        do
-            local frame = _G.MiniMapMailFrame
-            if frame then
-                frame:ClearAllPoints()
-                frame:SetPoint("TOPLEFT", Minimap, "TOPLEFT", 0, 0)
-            end
-        end
-
-        -- tracking icon (mining, herbalism, etc.)
-        do
-            local frame = _G.MiniMapTracking
-            -- local border = _G.MiniMapTrackingButtonBorder
-            if frame then
-                frame:SetParent(Minimap)
-                frame:ClearAllPoints()
-                frame:SetPoint("TOPLEFT", Minimap, "TOPLEFT", 0, -30)
-
-                -- if border then
-                --     border:SetAlpha(0)
-                -- end
-            end
-        end
-
-        -- looking for group icon
-        do
-            local frame = _G.LFGMinimapFrame or _G.MiniMapLFGFrame
-            if frame then
-                frame:SetParent(Minimap)
-                frame:ClearAllPoints()
-                frame:SetPoint("BOTTOMLEFT", Minimap, "BOTTOMLEFT", 0, 0)
-            end
-        end
-
-        do
-            local frame = _G.MiniMapChallengeMode
-            if frame then
-                frame:SetParent(Minimap)
-                frame:ClearAllPoints()
-                frame:SetPoint("TOPRIGHT", Minimap, "TOPRIGHT", -3, -3)
-            end
-        end
-
-        do
-            local frame = _G.MiniMapBattlefieldFrame
-            if frame then
-                frame:ClearAllPoints()
-                frame:SetPoint("BOTTOMLEFT", Minimap, "BOTTOMLEFT", 0, 0)
-            end
-        end
+    if (self.StyleBlizzard) then
+        self:StyleBlizzard()
     end
 
     if (self.PostStyle) then
@@ -263,7 +186,9 @@ function MODULE:Style()
 end
 
 function MODULE:CreateZoneButton()
-    local Zone = CreateFrame("Button", "TukuiMinimapZone", Minimap)
+    -- display only: must not block clicks or the indicator icons under it
+    local Zone = CreateFrame("Frame", addon .. "MinimapZone", Minimap)
+    Zone:EnableMouse(false)
     Zone:SetPoint("TOPLEFT", Minimap, "TOPLEFT", 3, -3)
     Zone:SetPoint("TOPRIGHT", Minimap, "TOPRIGHT", -3, -3)
     Zone:SetHeight(20)
@@ -311,11 +236,9 @@ function MODULE:CreateZoneButton()
     end)
 
     Minimap:HookScript("OnLeave", function(self)
-        if not MouseIsOver(Zone) then
-            Animation:Stop()
-            if not Animation:IsPlaying() then
-                Animation:Play(true)
-            end
+        Animation:Stop()
+        if not Animation:IsPlaying() then
+            Animation:Play(true)
         end
     end)
 end
@@ -327,7 +250,7 @@ function MODULE:CreateDataText()
     element:SetPoint("TOPRIGHT", parent, "BOTTOMRIGHT", 0, -3)
     element:SetHeight(20)
     element:CreateBackdrop()
-    
+
     self.DataText = element
 end
 
@@ -335,9 +258,9 @@ function MODULE:Init()
     self:Style()
     self:CreateZoneButton()
     self:CreateDataText()
+    self.InviteIndicator = self:CreateInviteIndicator()
     self.TaxiRequestEarlyLandingButton = self:AddTaxiRequestEarlyLandingButton()
 
-    if E.isClassic then
-        Minimap_Update()
-    end
+    -- Blizzard's first update runs before Tainted loads
+    Minimap_Update()
 end
