@@ -1,4 +1,9 @@
+# IDE
 .idea/
 .vscode/
 *.iml
+
+# files
 *.zip
+docs/analysis
+docs/issues
