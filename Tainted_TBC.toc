@@ -1,10 +1,11 @@
-## Interface: 50504
+## Interface: 20506
 ## Author: Luaerror
-## Version: 1.3.5 
-## Title: |cffff8000Tainted|r Mists of Pandaria
+## Version: 1.3.5
+## Title: |cffff8000Tainted|r TBC
 ## Notes: Minimalistic interface
 ## SavedVariables: TaintedDatabase, TaintedChatHistory
 ## IconTexture: Interface\ICONS\Spell_Shadow_Shadowform
+## OptionalDeps: Questie
 
 ## X-Website: https://github.com/lua-wow/Tainted
 ## X-Maintainer: Luaerror
@@ -17,7 +18,7 @@ libs\TaintLess\TaintLess.xml
 libs\LibStub\LibStub.lua
 libs\LibDispel\LibDispel.xml
 libs\LibMobs\LibMobs.xml
-libs\oUF_Mists\oUF.xml
+libs\oUF_Classic\oUF.xml
 libs\oUF_AuraTrack\oUF_AuraTrack.xml
 libs\oUF_RaidDebuffs\oUF_RaidDebuffs.xml
 libs\oUF_TargetIndicator\oUF_TargetIndicator.lua
@@ -62,10 +63,10 @@ modules\chat\copy_url.lua
 modules\maps\init_classic.xml
 
 ### blizzard
-modules\blizzard\init_mists.xml
+modules\blizzard\init_classic.xml
 
 ### miscellaneous
-modules\miscellaneous\init_mists.xml
+modules\miscellaneous\init_classic.xml
 
 ### actionbars
 modules\actionbars\init.xml
