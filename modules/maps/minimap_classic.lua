@@ -14,7 +14,7 @@ function MODULE:OnMouseClick(button)
     -- vanilla has no tracking menu, so right-click pings like left-click
     local TrackingButton = _G.MiniMapTrackingButton
     if (button == "RightButton" and TrackingButton) then
-        TrackingButton:OpenMenu()
+        TrackingButton:SetMenuOpen(not TrackingButton:IsMenuOpen())
         if TrackingButton.menu then
             TrackingButton.menu:ClearAllPoints()
             TrackingButton.menu:SetPoint("TOPRIGHT", Minimap, "TOPLEFT", -5, 0)
@@ -56,7 +56,19 @@ function MODULE:StyleBlizzard()
     -- tracking icon (mining, herbalism, etc.)
     do
         local frame = _G.MiniMapTracking
-        if frame then
+        local button = _G.MiniMapTrackingButton
+        if button then
+            -- the tracking menu opens with right-click on the minimap.
+            -- not hidden: the menu manager closes a menu whose owner isn't visible
+            frame:SetParent(Minimap)
+            frame:SetAlpha(0)
+            button:EnableMouse(false)
+
+            -- otherwise the menu manager closes the menu on mouse down and 'OnMouseUp' reopens it
+            function Minimap:HandlesGlobalMouseEvent(mouseButton, event)
+                return event == "GLOBAL_MOUSE_DOWN" and mouseButton == "RightButton"
+            end
+        elseif frame then
             frame:SetParent(Minimap)
             frame:ClearAllPoints()
             frame:SetPoint("TOPLEFT", Minimap, "TOPLEFT", 0, -30)
