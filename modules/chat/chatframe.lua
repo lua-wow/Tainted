@@ -235,7 +235,7 @@ function CHAT:UpdateEditBoxBorderColor()
 		if (chatType == "CHANNEL") then
 			local id = GetChannelName(channel)
 			if (id == 0) then
-				local color = unpack(C.general.border.color)
+				local color = C.general.border.color
 				editBox.Backdrop:SetBackdropBorderColor(color.r, color.g, color.b, color.a or 1)
 			else
 				local info = ChatTypeInfo[chatType .. id]
