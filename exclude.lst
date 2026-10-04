@@ -6,6 +6,10 @@
 Makefile
 exclude.lst
 .luacheckrc
+mise.toml
+CLAUDE.md
+docs/*
+.claude/*
 
 **/.git
 **/.github/*
