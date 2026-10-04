@@ -454,7 +454,7 @@ function MODULE:CreateBagContainer()
 	-- element:RegisterEvent("MERCHANT_CLOSED")
 	-- element:RegisterEvent("MAIL_CLOSED")
 
-    -- if E.isRetail then
+    -- if E.isStandard then
     --     element:RegisterEvent("PLAYERREAGENTBANKSLOTS_CHANGED")
     --     element:RegisterEvent("SOULBIND_FORGE_INTERACTION_STARTED")
     --     element:RegisterEvent("SOULBIND_FORGE_INTERACTION_ENDED")

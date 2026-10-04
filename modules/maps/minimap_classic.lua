@@ -5,7 +5,7 @@ local E, C = ns.E, ns.C
 -- Minimap (Classic Era, TBC, MoP)
 --------------------------------------------------
 if not C.maps.enabled then return end
-if E.isRetail or E.isForever then return end
+if E.isStandard or E.isCamelot then return end
 
 local MODULE = E:GetModule("Minimap")
 

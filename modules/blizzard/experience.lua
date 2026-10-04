@@ -85,10 +85,10 @@ local FACTION_STANDING = {
 local BarOrders = {}
 table.insert(BarOrders, { label = EXPERIENCE, value = BarsEnum.Experience, enabled = true })
 table.insert(BarOrders, { label = REPUTATION, value = BarsEnum.Reputation, enabled = true })
-table.insert(BarOrders, { label = HONOR, value = BarsEnum.Honor, enabled = E.isRetail })
-table.insert(BarOrders, { label = AZERITE, value = BarsEnum.Azerite, enabled = E.isRetail })
-table.insert(BarOrders, { label = ARTIFACT, value = BarsEnum.Artifact, enabled = E.isRetail })
-table.insert(BarOrders, { label = ANIMA, value = BarsEnum.Anima, enabled = E.isRetail })
+table.insert(BarOrders, { label = HONOR, value = BarsEnum.Honor, enabled = E.isStandard })
+table.insert(BarOrders, { label = AZERITE, value = BarsEnum.Azerite, enabled = E.isStandard })
+table.insert(BarOrders, { label = ARTIFACT, value = BarsEnum.Artifact, enabled = E.isStandard })
+table.insert(BarOrders, { label = ANIMA, value = BarsEnum.Anima, enabled = E.isStandard })
 table.insert(BarOrders, { label = PET_EXPERIENCE, value = BarsEnum.PetExperience, enabled = true })
 
 local element_proto = {
@@ -191,7 +191,7 @@ end
 local experience_proto = Mixin({ unit = "player" }, element_proto)
 
 do
-    if E.isRetail then
+    if E.isStandard then
         function experience_proto:GetMaxLevel()
             return GetMaxLevelForPlayerExpansion()
         end
@@ -263,7 +263,7 @@ end
 local reputation_proto = Mixin({}, element_proto)
 
 do
-    if E.isRetail then
+    if E.isStandard then
         function reputation_proto:Update()
             local watchedFactionData = C_Reputation:GetWatchedFactionData()
             if watchedFactionData and watchedFactionData.factionID ~= 0 then
@@ -617,11 +617,11 @@ function frame:OnEvent(event, ...)
 
         -- Reputation
         self:RegisterEvent("UPDATE_FACTION")
-        if E.isRetail then
+        if E.isStandard then
             self:RegisterEvent("MAJOR_FACTION_RENOWN_LEVEL_CHANGED")
         end
 
-        if E.isRetail then
+        if E.isStandard then
             -- Honor
             self:RegisterEvent("HONOR_XP_UPDATE")
             self:RegisterEvent("ZONE_CHANGED")

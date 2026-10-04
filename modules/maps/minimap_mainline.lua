@@ -6,7 +6,7 @@ local E, C, A = ns.E, ns.C, ns.A
 --------------------------------------------------
 -- both clients run Blizzard's mainline minimap code
 if not C.maps.enabled then return end
-if not (E.isRetail or E.isForever) then return end
+if not (E.isStandard or E.isCamelot) then return end
 
 local MODULE = E:GetModule("Minimap")
 

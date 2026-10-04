@@ -49,7 +49,7 @@ function UnitFrames:CreateStagger(frame)
     local height = C.unitframes.classpower.height or 18
 
     local element = Mixin(CreateFrame("StatusBar", frame:GetName() .. "Stagger", frame), element_proto)
-    if E.isMoP and frame.ClassPower then
+    if E.isMists and frame.ClassPower then
         element:SetPoint("BOTTOM", frame.ClassPower, "TOP", 0, 5)
     else
         element:SetPoint(unpack(C.unitframes.classpower.anchor))

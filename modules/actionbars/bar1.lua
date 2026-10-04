@@ -11,19 +11,19 @@ local GetActionTexture  = _G.GetActionTexture
 local PAGE_STATE = {
 	["DEFAULT"] = "[overridebar] %d; [shapeshift] %d; [vehicleui][possessbar] %d; [bonusbar:5] 11; [bar:2] 2; [bar:3] 3; [bar:4] 4; [bar:5] 5; [bar:6] 6;",
 	-- unstealthed cat, stealthed cat, bear, owl; tree form [bonusbar:2] was removed
-	["DRUID"] = E.isRetail 
+	["DRUID"] = E.isStandard 
 	and "[bonusbar:1, stealth] 2; [bonusbar:1, nostealth] 7; [bonusbar:2] 8; [bonusbar:3] 9; [bonusbar:4] 10;"
 		or "[bonusbar:1, stealth] 2; [bonusbar:1, nostealth] 7; [bonusbar:2] 8; [bonusbar:3] 9; [bonusbar:4] 10; [bonusbar:5] 10;",
 	-- soar
 	["EVOKER"] = " [bonusbar:1] 7;",
 	-- stealth, shadow dance
-	["ROGUE"] = E.isMoP and "[bonusbar:1] 7; [bonusbar:2] 8;" or "[bonusbar:1] 7;",
+	["ROGUE"] = E.isMists and "[bonusbar:1] 7; [bonusbar:2] 8;" or "[bonusbar:1] 7;",
 	-- battle stance, defensive stance, berserker stance
 	["WARRIOR"] = "[bonusbar:1] 7; [bonusbar:2] 8; [bonusbar:3] 9;",
 	-- shadowform
 	["PRIEST"] = "[bonusbar:1] 7;",
 	-- ???
-	["WARLOCK"] = E.isMoP and "[form:1] 7;" or nil,
+	["WARLOCK"] = E.isMists and "[form:1] 7;" or nil,
 }
 
 local element_proto = {
@@ -129,7 +129,7 @@ do
 		local page = element:GetPageState()
 		RegisterStateDriver(element, "page", page)
 
-		if not E.isClassic then
+		if not E.isVanilla then
 			element:RegisterEvent("UPDATE_VEHICLE_ACTIONBAR")
 			element:RegisterEvent("UPDATE_OVERRIDE_ACTIONBAR")
 		end

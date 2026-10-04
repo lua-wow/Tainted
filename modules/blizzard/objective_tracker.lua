@@ -4,7 +4,7 @@ local MODULE = E:GetModule("Blizzard")
 
 local element_proto = {}
 
-if E.isClassic or E.isTBC or E.isWrath or E.isMoP then
+if E.isVanilla or E.isTBC or E.isWrath or E.isMists then
     local ObjectiveTracker_SetPoint = function(self, point, anchor, anchorPoint, x, y)
         if InCombatLockdown() then return end
         if anchor ~= self.holder then

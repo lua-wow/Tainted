@@ -64,7 +64,7 @@ local SetupKeyBindings = function()
     
     SetBinding("SHIFT-Y", "TOGGLEACHIEVEMENT", 1) -- default: Y
     
-    if E.isClassic then
+    if E.isVanilla then
         SetBinding("B", "OPENALLBAGS", 1)
         SetBinding("SHIFT-B", "TOGGLEBACKPACK", 1)
     end

@@ -104,19 +104,19 @@ local HEALING_BONUS = L.HEALING_BONUS or "Healing Bonus"
 local CURRENCIES = {
     -- The War Winthin: Season 1
     { currencyID = 2813, enabled = false },  -- Harmonized Silk
-    { currencyID = 3028, enabled = E.isRetail },  -- Restored Coffer Key
-    { currencyID = 3008, enabled = E.isRetail },  -- Valorstones
-    { currencyID = 3278, enabled = E.isRetail },  -- Ethereal Strands
+    { currencyID = 3028, enabled = E.isStandard },  -- Restored Coffer Key
+    { currencyID = 3008, enabled = E.isStandard },  -- Valorstones
+    { currencyID = 3278, enabled = E.isStandard },  -- Ethereal Strands
     -- path 11.0.0
     { currencyID = 2914, enabled = false },  -- Weathered Harbringer Crest
     { currencyID = 2915, enabled = false },  -- Carved Harbringer Crest
     { currencyID = 2916, enabled = false },  -- Runed Harbringer Crest
     { currencyID = 2917, enabled = false },  -- Gilded Harbringer Crest
     -- patch 11.2.0
-    { currencyID = 3284, enabled = E.isRetail },  -- Weathered Ethereal Crest
-    { currencyID = 3286, enabled = E.isRetail },  -- Carved Ethereal Crest
-    { currencyID = 3288, enabled = E.isRetail },  -- Runed Ethereal Crest
-    { currencyID = 3290, enabled = E.isRetail },  -- Gilded Ethereal Crest
+    { currencyID = 3284, enabled = E.isStandard },  -- Weathered Ethereal Crest
+    { currencyID = 3286, enabled = E.isStandard },  -- Carved Ethereal Crest
+    { currencyID = 3288, enabled = E.isStandard },  -- Runed Ethereal Crest
+    { currencyID = 3290, enabled = E.isStandard },  -- Gilded Ethereal Crest
 }
 
 local SchoolEnum = {
@@ -237,7 +237,7 @@ function character_proto:CreateTooltip(tooltip)
 
         -- critical strike
         local criticalStrike, criticalStrikeRating, criticalStrikeRatingBonus = self:GetCriticalStrike()
-        local criticalStrikeText = E.isClassic and ("%0.2f%%"):format(criticalStrike) or ("%d (%0.2f%%)"):format(criticalStrikeRating, criticalStrike)
+        local criticalStrikeText = E.isVanilla and ("%0.2f%%"):format(criticalStrike) or ("%d (%0.2f%%)"):format(criticalStrikeRating, criticalStrike)
         tooltip:AddDoubleLine(STAT_CRITICAL_STRIKE, criticalStrikeText, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0)
         
         -- haste
@@ -405,7 +405,7 @@ function character_proto:GetCriticalStrike()
 end
 
 function character_proto:GetHaste()
-    if E.isClassic then return end
+    if E.isVanilla then return end
     local rating = CR_HASTE_MELEE
     local haste = GetHaste()
     local hasteRating = GetCombatRating(rating)

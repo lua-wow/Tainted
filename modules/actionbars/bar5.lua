@@ -14,7 +14,7 @@ do
 
         local frame = _G.MultiBarLeft
         if frame then
-            if not E.isRetail then
+            if not E.isStandard then
                 frame:SetShown(true)
                 frame:EnableMouse(false)
             end

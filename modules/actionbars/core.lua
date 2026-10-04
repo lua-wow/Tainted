@@ -274,7 +274,7 @@ function MODULE:DisableBlizzard()
     self:Hide(_G.MainStatusTrackingBarContainer, true)
     self:Hide(_G.SecondaryStatusTrackingBarContainer, true)
 
-    if not E.isRetail then
+    if not E.isStandard then
         MultiActionBar_Update = function() end
         BeginActionBarTransition = function() end
     end
@@ -299,7 +299,7 @@ function MODULE:Init()
 
     -- diplay action bar grid
     local actionbars = nil
-    if E.isRetail then
+    if E.isStandard then
         actionbars = {
             true, -- bar 2
             true, -- bar 3
@@ -334,13 +334,13 @@ function MODULE:Init()
     self:CreateActionBar4()
     self:CreateActionBar5()
 
-    if E.isRetail then
+    if E.isStandard then
         self:CreateActionBar6()
         self:CreateActionBar7()
         self:CreateActionBar8()
     end
 
-    if not E.isClassic then
+    if not E.isVanilla then
         do
             local holder = CreateFrame("Frame", "TaintedExtraAbilityHolder", UIParent)
             holder:SetPoint("BOTTOM", UIParent, "BOTTOM", 0, 80)

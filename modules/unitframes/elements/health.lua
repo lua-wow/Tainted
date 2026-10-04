@@ -3,7 +3,7 @@ local E, C = ns.E, ns.C
 local UnitFrames = E:GetModule("UnitFrames")
 
 -- Forever loads Retail oUF too
-local isRetailOUF = E.isRetail or E.isForever
+local isRetailOUF = E.isStandard or E.isCamelot
 
 --------------------------------------------------
 -- Health
@@ -11,7 +11,7 @@ local isRetailOUF = E.isRetail or E.isForever
 do
     local element_proto = {
         colorDisconnected = true,
-        colorTapping = E.isClassic,
+        colorTapping = E.isVanilla,
         colorClass = true,
         colorReaction = true
     }
@@ -45,7 +45,6 @@ do
     end
 
     function UnitFrames:CreateHealth(frame, textParent)
-        local ref = textParent or element
         local texture = C.unitframes.texture
         local fontObject = E.GetFont(C.unitframes.font)
 
@@ -83,6 +82,7 @@ do
 
         local tag = frame.__config.tags.health
         if (tag) then
+            local ref = textParent or element
             local value = ref:CreateFontString(nil, "OVERLAY")
             value:SetPoint("RIGHT", ref, "RIGHT", -5, 0)
             value:SetFontObject(fontObject)

@@ -162,7 +162,7 @@ end
 local header_proto = {}
 
 do
-    function UpdateButton(button, header)
+    local function UpdateButton(button, header)
         local fontObject = E.GetFont(C.auras.font)
 
         Mixin(button, button_proto)

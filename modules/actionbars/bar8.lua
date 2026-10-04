@@ -40,7 +40,7 @@ do
 
         local frame = _G.MultiBar5
         if frame then
-            if not E.isRetail then
+            if not E.isStandard then
                 frame:SetShown(true)
                 frame:EnableMouse(false)
             end

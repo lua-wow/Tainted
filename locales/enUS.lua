@@ -34,7 +34,7 @@ L.GHOST = "Ghost"
 L.merchant = {
     ["notEnoughMoney"] = "You don't have enough money to repair.",
     ["repairCost"] = "Your gear has been repaired for %s.",
-    ["junkSold"] = E.isRetail
+    ["junkSold"] = E.isStandard
         and "Your junk items have been sold."
         or "Your junk items have been sold for %s."
 }

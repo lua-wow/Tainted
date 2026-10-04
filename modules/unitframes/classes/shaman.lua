@@ -123,7 +123,7 @@ function UnitFrames:CreateTempest(frame)
 end
 
 function UnitFrames:SHAMAN(frame)
-    if E.isRetail then
+    if E.isStandard then
         -- frame.Tempest = self:CreateTempest(frame)
     end
 end

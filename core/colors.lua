@@ -131,7 +131,7 @@ do
 end
 
 -- classes
-if E.isClassic then
+if E.isVanilla then
 	oUF.colors.class["SHAMAN"] = oUF:CreateColor(0.00, 0.44, 0.87)
 end
 

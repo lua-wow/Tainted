@@ -141,7 +141,7 @@ function CHAT:SetupChatFrame(frame, config)
 	end
 
 	if config.channels then
-		if E.isRetail then
+		if E.isStandard then
 			local channels = { EnumerateServerChannels() }
 			for k, channel in next, channels do
 				-- dont know why, but this works
@@ -288,7 +288,7 @@ function CHAT:SetChatFramePosition()
 			frame:SetPoint("RIGHT", anchor, "RIGHT", -16, 0)
 			frame:SetPoint("BOTTOM", anchor.DataText, "TOP", 0, 8)
 
-			if E.isRetail then
+			if E.isStandard then
 				hooksecurefunc(frame, "SetPoint", function(f)
 					frame:SetPointBase("TOP", anchor.Tab, "BOTTOM", 0, -5)
 					frame:SetPointBase("LEFT", anchor, "LEFT", C.chat.margin, 0)
@@ -308,7 +308,7 @@ function CHAT:SetChatFramePosition()
 			frame:SetUserPlaced(true)
 			frame:SetMovable(false)
 
-			-- if E.isRetail then
+			-- if E.isStandard then
 			-- 	hooksecurefunc(frame, "SetPoint", function(f)
 			-- 		frame:SetPointBase("TOP", anchor.Tab, "BOTTOM", 0, -5)
 			-- 		frame:SetPointBase("LEFT", anchor, "LEFT", C.chat.margin, 0)

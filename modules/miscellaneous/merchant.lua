@@ -73,7 +73,7 @@ local function SellJunkClassic()
     end
 end
 
-local SellJunk = E.isRetail and SellJunkRetail or SellJunkClassic
+local SellJunk = E.isStandard and SellJunkRetail or SellJunkClassic
 
 local function OnMerchantShow()
     AutoRepair()

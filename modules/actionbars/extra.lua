@@ -39,7 +39,7 @@ function MODULE:CreateExtraActionButton(holder)
         end
     end)
 
-    if E.isRetail then
+    if E.isStandard then
         hooksecurefunc("ExtraActionBar_Update", function()
             if HasExtraActionBar() then
                 if button.style then

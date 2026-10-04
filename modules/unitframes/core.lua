@@ -11,9 +11,9 @@ local NUM_BOSS_FRAMES = _G.NUM_BOSS_FRAMES or 8
 local NUM_ARENA_FRAMES = _G.NUM_ARENA_FRAMES or 5
 
 -- Forever loads Retail oUF too
-local isRetailOUF = E.isRetail or E.isForever
+local isRetailOUF = E.isStandard or E.isCamelot
 
-local SPEC_DRUID_RESTORATION = E.isRetail and 4 or 3
+local SPEC_DRUID_RESTORATION = E.isStandard and 4 or 3
 local SPEC_PALADIN_HOLY = 1
 local SPEC_PRIEST_SHADOW = _G.SPEC_PRIEST_SHADOW or 3
 local SPEC_SHAMAN_RESTORATION = _G.SPEC_SHAMAN_RESTORATION or 3
@@ -85,7 +85,7 @@ do
         elseif event == "PLAYER_REGEN_ENABLED" then
             self:RegisterEvent("GROUP_ROSTER_UPDATE")
 
-            if E.isRetail then
+            if E.isStandard then
                 self:RegisterUnitEvent("PLAYER_SPECIALIZATION_CHANGED", self.unit)
             else
                 self:RegisterEvent("CHARACTER_POINTS_CHANGED")
@@ -144,13 +144,13 @@ function UnitFrames:DisableBlizzard()
             CompactRaidFrameContainer:Hide()
         end
 		
-		if (E.isRetail) then
+		if (E.isStandard) then
 			UIParent:UnregisterEvent("GROUP_ROSTER_UPDATE")
 			CompactRaidFrameManager_SetSetting("IsShown", "0")
 		end
 
 		-- Hide Raid Interface Options.
-		-- if not E.isRetail then
+		-- if not E.isStandard then
 		-- 	InterfaceOptionsFrameCategoriesButton11:SetHeight(0.00001)
 		-- 	InterfaceOptionsFrameCategoriesButton11:SetAlpha(0)
 		-- end
@@ -291,7 +291,7 @@ function UnitFrames:GetRaidAttributes()
         "showRaid", true,
         "showPlayer", true,
         "showSolo", showSolo,
-        "showPet", E.isClassic,
+        "showPet", E.isVanilla,
         "xOffset", C.unitframes.raid.xOffset or 5,
         "point", "LEFT",
         "groupFilter", "1,2,3,4,5,6,7,8",

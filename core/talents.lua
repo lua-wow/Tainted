@@ -55,7 +55,7 @@ end
 function element_proto:PLAYER_LOGIN()
     self:RegisterEvent("PLAYER_ENTERING_WORLD")
 
-    if E.isRetail then
+    if E.isStandard then
         self:RegisterUnitEvent("PLAYER_SPECIALIZATION_CHANGED", "player")
     else
         self:RegisterEvent("PLAYER_TALENT_UPDATE")
@@ -80,7 +80,7 @@ function element_proto:UpdateClass()
     self.class = class
 end
 
-if E.isClassic or E.isTBC or E.isWrath then
+if E.isVanilla or E.isTBC or E.isWrath then
     function element_proto:GetRole()
         if self.class == "DRUID" then
             local resto = self.talents[SPEC_DRUID_RESTORATION] or 0
@@ -163,7 +163,7 @@ elseif E.isCata then
         self.role = self:GetRole()
         self:ApplyOverride()
     end
-elseif E.isMoP then
+elseif E.isMists then
     function element_proto:Update()
         self.spec = C_SpecializationInfo.GetSpecialization()
         self.role = GetSpecializationRole(self.spec) or DAMAGE

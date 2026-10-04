@@ -75,7 +75,7 @@ do
     local element_proto = {}
 
     function UnitFrames:CreatePhaseIndicator(frame, sublevel)
-        if not E.isRetail then
+        if not E.isStandard then
             return nil
         end
         
@@ -101,7 +101,7 @@ do
     }
 
     function UnitFrames:CreatePvPClassificationIndicator(frame, sublevel)
-        if not E.isRetail then
+        if not E.isStandard then
             return nil
         end
 
@@ -118,7 +118,7 @@ do
     local element_proto = {}
 
     function UnitFrames:CreatePvPIndicator(frame, sublevel)
-        local holder = CreateFrame("Frame", frame:GetName() .. "PvPIndicator", parent)
+        local holder = CreateFrame("Frame", frame:GetName() .. "PvPIndicator", frame)
         holder:SetPoint("CENTER", frame, "TOPRIGHT", 0, 0)
         holder:SetSize(16, 16)
 
@@ -144,7 +144,7 @@ do
     local element_proto = {}
 
     function UnitFrames:CreateQuestIndicator(frame, sublevel)
-        if not E.isRetail then
+        if not E.isStandard then
             return nil
         end
 
@@ -236,7 +236,7 @@ do
     local element_proto = {}
 
     function UnitFrames:CreateSummonIndicator(frame, sublevel)
-        if not E.isRetail then
+        if not E.isStandard then
             return nil
         end
 

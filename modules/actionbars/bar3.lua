@@ -36,7 +36,7 @@ do
 
         local frame = _G.MultiBarBottomRight
         if frame then
-            if not E.isRetail then
+            if not E.isStandard then
                 frame:SetShown(true)
                 frame:EnableMouse(false)
             end

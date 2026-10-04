@@ -30,14 +30,18 @@ E.releaseDate = wowReleaseDate
 E.tocVersion = tocVersion
 
 -- reference: https://warcraft.wiki.gg/wiki/WOW_PROJECT_ID
-E.isRetail = (WOW_PROJECT_ID == WOW_PROJECT_MAINLINE)
-E.isClassic = (WOW_PROJECT_ID == WOW_PROJECT_CLASSIC)
+E.isStandard = (WOW_PROJECT_ID == WOW_PROJECT_MAINLINE)
+E.isVanilla = (WOW_PROJECT_ID == WOW_PROJECT_CLASSIC)
 E.isTBC = (WOW_PROJECT_ID == WOW_PROJECT_BURNING_CRUSADE_CLASSIC)
 E.isWrath = (WOW_PROJECT_ID == WOW_PROJECT_WRATH_CLASSIC)
 E.isCata = (WOW_PROJECT_ID == WOW_PROJECT_CATACLYSM_CLASSIC)
-E.isMoP = (WOW_PROJECT_ID == WOW_PROJECT_MISTS_CLASSIC)
+E.isMists = (WOW_PROJECT_ID == WOW_PROJECT_MISTS_CLASSIC)
 E.isPlunderstorm = (WOW_PROJECT_ID == WOW_PROJECT_WOWLABS)
-E.isForever = (WOW_PROJECT_ID == WOW_PROJECT_CAMELOT)
+E.isCamelot = (WOW_PROJECT_ID == WOW_PROJECT_CAMELOT)
+
+-- game type families, as in TOC [AllowLoadGameType mainline/classic]
+E.isClassic = (E.isVanilla or E.isTBC or E.isWrath or E.isCata or E.isMists)
+E.isMainline = not E.isClassic
 
 -- Hider
 E.Hider = CreateFrame("Frame", "TaintedHider", UIParent)

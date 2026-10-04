@@ -48,7 +48,7 @@ nameplates_proto.cvars = {
     nameplateMaxAlpha = 1.0,                                -- the max alpha of nameplates. default: 1.0
     nameplateMaxAlphaDistance = 40.0,                       -- the distance from the camera that nameplates will reach their maximum alpha. default: 40
     nameplateMaxScale = 1.0,                                -- the max scale of nameplates. default: 1.0
-    nameplateMaxDistance = E.isRetail and 61 or 41,         -- the max distance to show nameplates. default: 40
+    nameplateMaxDistance = E.isStandard and 61 or 41,         -- the max distance to show nameplates. default: 40
     nameplateMinAlpha = config.minAlpha or 0.6,             -- the minimum alpha of nameplates. default: 0.6
     nameplateMinAlphaDistance = 10,                         -- the distance from the max distance that nameplates will reach their minimum alpha. default: 10
     nameplateMinScale = 0.8,                                -- the minimum scale of nameplates. default: 0.8
@@ -57,7 +57,7 @@ nameplates_proto.cvars = {
     -- nameplateMotionSpeed = 0.025,                           -- controls the rate at which nameplate animates into their target locations [0.0-1.0] detault: 0.025
     nameplateSelectedAlpha = config.selectedAlpha or 1.0,   -- the alpha of the selected nameplate. detault: 1.0
     nameplateSelectedScale = config.selectedScale or 1.2,   -- the scale of the selected nameplate. detault: 1.2
-    -- nameplateNotSelectedAlpha = (not E.isRetail) and config.notSelectedAlpha,
+    -- nameplateNotSelectedAlpha = (not E.isStandard) and config.notSelectedAlpha,
     nameplateOccludedAlphaMult = 0.4,                       -- alpha multiplier of nameplates for occluded targets. default: 0.4
     nameplateShowAll = 1,
     nameplateShowSelf = 0,
@@ -198,7 +198,7 @@ function health_proto:UnitSelectionType(unit, considerHostile)
     return selectionTypes[selection]
 end
 
-if E.isRetail then
+if E.isStandard then
     function health_proto:UpdateColor(event, unit)
         if (not unit or self.__unit ~= unit) then return end
         
@@ -245,7 +245,7 @@ if E.isRetail then
             element:SetColor(color)
         end
     end
-elseif E.isMoP then
+elseif E.isMists then
     function health_proto:PostUpdateColor(unit, r, g, b)
         local element = self
 

@@ -5,6 +5,6 @@ local UnitFrames = E:GetModule("UnitFrames")
 --------------------------------------------------
 -- Party
 --------------------------------------------------
-function UnitFrames:CreatePartyFrame()
+function UnitFrames:CreatePartyFrame(frame)
     self:CreateUnitFrame(frame)
 end

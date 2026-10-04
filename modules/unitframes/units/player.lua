@@ -46,7 +46,7 @@ function UnitFrames:CreatePlayerFrame(frame)
     -- MONK -> STATUES
     -- PALADIN -> CONSACRATION
     -- PRIEST -> MIND BINDER
-    if E.isRetail then
+    if E.isStandard then
         frame.Totems = self:CreateTotems(frame)
     end
 

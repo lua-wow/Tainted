@@ -47,8 +47,22 @@ A single `Tainted.toc` serves every supported client (`## Interface: 120100, 160
 
 ## Runtime client checks
 
-Engine flags from `WOW_PROJECT_ID` in `core/init.lua`: `E.isRetail`, `E.isClassic`, `E.isTBC`,
-`E.isWrath`, `E.isCata`, `E.isMoP`, `E.isPlunderstorm`, `E.isForever`.
+Flags in `core/init.lua` are named after the TOC game types and families
+([TOC format](https://warcraft.wiki.gg/wiki/TOC_format)):
+
+| Kind      | Flags                                                                                          | Meaning                                         |
+|:----------|:-----------------------------------------------------------------------------------------------|:------------------------------------------------|
+| Game type | `E.isStandard`, `E.isCamelot`, `E.isVanilla`, `E.isTBC`, `E.isWrath`, `E.isCata`, `E.isMists`, `E.isPlunderstorm` | exact `WOW_PROJECT_ID` (Forever is `WOW_PROJECT_CAMELOT`, not `WOW_PROJECT_MAINLINE`) |
+| Family    | `E.isMainline`, `E.isClassic`                                                                   | TOC `mainline` / `classic` families             |
+
+- Use family flags for API/UI-family differences; game flags only for game-specific content
+  (spells, talents, a single client's frames).
+- The oUF variant has no runtime flag: the TOC picks it. Code that depends on the oUF variant
+  belongs in files tagged like the oUF line, or checks the game flags that match it.
+- Some call sites still use game flags where a family is meant (e.g. `E.isStandard` for
+  "mainline", `E.isVanilla` for "classic"); fix them as their rebuild item touches them.
+- TOC path variables (`[Game]`, `[Family]`) work on all supported clients but are not used:
+  variants split by oUF variant, not by game or family, and inline branches still need flags.
 
 ## Secret values (Midnight / Retail)
 

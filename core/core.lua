@@ -76,7 +76,7 @@ end
 E:RegisterEvent("ADDON_LOADED")
 E:RegisterEvent("VARIABLES_LOADED")
 E:RegisterEvent("PLAYER_LOGIN")
-if (E.isRetail) then
+if (E.isStandard) then
 	E:RegisterEvent("SETTINGS_LOADED")
 end
 E:RegisterEvent("PLAYER_ENTERING_WORLD")
@@ -104,7 +104,7 @@ function E:PLAYER_LOGIN()
 		self:SetupUiScale()
 
 		-- fix bag sorting order
-		if E.isRetail then
+		if E.isStandard then
 			C_Container.SetSortBagsRightToLeft(true)
 			C_Container.SetInsertItemsLeftToRight(true)
 		end

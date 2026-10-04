@@ -291,7 +291,7 @@ function MODULE:AddMetadata()
         end
     end
 
-    if E.isClassic then
+    if E.isVanilla then
         hookscript(_G.GameTooltip, "OnTooltipSetItem", OnTooltipSetItem)
         hookscript(_G.ItemRefTooltip, "OnTooltipSetItem", OnTooltipSetItem)
         hookscript(_G.ItemRefShoppingTooltip1, "OnTooltipSetItem", OnTooltipSetItem)

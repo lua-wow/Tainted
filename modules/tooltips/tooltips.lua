@@ -421,7 +421,7 @@ local UpdateUnitTooltip = function(tooltip, data)
     end
 
     -- hunter
-    if E.isClassic and E.class == "HUNTER" and unit == "pet" and GetPetHappiness then
+    if E.isVanilla and E.class == "HUNTER" and unit == "pet" and GetPetHappiness then
         local happiness, damagePercentage, loyaltyRate = GetPetHappiness()
         if happiness then
             local color = E.colors.happiness[happiness]
@@ -579,7 +579,7 @@ function tooltip_proto:SetupHooks(owner)
         TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Unit, UpdateUnitTooltip)
     end
 
-    if not E.isRetail then
+    if not E.isStandard then
 		GameTooltip:HookScript("OnTooltipSetItem", UpdateItemTooltip)
         GameTooltip:HookScript("OnTooltipSetUnit", UpdateUnitTooltip)
     end

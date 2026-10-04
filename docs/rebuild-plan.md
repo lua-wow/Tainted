@@ -33,7 +33,7 @@ See CLAUDE.md → Philosophy and Changing code. These are the ones specific to t
 
 ### 0. Core contract
 
-**Status:** Not started · **Priority:** Critical · **Depends on:** —
+**Status:** Done · **Priority:** Critical · **Depends on:** —
 
 **Objective:** settle what client flags mean and who owns startup side effects.
 
@@ -128,9 +128,10 @@ Unit frames continue in parallel as a leaf. Only item 0 touches them.
 
 ## 4. Known architectural risks (observed)
 
-- **Ambiguous client flags.** `isRetail` is used both for Retail and for "mainline API".
-  `isClassic` means Era only but is used for the whole classic family. Forever therefore takes
-  wrong paths.
+- **Ambiguous client flags.** Renamed in item 0 (`isRetail` → `isStandard`, `isClassic` →
+  `isVanilla`, `isMoP` → `isMists`, `isForever` → `isCamelot`), and family flags
+  `isMainline`/`isClassic` added. Call sites still use game flags where a family is meant, so
+  Forever and TBC/WotLK/MoP can take wrong paths until each item moves them to family flags.
 - **Implicit dependencies.** Modules find each other's frames by global name and rely on TOC
   order (chat/minimap → datatexts).
 - **Core does module work.** It forces action-bar settings on Retail and triggers the chat reset.
@@ -176,4 +177,4 @@ Unit frames continue in parallel as a leaf. Only item 0 touches them.
 - [x] Reference repository documentation
 - [x] Configuration/settings audit
 - [x] Architecture audit
-- [ ] 0. Core contract
+- [x] 0. Core contract
