@@ -2,6 +2,9 @@ local _, ns = ...
 local E, C = ns.E, ns.C
 local UnitFrames = E:GetModule("UnitFrames")
 
+-- Forever loads Retail oUF too
+local isRetailOUF = E.isRetail or E.isForever
+
 --------------------------------------------------
 -- Health
 --------------------------------------------------
@@ -99,7 +102,8 @@ do
             element.colorReaction = false
         end
 
-        self:CreateHealthPrediction(element, frame.__config.width or 200)
+        -- Retail oUF reads the prediction bars from Health, Classic/Mists oUF needs a HealthPrediction element
+        frame.HealthPrediction = self:CreateHealthPrediction(element, frame.__config.width or 200)
 
         return element
     end
@@ -109,7 +113,59 @@ end
 -- Health Prediction
 --------------------------------------------------
 do
+    local function CreateClassicHealthPrediction(parent, width)
+        local texture = C.unitframes.texture
+
+        local healingColor = C.unitframes.health.prediction.colors.healing
+        local absorbColor = C.unitframes.health.prediction.colors.absorb
+
+        local myBar = CreateFrame("StatusBar", nil, parent)
+        myBar:SetPoint("TOP")
+        myBar:SetPoint("BOTTOM")
+        myBar:SetPoint("LEFT", parent:GetStatusBarTexture(), "RIGHT")
+        myBar:SetWidth(width)
+        myBar:SetStatusBarTexture(texture)
+        myBar:SetStatusBarColor(healingColor:GetRGBA())
+
+        local otherBar = CreateFrame("StatusBar", nil, parent)
+        otherBar:SetPoint("TOP")
+        otherBar:SetPoint("BOTTOM")
+        otherBar:SetPoint("LEFT", myBar:GetStatusBarTexture(), "RIGHT")
+        otherBar:SetWidth(width)
+        otherBar:SetStatusBarTexture(texture)
+        otherBar:SetStatusBarColor(healingColor:GetRGBA())
+
+        local absorbBar = CreateFrame("StatusBar", nil, parent)
+        absorbBar:SetPoint("TOP")
+        absorbBar:SetPoint("BOTTOM")
+        absorbBar:SetPoint("LEFT", otherBar:GetStatusBarTexture(), "RIGHT")
+        absorbBar:SetWidth(width)
+        absorbBar:SetStatusBarTexture(texture)
+        absorbBar:SetStatusBarColor(absorbColor:GetRGBA())
+
+        local healAbsorbBar = CreateFrame("StatusBar", nil, parent)
+        healAbsorbBar:SetPoint("TOP")
+        healAbsorbBar:SetPoint("BOTTOM")
+        healAbsorbBar:SetPoint("RIGHT", parent:GetStatusBarTexture())
+        healAbsorbBar:SetWidth(width)
+        healAbsorbBar:SetReverseFill(true)
+        healAbsorbBar:SetStatusBarTexture(texture)
+        healAbsorbBar:SetStatusBarColor(absorbColor:GetRGBA())
+
+        return {
+            myBar = myBar,
+            otherBar = otherBar,
+            absorbBar = absorbBar,
+            healAbsorbBar = healAbsorbBar,
+            maxOverflow = 1
+        }
+    end
+
     function UnitFrames:CreateHealthPrediction(parent, width)
+        if not isRetailOUF then
+            return CreateClassicHealthPrediction(parent, width)
+        end
+
         local level = parent:GetFrameLevel()
         local texture = C.unitframes.texture
 

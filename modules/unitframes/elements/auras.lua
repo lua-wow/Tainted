@@ -151,8 +151,9 @@ function aura_proto:PostUpdateButton(button, unit, data, position)
     end
 
     if button.Backdrop then
-        if (data.isHarmfulAura and UnitCanAssist(unit, "player")) or (data.isHelpfulAura and UnitCanAttack(unit, "player") and UnitCanAttack("player", unit)) then
-            local color = C_UnitAuras.GetAuraDispelTypeColor(unit, data.auraInstanceID, self.dispelColorCurve) or C.general.border.color
+        -- only Classic/MoP oUF call this, and they provide plain AuraData flags and debuff colors
+        if (data.isHarmful and UnitCanAssist(unit, "player")) or (data.isHelpful and UnitCanAttack(unit, "player") and UnitCanAttack("player", unit)) then
+            local color = E.colors.debuff[data.dispelName or "none"] or C.general.border.color
 			-- if color == nil then
 			-- 	-- BUG: this shouldn't happen but color can be nil, so default to None color
 			-- 	color = element.dispelColorCurve:Evaluate(0)
@@ -169,7 +170,7 @@ function aura_proto:PostUpdateButton(button, unit, data, position)
     end
 
     if button.Icon then
-        button.Icon:SetDesaturated(data.isHarmfulAura and (not data.isPlayerAura) and not UnitIsUnit(unit, "player"))
+        button.Icon:SetDesaturated(data.isHarmful and (not data.isPlayerAura) and not UnitIsUnit(unit, "player"))
     end
 
     if (button.Animation) then
@@ -186,11 +187,10 @@ function aura_proto:PostUpdateButton(button, unit, data, position)
 end
 
 function aura_proto:PostProcessAuraData(unit, data, filter)
-    data.isDispelable = LibDispel:IsDispelable(unit, data.spellId, data.dispelName, data.isHarmfulAura)
+    data.isDispelable = LibDispel:IsDispelable(unit, data.spellId, data.dispelName, data.isHarmful)
     
     -- data.isHelpfulAura = not C_UnitAuras.IsAuraFilteredOutByInstanceID(unit, data.auraInstanceID, "HELPFUL")
     -- data.isHarmfulAura = not C_UnitAuras.IsAuraFilteredOutByInstanceID(unit, data.auraInstanceID, "HARMFUL")
-    data.isHarmfulAura = not data.isHelpfulAura
     
     -- data.isPlayer = not C_UnitAuras.IsAuraFilteredOutByInstanceID(unit, data.auraInstanceID, "PLAYER")
     -- data.isRaid = not C_UnitAuras.IsAuraFilteredOutByInstanceID(unit, data.auraInstanceID, "RAID")

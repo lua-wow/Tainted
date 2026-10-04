@@ -26,6 +26,7 @@ libs\oUF_TargetIndicator\oUF_TargetIndicator.lua
 ## assets
 core\assets.lua
 core\colors.lua
+core\curves.lua
 core\fonts.lua
 
 ## locales

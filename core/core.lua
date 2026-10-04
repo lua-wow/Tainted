@@ -37,7 +37,10 @@ do
 		for _, name in ipairs(indexes) do
 			local module = modules[name]
 			if module.Init then
-				self:Call(module.Init, module)
+				-- the error handler's stack does not always reach the module, so name it
+				if not self:Call(module.Init, module) then
+					self:error("Module " .. name .. " failed to initialize.")
+				end
 			else
 				self:error("Module " .. name .. " do not have 'Init' function.")
 			end

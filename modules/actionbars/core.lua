@@ -217,8 +217,12 @@ function MODULE:Hide(obj, events)
     -- some frame dependency issues
     -- we then follow it up with a SetPoint to handle the cases of bits of the
     -- UI code assuming that this element has a position
+    local width, height = obj:GetSize()
     obj:ClearAllPoints()
     obj:SetPoint("CENTER")
+    -- frames sized only by anchors (Classic Era MainMenuBarArtFrame, which Edit Mode anchors
+    -- MicroMenuContainer to) would otherwise lose their rect
+    obj:SetSize(width, height)
 
     if obj.EnableMouse then
 		obj:EnableMouse(false)
@@ -273,13 +277,6 @@ function MODULE:DisableBlizzard()
     if not E.isRetail then
         MultiActionBar_Update = function() end
         BeginActionBarTransition = function() end
-    end
-
-    -- Classic Era: container has no anchor until Edit Mode applies its layout, and hiding
-    -- the micro buttons triggers a Layout() that calls GetCenter() on it
-    local MicroMenuContainer = _G.MicroMenuContainer
-    if MicroMenuContainer and not MicroMenuContainer:GetPoint() then
-        MicroMenuContainer:SetPoint("BOTTOMRIGHT", UIParent, -10, 220)
     end
 
     local MicroMenu = _G.MicroMenu

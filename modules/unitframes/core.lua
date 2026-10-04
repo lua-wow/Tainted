@@ -10,6 +10,9 @@ local Talents = E:GetModule("Talents")
 local NUM_BOSS_FRAMES = _G.NUM_BOSS_FRAMES or 8
 local NUM_ARENA_FRAMES = _G.NUM_ARENA_FRAMES or 5
 
+-- Forever loads Retail oUF too
+local isRetailOUF = E.isRetail or E.isForever
+
 local SPEC_DRUID_RESTORATION = E.isRetail and 4 or 3
 local SPEC_PALADIN_HOLY = 1
 local SPEC_PRIEST_SHADOW = _G.SPEC_PRIEST_SHADOW or 3
@@ -236,6 +239,30 @@ local function CreateUnit(unit, parent, num)
     return units[unit]
 end
 
+-- Retail oUF sets visibility through a header method, Classic/Mists oUF takes it as the 3rd argument
+local function SpawnHeader(self, visibility, name, template, ...)
+    if isRetailOUF then
+        local header = self:SpawnHeader(name, template, ...)
+        header:SetVisibility(visibility)
+        return header
+    end
+    return self:SpawnHeader(name, template, visibility, ...)
+end
+
+-- Classic/Mists oUF has a single nameplate callback, so dispatch it to the Retail-style ones
+local function NameplateCallback(frame, event, unit)
+    if not frame then return end
+
+    local Nameplates = UnitFrames.Nameplates
+    if event == "NAME_PLATE_UNIT_ADDED" then
+        if Nameplates.SetAddedCallback then Nameplates.SetAddedCallback(frame, event, unit) end
+    elseif event == "NAME_PLATE_UNIT_REMOVED" then
+        if Nameplates.SetRemovedCallback then Nameplates.SetRemovedCallback(frame, event, unit) end
+    elseif event == "PLAYER_TARGET_CHANGED" then
+        if Nameplates.SetTargetCallback then Nameplates.SetTargetCallback(frame, event, unit) end
+    end
+end
+
 function UnitFrames:GetRaidVisibility()
     local visibility = "custom [group:raid, @raid21, noexists] show; [group:party, nogroup:raid] show; "
     if C.unitframes.raid.solo then
@@ -406,21 +433,16 @@ function UnitFrames:Init()
         local arena = CreateUnit("arena", holder, NUM_ARENA_FRAMES)
 
         if (C.unitframes.raid.enabled) then
-            local raid = self:SpawnHeader(UnitFrames:GetRaidAttributes())
-            raid:SetVisibility(UnitFrames:GetRaidVisibility())
+            local raid = SpawnHeader(self, UnitFrames:GetRaidVisibility(), UnitFrames:GetRaidAttributes())
             raid:SetParent(RaidHolder)
             raid:SetPoint("BOTTOMLEFT", 0, 0)
 
-            local raid40 = self:SpawnHeader(UnitFrames:GetRaid40Attributes())
-            raid40:SetVisibility(UnitFrames:GetRaid40Visibilty())
+            local raid40 = SpawnHeader(self, UnitFrames:GetRaid40Visibilty(), UnitFrames:GetRaid40Attributes())
             raid40:SetParent(RaidHolder)
             raid40:SetPoint("BOTTOMLEFT", 0, 0)
         end
 
         if (C.unitframes.nameplate.enabled) then
-            local nameplates = self:SpawnNamePlates(addon)
-            nameplates:SetSize(200, 20)
-
             for k, v in next, UnitFrames.Nameplates.cvars do
                 local value, _, _, _, _, isSecure, isReadOnly = C_CVar.GetCVarInfo(k)
                 if (not value) then
@@ -428,6 +450,14 @@ function UnitFrames:Init()
                     UnitFrames.Nameplates.cvars[k] = nil
                 end
             end
+
+            if not isRetailOUF then
+                self:SpawnNamePlates(addon, NameplateCallback, UnitFrames.Nameplates.cvars)
+                return
+            end
+
+            local nameplates = self:SpawnNamePlates(addon)
+            nameplates:SetSize(200, 20)
 
             nameplates:SetCVars(UnitFrames.Nameplates.cvars or {})
 

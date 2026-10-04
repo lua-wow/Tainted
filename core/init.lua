@@ -41,6 +41,8 @@ E.isForever = (WOW_PROJECT_ID == WOW_PROJECT_CAMELOT)
 
 -- Hider
 E.Hider = CreateFrame("Frame", "TaintedHider", UIParent)
+-- needs a rect, or frames anchored to hidden frames (e.g. Classic Era MicroMenuContainer) return nil from GetCenter()
+E.Hider:SetAllPoints()
 E.Hider:Hide()
 
 -- PetHider
