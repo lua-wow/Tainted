@@ -193,7 +193,6 @@ function MODULE:SetupDataText(index, name)
 		frame.guid = self.__guid
 		frame.class = self.__class
 		frame.color = C.datatexts.colors.value
-		frame.highlight = C.datatexts.colors.highlight
 
 		frame:Enable()
 		

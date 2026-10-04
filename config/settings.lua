@@ -12,8 +12,7 @@ C["general"] = {
     },
     ["border"] = {
         ["size"] = 1,
-        ["color"] = E:CreateColor(0, 0, 0),
-        ["texture"] = blankTex
+        ["color"] = E:CreateColor(0, 0, 0)
     },
     ["background"] = {
         ["multiplier"] = 0.30
@@ -70,12 +69,11 @@ C["bags"] = {
 }
 
 C["blizzard"] = {
-    ["font"] = "Tainted",
-    ["ghost"] = E.isRetail,
+    ["ghost"] = true,
     ["mirrortimers"] = true,
-    ["talkinghead"] = E.isRetail,
+    ["talkinghead"] = true,
     ["uiwidgets"] = true,
-    ["raid_utility"] = E.isRetail
+    ["raid_utility"] = true
 }
 
 C["chat"] = {
@@ -83,6 +81,7 @@ C["chat"] = {
 	["width"] = 450,
 	["height"] = 205,
 	["font"] = "Tainted",
+	["ScrollByX"] = 3,
 	["text"] = {
 		["fading"] = {
 			["enabled"] = false,
@@ -105,14 +104,9 @@ C["datatexts"] = {
 	["colors"] = {
         ["class"] = true,
 		["text"] = E:CreateColor(1.00, 1.00, 1.00),
-		["value"] = E:CreateColor(1.00, 1.00, 1.00),
-        ["highlight"] = E:CreateColor(1.00, 1.00, 0.00)
+		["value"] = E:CreateColor(1.00, 1.00, 1.00)
 	},
     ["clock"] = {
-        ["values"] = {
-            ["military"] = "24-hour format",
-            ["civilian"] = "12-hour format"
-        },
         ["format"] = "military",
         ["timezone"] = "local" -- "local" or "server"
     },
@@ -175,6 +169,7 @@ C["unitframes"] = {
     ["texture"] = blankTex,
     ["monochrome"] = true,
     ["color"] = E:CreateColor(0.10, 0.10, 0.10),
+    ["rangeAlpha"] = 0.30,
     ["health"] = {
         ["temploss"] = {
             ["texture"] = A.textures.reduction
@@ -197,9 +192,6 @@ C["unitframes"] = {
         ["size"] = 27,
         ["spacing"] = 3
     },
-    ["debuffs"] = {
-        ["desaturate"] = true
-    },
     ["portrait"] = {
         ["enabled"] = false,
         ["model"] = "3D",       -- "2D", "CLASS", "3D"
@@ -213,12 +205,9 @@ C["unitframes"] = {
         ["anchor"] = { "CENTER", UIParent, "CENTER", 0, -308 }
     },
     ["totems"] = {
-        ["icons"] = true,
+        ["icons"] = false,
         ["size"] = 32,
-        ["spacing"] = 5,
-        ["width"] = 235,
-        ["height"] = 16,
-        ["anchor"] = { "CENTER", UIParent, "CENTER", 0, -200 }
+        ["spacing"] = 5
     },
     -- castbar
     ["castbar"] = {
@@ -241,7 +230,6 @@ C["unitframes"] = {
         ["auras"] = false,
         ["castbar"] = {
             ["mode"] = "detached",
-            ["width"] = 350,
             ["height"] = 20,
             ["icon"] = true,
             ["latency"] = true
@@ -262,7 +250,6 @@ C["unitframes"] = {
         ["auras"] = true,
         ["castbar"] = {
             ["mode"] = "detached",
-            ["width"] = 350,
             ["height"] = 20,
             ["icon"] = true
         },
@@ -362,7 +349,6 @@ C["unitframes"] = {
             ["health"] = "[healthcolor][perhp]%|r"
         },
         ["minAlpha"] = 0.30,
-        ["notSelectedAlpha"] = 0.50,
         ["selectedAlpha"] = 1.0,
         ["selectedScale"] = 1.2
     },
@@ -376,14 +362,10 @@ C["unitframes"] = {
         },
         ["debuffs"] = true,
         ["auratrack"] = {
-            ["enabled"] = true,
-            ["icons"] = true,
-            ["spellTextures"] = true
+            ["enabled"] = true
         },
         ["solo"] = false,
-        ["rangeAlpha"] = 0.30,
         ["xOffset"] = 5,
-        ["yOffset"] = 5,
         ["unitsPerColumn"] = 5,
         ["columnSpacing"] = 5
     }

@@ -99,7 +99,7 @@ E.API.CreateBackdrop = function(self, template)
 		backdropAlpha = template
 	end
 	
-	local borderTexture = C.general.border.texture or A.textures.blank
+	local borderTexture = A.textures.blank
 	local borderColor = C.general.border.color
 
 	local inset = E.Scale(C.general.border.size or 1)

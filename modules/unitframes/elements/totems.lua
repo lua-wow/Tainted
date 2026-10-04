@@ -96,7 +96,7 @@ function UnitFrames:CreateTotems(frame)
     local sizes = E.CalcSegmentsSizes(MAX_TOTEMS, width, spacing)
     
     for i = 1, MAX_TOTEMS do
-        if (C.unitframes.totems.icon) then
+        if (C.unitframes.totems.icons) then
             local size = C.unitframes.totems.size
 
             local totem = CreateFrame("Button", element:GetName() .. i, element)

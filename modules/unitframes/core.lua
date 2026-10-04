@@ -104,8 +104,9 @@ do
     function UnitFrames:CreateRaidHolder()
         local rows = 2
         local cols = C.unitframes.raid.unitsPerColumn
-        local colsSpacing = C.unitframes.raid.columnSpacing
-        local rowsSpacing = C.unitframes.raid.xOffset
+        -- point "LEFT": xOffset spaces units within a row, columnSpacing stacks the rows
+        local colsSpacing = C.unitframes.raid.xOffset
+        local rowsSpacing = C.unitframes.raid.columnSpacing
         local width = C.unitframes.raid.width
         local height = C.unitframes.raid.height
     
@@ -292,7 +293,6 @@ function UnitFrames:GetRaidAttributes()
         "showSolo", showSolo,
         "showPet", E.isClassic,
         "xOffset", C.unitframes.raid.xOffset or 5,
-        "yOffset", C.unitframes.raid.yOffset or 5,
         "point", "LEFT",
         "groupFilter", "1,2,3,4,5,6,7,8",
         "groupingOrder", "1,2,3,4,5,6,7,8",
@@ -327,7 +327,6 @@ function UnitFrames:GetRaid40Attributes()
         "showPlayer", true,
         "showPet", false,
         "xOffset", C.unitframes.raid.xOffset or 5,
-        "yOffset", C.unitframes.raid.yOffset or 5,
         "point", "LEFT",
         "groupFilter", "1,2,3,4,5,6,7,8",
         "groupingOrder", "1,2,3,4,5,6,7,8",

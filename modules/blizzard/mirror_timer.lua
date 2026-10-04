@@ -12,6 +12,8 @@ local MIRRORTIMER_NUMTIMERS = _G.MIRRORTIMER_NUMTIMERS
 --------------------------------------------------
 -- Mirror Timers (Underwater Breath, etc.)
 --------------------------------------------------
+if not C.blizzard.mirrortimers then return end
+
 local texture = C.unitframes.texture
 local font = A.fonts.normal
 
