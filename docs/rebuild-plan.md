@@ -86,11 +86,11 @@ mixins, Edit Mode-managed `ChatFrame1`) is the same on all 6 clients. Tainted's 
    - Change: deprecated globals → `ChatFrameUtil.*`, frame methods, `Constants.ChatFrameConstants.MaxChatWindows` (chatframe, copy_url, history). Removed the global `ChatEdit_UpdateHeader` hook (dead; errors without fallbacks). History replay uses `ChatFrame1:MessageEventHandler` (`ChatFrame_MessageEventHandler` no longer exists on any client, so replay was silently failing).
    - Clients: Classic (Era, TBC, WotLK, MoP).
    - Test: `/reload` with `/console loadDeprecationFallbacks 0`; chat, tabs, history, URL links unchanged.
-2. **Edit box header** · Not started · Depends on: 1
+2. **Edit box header** · Done · Depends on: 1
    - Change: per-editbox `UpdateHeader` hook in `Style` (global hook already removed in step 1).
    - Clients: Classic.
    - Test: edit box border colour follows `/s`, `/p`, `/g`, `/w`, `/1`.
-3. **Positioning** · Not started · Depends on: 1
+3. **Positioning** · Done · Depends on: 1
    - Change: one `PositionChat` for left and right frames; one `hooksecurefunc(ChatFrame1, "SetPoint")` re-anchoring via `SetPointBase` replaces the stacked hook (`ApplySystemAnchor` alone misses Classic's `UIParentManageFramePositions`, which re-anchors ChatFrame1 via `SetToLayoutAnchor`); right frame by the stateless rule.
    - Clients: Classic (code is shared; mainline verified in step 7).
    - Test: chats stay in panels after Edit Mode open/close, `/reload`, UI scale change.
@@ -227,3 +227,19 @@ Unit frames continue in parallel as a leaf. Only item 0 touches them.
 - [x] Architecture audit
 - [x] 0. Core contract
 - [x] 1. Minimap (pending in-game verification)
+- [ ] 2. Chat
+  - [x] 1. API migration
+  - [x] 2. Edit box header
+  - [x] 3. Positioning
+  - [ ] 4. Temporary windows + cleanup
+  - [ ] 5. Reset ownership
+  - [ ] 6. History, copy, URL
+  - [ ] 7. Enable on all clients
+- [ ] 3. DataTexts
+- [ ] 4. Action bars
+- [ ] 5. Auras (player buffs/debuffs)
+- [ ] 6. Tooltips
+- [ ] 7. Blizzard UI tweaks
+- [ ] 8. Bags
+- [ ] 9. Miscellaneous
+- [ ] 10. Final compatibility audit
