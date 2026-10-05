@@ -6,7 +6,6 @@ local CHAT = E:CreateModule("Chat")
 local MAX_CHAT_WINDOWS = _G.Constants.ChatFrameConstants.MaxChatWindows
 local CHAT_FRAME_TEXTURES = _G.CHAT_FRAME_TEXTURES
 local GetChannelName = _G.GetChannelName
-local ChooseBoxForSend = _G.ChatFrameUtil.ChooseBoxForSend
 local ActivateChat = _G.ChatFrameUtil.ActivateChat
 local DeactivateChat = _G.ChatFrameUtil.DeactivateChat
 local FCF_GetCurrentChatFrame = _G.FCF_GetCurrentChatFrame
@@ -228,25 +227,25 @@ function CHAT:StyleTemporaryChatFrame()
 end
 
 -- Update editbox border color
-function CHAT:UpdateEditBoxBorderColor()
-	local editBox = ChooseBoxForSend()
+function CHAT.UpdateEditBoxBorderColor(editBox)
 	local chatType = editBox:GetAttribute("chatType")
-	local channel = editBox:GetAttribute("channelTarget")
+	if (not chatType) or (not editBox.Backdrop) then return end
 
-	if editBox.Backdrop then
-		if (chatType == "CHANNEL") then
-			local id = GetChannelName(channel)
-			if (id == 0) then
-				local color = C.general.border.color
-				editBox.Backdrop:SetBackdropBorderColor(color.r, color.g, color.b, color.a or 1)
-			else
-				local info = ChatTypeInfo[chatType .. id]
-				editBox.Backdrop:SetBackdropBorderColor(info.r, info.g, info.b, 1)
-			end
-		else
-			local info = ChatTypeInfo[chatType]
-			editBox.Backdrop:SetBackdropBorderColor(info.r, info.g, info.b, 1)
+	local info
+	if (chatType == "CHANNEL") then
+		local id = GetChannelName(editBox:GetAttribute("channelTarget"))
+		if (id ~= 0) then
+			info = ChatTypeInfo[chatType .. id]
 		end
+	else
+		info = ChatTypeInfo[chatType]
+	end
+
+	if info then
+		editBox.Backdrop:SetBackdropBorderColor(info.r, info.g, info.b, 1)
+	else
+		local color = C.general.border.color
+		editBox.Backdrop:SetBackdropBorderColor(color.r, color.g, color.b, color.a or 1)
 	end
 end
 
@@ -442,6 +441,7 @@ function CHAT:Style(frame)
 	EditBox:Hide() -- hide editbox on login
 	EditBox:StripTextures()
 	EditBox:CreateBackdrop()
+	hooksecurefunc(EditBox, "UpdateHeader", self.UpdateEditBoxBorderColor)
 
 	-- hide editbox instead of fading
 	EditBox:HookScript("OnEditFocusLost", function(self)
