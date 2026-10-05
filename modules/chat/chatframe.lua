@@ -203,7 +203,7 @@ function CHAT:Reset()
 	local ChatFrame1 = _G["ChatFrame1"]
 	local ChatFrame1EditBox = _G["ChatFrame1EditBox"]
 
-	CHAT.SetChatFramePosition(ChatFrame1)
+	CHAT.PositionChat(ChatFrame1)
 
 	FCF_SelectDockFrame(ChatFrame1)
 
@@ -269,58 +269,52 @@ function CHAT:OnMouseWheel(delta)
 	end
 end
 
-function CHAT:SetChatFramePosition()
-	local frame = self
-	local id = frame:GetID()
-	local name = frame:GetName()
-	
-	local Tab = frame.Tab or _G[name .. "Tab"]
-	local IsMovable = frame:IsMovable()
-
-	if Tab:IsShown() then
-		if id == 1 then
-			local anchor = _G["TaintedChatLeft"]
-			frame:SetParent(anchor)
-			frame:SetMovable(false)
-			frame:SetUserPlaced(true)
-			frame:ClearAllPoints()
-			frame:SetPoint("TOP", anchor.Tab, "BOTTOM", 0, -5)
-			frame:SetPoint("LEFT", anchor, "LEFT", C.chat.margin, 0)
-			frame:SetPoint("RIGHT", anchor, "RIGHT", -16, 0)
-			frame:SetPoint("BOTTOM", anchor.DataText, "TOP", 0, 8)
-
-			if E.isStandard then
-				hooksecurefunc(frame, "SetPoint", function(f)
-					frame:SetPointBase("TOP", anchor.Tab, "BOTTOM", 0, -5)
-					frame:SetPointBase("LEFT", anchor, "LEFT", C.chat.margin, 0)
-					frame:SetPointBase("RIGHT", anchor, "RIGHT", -16, 0)
-					frame:SetPointBase("BOTTOM", anchor.DataText, "TOP", 0, 8)
-				end)
-			end
-		elseif (id == 4) then
-			local anchor = _G["TaintedChatRight"]
-			frame:SetParent(anchor)
-			frame:ClearAllPoints()
-			frame:SetPoint("TOP", anchor.Tab, "BOTTOM", 0, -5)
-			frame:SetPoint("LEFT", anchor, "LEFT", C.chat.margin, 0)
-			frame:SetPoint("RIGHT", anchor, "RIGHT", -16, 0)
-			frame:SetPoint("BOTTOM", anchor.DataText, "TOP", 0, 8)
-			frame:SetMovable(true) -- the frame needs to be movable to use 'SetUserPlaced'
-			frame:SetUserPlaced(true)
-			frame:SetMovable(false)
-
-			-- if E.isStandard then
-			-- 	hooksecurefunc(frame, "SetPoint", function(f)
-			-- 		frame:SetPointBase("TOP", anchor.Tab, "BOTTOM", 0, -5)
-			-- 		frame:SetPointBase("LEFT", anchor, "LEFT", C.chat.margin, 0)
-			-- 		frame:SetPointBase("RIGHT", anchor, "RIGHT", -16, 0)
-			-- 		frame:SetPointBase("BOTTOM", anchor.DataText, "TOP", 0, 8)
-			-- 	end)
-			-- end
+-- Right chat: first undocked, shown window after ChatFrame1. Temporary windows have IDs above
+-- MAX_CHAT_WINDOWS, so they are never picked.
+local GetRightChatFrame = function()
+	for i = 2, MAX_CHAT_WINDOWS do
+		local frame = _G["ChatFrame" .. i]
+		if (not frame.isDocked) and _G["ChatFrame" .. i .. "Tab"]:IsShown() then
+			return frame
 		end
-
-		FCF_SavePositionAndDimensions(frame)
 	end
+end
+
+-- ChatFrame1 is an Edit Mode system: its SetPoint/ClearAllPoints are overrides, the originals
+-- are kept as *Base. Calling the originals skips Edit Mode snapping and our own SetPoint hook.
+local SetPanelPoints = function(frame, anchor)
+	local ClearAllPoints = frame.ClearAllPointsBase or frame.ClearAllPoints
+	local SetPoint = frame.SetPointBase or frame.SetPoint
+	ClearAllPoints(frame)
+	SetPoint(frame, "TOP", anchor.Tab, "BOTTOM", 0, -5)
+	SetPoint(frame, "LEFT", anchor, "LEFT", C.chat.margin, 0)
+	SetPoint(frame, "RIGHT", anchor, "RIGHT", -16, 0)
+	SetPoint(frame, "BOTTOM", anchor.DataText, "TOP", 0, 8)
+end
+
+-- Blizzard re-anchors ChatFrame1 through its SetPoint override: Edit Mode (ApplySystemAnchor)
+-- and, on Classic, UIParentManageFramePositions while chat is in its default position.
+function CHAT.OnChatFrame1SetPoint(frame)
+	SetPanelPoints(frame, CHAT.Left)
+end
+
+function CHAT.PositionChat(frame)
+	local anchor
+	if (frame == _G.ChatFrame1) then
+		anchor = CHAT.Left
+	elseif (frame == GetRightChatFrame()) then
+		anchor = CHAT.Right
+	else
+		return
+	end
+
+	frame:SetParent(anchor)
+	SetPanelPoints(frame, anchor)
+	frame:SetMovable(true) -- the frame needs to be movable to use 'SetUserPlaced'
+	frame:SetUserPlaced(true)
+	frame:SetMovable(false)
+
+	FCF_SavePositionAndDimensions(frame)
 end
 
 -- TESTING CMD : /run BNToastFrame:AddToast(BN_TOAST_TYPE_ONLINE, 1)
@@ -449,7 +443,7 @@ function CHAT:Style(frame)
 	end)
 
 	self:HideTextures(frame)
-	self.SetChatFramePosition(frame)
+	self.PositionChat(frame)
 
 	-- Mouse Wheel
 	frame:SetScript("OnMouseWheel", self.OnMouseWheel)
@@ -601,7 +595,8 @@ function CHAT:Init()
 	self.VoiceAlertPosition = { "BOTTOMLEFT", self.Left, "TOPLEFT", 0, 12 }
 
 	hooksecurefunc("FCF_OpenTemporaryWindow", self.StyleTemporaryChatFrame)
-	hooksecurefunc("FCF_RestorePositionAndDimensions", self.SetChatFramePosition)
+	hooksecurefunc("FCF_RestorePositionAndDimensions", self.PositionChat)
+	hooksecurefunc(_G.ChatFrame1, "SetPoint", self.OnChatFrame1SetPoint)
 	-- hooksecurefunc("FCF_SavePositionAndDimensions", Chat.SaveChatFramePositionAndDimensions)
 	-- hooksecurefunc("FCFTab_UpdateAlpha", Chat.NoMouseAlpha)
 	hooksecurefunc(BNToastFrame, "AddToast", self.AddToast)

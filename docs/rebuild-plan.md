@@ -91,7 +91,7 @@ mixins, Edit Mode-managed `ChatFrame1`) is the same on all 6 clients. Tainted's 
    - Clients: Classic.
    - Test: edit box border colour follows `/s`, `/p`, `/g`, `/w`, `/1`.
 3. **Positioning** · Not started · Depends on: 1
-   - Change: one `PositionChat` for left and right frames; one `hooksecurefunc(ChatFrame1, "ApplySystemAnchor")` replaces the stacked `SetPoint`/`SetPointBase` hook; right frame by the stateless rule.
+   - Change: one `PositionChat` for left and right frames; one `hooksecurefunc(ChatFrame1, "SetPoint")` re-anchoring via `SetPointBase` replaces the stacked hook (`ApplySystemAnchor` alone misses Classic's `UIParentManageFramePositions`, which re-anchors ChatFrame1 via `SetToLayoutAnchor`); right frame by the stateless rule.
    - Clients: Classic (code is shared; mainline verified in step 7).
    - Test: chats stay in panels after Edit Mode open/close, `/reload`, UI scale change.
 4. **Temporary windows + cleanup** · Not started · Depends on: 3
