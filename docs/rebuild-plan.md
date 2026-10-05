@@ -44,7 +44,7 @@ See CLAUDE.md → Philosophy and Changing code. These are the ones specific to t
 
 ### 1. Minimap
 
-**Status:** Functional, not finalized · **Priority:** High · **Depends on:** 0
+**Status:** Done, pending in-game verification · **Priority:** High · **Depends on:** 0
 
 **Objective:** finalize the minimap as the anchor for auras, datatexts and Blizzard tweaks.
 
@@ -53,6 +53,9 @@ See CLAUDE.md → Philosophy and Changing code. These are the ones specific to t
 - `Minimap` and the minimap datatext strip are stable anchors.
 - The strip is not an empty bar on clients without datatexts.
 - No redundant updates.
+
+**Known limitation:** on Forever, toggling `rotateMinimap` re-applies Blizzard's round mask
+(`Blizzard_Minimap/Camelot/Skin.lua`) until `/reload`.
 
 ### 2. Chat
 
@@ -70,6 +73,8 @@ See CLAUDE.md → Philosophy and Changing code. These are the ones specific to t
 **Status:** Classic only · **Priority:** Medium · **Depends on:** 1, 2
 
 **Objective:** bring the framework to every client, then each element one at a time.
+Started by item 1: holders have fixed indexes (left 1–3, right 4–6, minimap 7–8), and mainline
+loads the framework with only the minimap elements (`init_mainline.xml`).
 
 **Done when:**
 - Datatexts look up their holders explicitly.
@@ -144,8 +149,6 @@ Unit frames continue in parallel as a leaf. Only item 0 touches them.
 
 ## 5. Deferred work (don't fix early)
 
-- Registry cleanup: the unused `UpdateModules`, and Maps vs Minimap being two modules. Do this
-  with item 1.
 - Unit-frame raid-holder healer repositioning: currently dead machinery. Revisit with unit frames.
 - Dead stubs (party unit, datatext template, `development.lua`, `event_trace.lua`): remove during
   item 10.
@@ -162,11 +165,13 @@ Unit frames continue in parallel as a leaf. Only item 0 touches them.
 - One TOC with per-line tags; no `Tainted_*.toc`.
 - No in-game configuration.
 - Retail oUF is read-only.
+- Item 1: datatexts are brought forward to Retail/Forever for the minimap strip, instead of
+  hiding the strip.
+- Item 1: minimap size stays per family: 198 on mainline (Blizzard default), 180 on classic.
+- Item 1: Maps and Minimap stay two registry modules; `UpdateModules` is kept.
 
 **Needs confirmation:**
 - Item 0: one startup model for all modules, or keep both and document them?
-- Item 1: on Retail/Forever, hide the minimap datatext strip until datatexts load there, or
-  bring datatexts forward?
 - Item 2 vs 4: which comes first on Retail, chat or action bars?
 - Item 8: bags scope. Bag-slot bar only, or real bag/bank frames (new code)?
 - Item 9: keep or drop each misc feature on Midnight.
@@ -178,3 +183,4 @@ Unit frames continue in parallel as a leaf. Only item 0 touches them.
 - [x] Configuration/settings audit
 - [x] Architecture audit
 - [x] 0. Core contract
+- [x] 1. Minimap (pending in-game verification)
