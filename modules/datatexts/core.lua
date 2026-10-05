@@ -179,11 +179,9 @@ function MODULE:SetupDataText(index, name)
 	local frame = self.frames[index]
 	if not frame then return end
 
+	-- not loaded on this client (mainline loads only the minimap elements)
 	local element = elements[name]
-	if not element then
-		E:error("DateText element '" .. name .. "' do not exists.")
-		return
-	end
+	if not element then return end
 
 	if not frame.__enabled then
 		frame = Mixin(frame, element)

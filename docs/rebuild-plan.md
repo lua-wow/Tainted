@@ -10,11 +10,11 @@ Legend: **Observed** = seen in the code · **Recommended** = proposal, not yet a
 ## 1. Current state
 
 - Revived after a long maintenance gap. TOC, references and settings have been cleaned up.
-- **Observed:** on Retail and Forever, only core, unit frames and maps (minimap/worldmap) load.
-  Auras, bags, chat, action bars, datatexts and tooltips are tagged `classic`. Blizzard and
+- **Observed:** on Retail and Forever, only core, unit frames, maps (minimap/worldmap) and chat
+  load. Auras, bags, action bars, datatexts and tooltips are tagged `classic`. Blizzard and
   miscellaneous only load on Classic and MoP.
-- **Observed:** working: unit frames (most mature), minimap on all clients. Classic-only, not
-  verified on Retail: chat, datatexts, action bars, auras, tooltips, Blizzard tweaks. Stub/WIP:
+- **Observed:** working: unit frames (most mature), minimap and chat on all clients. Classic-only,
+  not verified on Retail: datatexts, action bars, auras, tooltips, Blizzard tweaks. Stub/WIP:
   bags (only the bag-slot bar loads).
 - Constraints: one TOC for 6 clients; Retail oUF is read-only; Midnight secret values
   (see compatibility.md).
@@ -59,7 +59,7 @@ See CLAUDE.md → Philosophy and Changing code. These are the ones specific to t
 
 ### 2. Chat
 
-**Status:** Classic only · **Priority:** High · **Depends on:** 0
+**Status:** Done · **Priority:** High · **Depends on:** 0
 
 **Objective:** chat panels on every client. They are the anchor for the left/right datatexts.
 
@@ -106,8 +106,8 @@ mixins, Edit Mode-managed `ChatFrame1`) is the same on all 6 clients. Tainted's 
    - Change: history skips payloads with `hasanysecretvalues` (exists on all clients); copy button opens an edit box 30px above the selected chat's panel (2× panel height, own scroll bar) with its text in chat colours, links and textures stripped, secret lines skipped; Ctrl+C or Esc closes it, instead of Blizzard copy mode — `CopyToClipboard` is restricted and `SetTextCopyable` from addon code taints that path, so releasing a selection was blocked; chat-frame OnEnter/OnLeave use `HookScript` (OnMouseWheel stays `SetScript`: it replaces Blizzard's 1-line scroll, hooking would scroll both); URL click via `LinkUtil.RegisterLinkHandler("url", …)`, which `SetItemRef` runs before Blizzard's link handling (replaces `ItemRefTooltip.SetHyperlink`). Sent-message Up/Down history: native edit-box history only answers Alt+Up/Down, so Tainted keeps a session-only list (32 lines, shared by all edit boxes) fed by a post-hook on `AddHistoryLine` and walked in `OnArrowPressed`; secure commands are left to the native Alt+Up history (recalling them from addon code would be blocked); autocomplete keeps the arrows while shown.
    - Clients: Classic (secret skip only matters on mainline).
    - Test: history survives `/reload`; copy button opens the box, Ctrl+C copies, Esc or the button closes; clicking a URL fills the edit box; item/player links unchanged; Up/Down walks sent messages, Down from newest gives empty input, gone after `/reload`.
-7. **Enable on all clients** · Not started · Depends on: 1–6
-   - Change: drop `[AllowLoadGameType classic]` from the 4 chat TOC lines; update status here and in compatibility.md.
+7. **Enable on all clients** · Done · Depends on: 1–6
+   - Change: dropped `[AllowLoadGameType classic]` from the 4 chat TOC lines; no chat code change (APIs present on Retail and Forever; Retail only runs message filters on accessible payloads, `canaccessvalue`). With the chat panels on mainline, DataTexts creates holders 1–6, whose elements mainline doesn't load: `SetupDataText` now skips a missing element silently instead of `E:error`, so the strips stay empty until item 3. Reset (step 5) takes the General tab's channels from `GetChannelList()` (joined channels) instead of `EnumerateServerChannels()`, which on Retail misses Trade/Services and lists unjoined channels.
    - Clients: Retail, Forever (new); recheck all 6.
    - Test: everything above on Retail and Forever; whisper popout on Retail; no errors after a boss/M+ (secret chat lockdown); taint log clean after combat and chat links.
 
@@ -227,14 +227,14 @@ Unit frames continue in parallel as a leaf. Only item 0 touches them.
 - [x] Architecture audit
 - [x] 0. Core contract
 - [x] 1. Minimap (pending in-game verification)
-- [ ] 2. Chat
+- [x] 2. Chat
   - [x] 1. API migration
   - [x] 2. Edit box header
   - [x] 3. Positioning
   - [x] 4. Temporary windows + cleanup
-  - [ ] 5. Reset ownership
-  - [ ] 6. History, copy, URL
-  - [ ] 7. Enable on all clients
+  - [x] 5. Reset ownership
+  - [x] 6. History, copy, URL
+  - [x] 7. Enable on all clients
 - [ ] 3. DataTexts
 - [ ] 4. Action bars
 - [ ] 5. Auras (player buffs/debuffs)

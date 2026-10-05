@@ -7,6 +7,7 @@ local MAX_CHAT_WINDOWS = _G.Constants.ChatFrameConstants.MaxChatWindows
 local CHAT_FRAME_TEXTURES = _G.CHAT_FRAME_TEXTURES
 local CHAT_FRAMES = _G.CHAT_FRAMES
 local GetChannelName = _G.GetChannelName
+local GetChannelList = _G.GetChannelList
 local ActivateChat = _G.ChatFrameUtil.ActivateChat
 local DeactivateChat = _G.ChatFrameUtil.DeactivateChat
 local IsSecureCmd = _G.IsSecureCmd
@@ -194,13 +195,19 @@ end
 function CHAT:Reset(attempt)
 	attempt = attempt or 1
 
-	local channels = { EnumerateServerChannels() }
+	-- joined channels: Retail's EnumerateServerChannels misses Trade/Services and lists unjoined ones
+	local list = { GetChannelList() } -- id, name, disabled, ...
+	local channels = {}
+	for i = 2, #list, 3 do
+		channels[#channels + 1] = list[i]
+	end
+
 	if (#channels == 0) then
-		-- public channels are not queryable right after login
+		-- channels are not joined yet right after login
 		if (attempt < RESET_ATTEMPTS) then
 			C_Timer.After(1, function() CHAT:Reset(attempt + 1) end)
 		else
-			E:print("Chat reset postponed: no public channels found.")
+			E:print("Chat reset postponed: no joined channels found.")
 		end
 		return
 	end

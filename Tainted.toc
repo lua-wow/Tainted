@@ -67,10 +67,10 @@ modules\auras\auras.lua [AllowLoadGameType classic]
 modules\bags\_init.xml [AllowLoadGameType classic]
 
 ## chat
-modules\chat\chatframe.lua [AllowLoadGameType classic]
-modules\chat\history.lua [AllowLoadGameType classic]
-modules\chat\copy_text.lua [AllowLoadGameType classic]
-modules\chat\copy_url.lua [AllowLoadGameType classic]
+modules\chat\chatframe.lua
+modules\chat\history.lua
+modules\chat\copy_text.lua
+modules\chat\copy_url.lua
 
 ## maps
 modules\maps\init.xml [AllowLoadGameType mainline]
