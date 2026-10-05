@@ -5,6 +5,9 @@ local CHAT = E:GetModule("Chat")
 
 -- Blizzard
 local SetHyperlink = ItemRefTooltip.SetHyperlink
+local ChooseBoxForSend = _G.ChatFrameUtil.ChooseBoxForSend
+local ActivateChat = _G.ChatFrameUtil.ActivateChat
+local AddMessageEventFilter = _G.ChatFrameUtil.AddMessageEventFilter
 
 -- Lua
 local gsub = string.gsub
@@ -39,12 +42,12 @@ end
 
 function CHAT:SetHyperlink(data, ...)
 	if (data and sub(data, 1, 3) == "url") then
-		local ChatFrameEditBox = ChatEdit_ChooseBoxForSend()
+		local ChatFrameEditBox = ChooseBoxForSend()
 
 		local link = data:sub(5)
 
 		if (not ChatFrameEditBox:IsShown()) then
-			ChatEdit_ActivateChat(ChatFrameEditBox)
+			ActivateChat(ChatFrameEditBox)
 		end
 
 		ChatFrameEditBox:Insert(link)
@@ -56,20 +59,20 @@ function CHAT:SetHyperlink(data, ...)
 end
 
 function CHAT:EnableHiperlinkFilter()
-	ChatFrame_AddMessageEventFilter("CHAT_MSG_CHANNEL", self.HyperlinkFilter)
-	ChatFrame_AddMessageEventFilter("CHAT_MSG_YELL", self.HyperlinkFilter)
-	ChatFrame_AddMessageEventFilter("CHAT_MSG_GUILD", self.HyperlinkFilter)
-	ChatFrame_AddMessageEventFilter("CHAT_MSG_OFFICER", self.HyperlinkFilter)
-	ChatFrame_AddMessageEventFilter("CHAT_MSG_PARTY", self.HyperlinkFilter)
-	ChatFrame_AddMessageEventFilter("CHAT_MSG_PARTY_LEADER", self.HyperlinkFilter)
-	ChatFrame_AddMessageEventFilter("CHAT_MSG_RAID", self.HyperlinkFilter)
-	ChatFrame_AddMessageEventFilter("CHAT_MSG_RAID_LEADER", self.HyperlinkFilter)
-	ChatFrame_AddMessageEventFilter("CHAT_MSG_BATTLEGROUND", self.HyperlinkFilter)
-	ChatFrame_AddMessageEventFilter("CHAT_MSG_BATTLEGROUND_LEADER", self.HyperlinkFilter)
-	ChatFrame_AddMessageEventFilter("CHAT_MSG_SAY", self.HyperlinkFilter)
-	ChatFrame_AddMessageEventFilter("CHAT_MSG_WHISPER", self.HyperlinkFilter)
-	ChatFrame_AddMessageEventFilter("CHAT_MSG_BN_WHISPER", self.HyperlinkFilter)
-	ChatFrame_AddMessageEventFilter("CHAT_MSG_BN_CONVERSATION", self.HyperlinkFilter)
+	AddMessageEventFilter("CHAT_MSG_CHANNEL", self.HyperlinkFilter)
+	AddMessageEventFilter("CHAT_MSG_YELL", self.HyperlinkFilter)
+	AddMessageEventFilter("CHAT_MSG_GUILD", self.HyperlinkFilter)
+	AddMessageEventFilter("CHAT_MSG_OFFICER", self.HyperlinkFilter)
+	AddMessageEventFilter("CHAT_MSG_PARTY", self.HyperlinkFilter)
+	AddMessageEventFilter("CHAT_MSG_PARTY_LEADER", self.HyperlinkFilter)
+	AddMessageEventFilter("CHAT_MSG_RAID", self.HyperlinkFilter)
+	AddMessageEventFilter("CHAT_MSG_RAID_LEADER", self.HyperlinkFilter)
+	AddMessageEventFilter("CHAT_MSG_BATTLEGROUND", self.HyperlinkFilter)
+	AddMessageEventFilter("CHAT_MSG_BATTLEGROUND_LEADER", self.HyperlinkFilter)
+	AddMessageEventFilter("CHAT_MSG_SAY", self.HyperlinkFilter)
+	AddMessageEventFilter("CHAT_MSG_WHISPER", self.HyperlinkFilter)
+	AddMessageEventFilter("CHAT_MSG_BN_WHISPER", self.HyperlinkFilter)
+	AddMessageEventFilter("CHAT_MSG_BN_CONVERSATION", self.HyperlinkFilter)
 
 	ItemRefTooltip.SetHyperlink = self.SetHyperlink
 end

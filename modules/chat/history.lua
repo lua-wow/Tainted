@@ -38,7 +38,8 @@ function frame_proto:Print()
 
     for index = #TaintedChatHistory, 1, -1 do
         local tmp = TaintedChatHistory[index]
-        local result = pcall(_G.ChatFrame_MessageEventHandler, _G["ChatFrame1"], tmp.event, unpack(tmp.args))
+        local chatFrame = _G["ChatFrame1"]
+        pcall(chatFrame.MessageEventHandler, chatFrame, tmp.event, unpack(tmp.args))
     end
 
     self.isPrinting = false

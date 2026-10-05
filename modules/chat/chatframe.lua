@@ -3,10 +3,12 @@ local E, C = ns.E, ns.C
 local CHAT = E:CreateModule("Chat")
 
 -- Blizzard
-local NUM_CHAT_WINDOWS = _G.NUM_CHAT_WINDOWS
+local MAX_CHAT_WINDOWS = _G.Constants.ChatFrameConstants.MaxChatWindows
 local CHAT_FRAME_TEXTURES = _G.CHAT_FRAME_TEXTURES
 local GetChannelName = _G.GetChannelName
-local ChatEdit_ChooseBoxForSend = _G.ChatEdit_ChooseBoxForSend
+local ChooseBoxForSend = _G.ChatFrameUtil.ChooseBoxForSend
+local ActivateChat = _G.ChatFrameUtil.ActivateChat
+local DeactivateChat = _G.ChatFrameUtil.DeactivateChat
 local FCF_GetCurrentChatFrame = _G.FCF_GetCurrentChatFrame
 
 -- Mine
@@ -158,18 +160,18 @@ function CHAT:SetupChatFrame(frame, config)
 		ChangeChatColor("CHANNEL6", 0.00, 0.89, 0.00)
 	else
 		-- remove channels like Trade, Looking For Group, etc.
-		ChatFrame_RemoveAllChannels(frame)
+		frame:RemoveAllChannels()
 	end
 
 	if config.groups then
-		ChatFrame_RemoveAllMessageGroups(frame)
+		frame:RemoveAllMessageGroups()
 
 		for k, group in next, config.groups do
-			ChatFrame_AddMessageGroup(frame, group)
+			frame:AddMessageGroup(group)
 		end
 	else
 		-- remove channels like Trade, Looking For Group, etc.
-		ChatFrame_RemoveAllMessageGroups(frame)
+		frame:RemoveAllMessageGroups()
 	end
 end
 
@@ -185,7 +187,7 @@ function CHAT:Reset()
 	FCF_ResetChatWindows()
 	DEFAULT_CHAT_FRAME:SetUserPlaced(true)
 
-	for index = 1, NUM_CHAT_WINDOWS do
+	for index = 1, MAX_CHAT_WINDOWS do
 		local frame = _G["ChatFrame" .. index]
 		local config = CHAT_CONFIG[index]
 		CHAT:SetupChatFrame(frame, config)
@@ -207,8 +209,8 @@ function CHAT:Reset()
 	FCF_SelectDockFrame(ChatFrame1)
 
 	-- fix a editbox texture
-	ChatEdit_ActivateChat(ChatFrame1EditBox)
-	ChatEdit_DeactivateChat(ChatFrame1EditBox)
+	ActivateChat(ChatFrame1EditBox)
+	DeactivateChat(ChatFrame1EditBox)
 end
 
 local Dock = function(frame)
@@ -227,7 +229,7 @@ end
 
 -- Update editbox border color
 function CHAT:UpdateEditBoxBorderColor()
-	local editBox = ChatEdit_ChooseBoxForSend()
+	local editBox = ChooseBoxForSend()
 	local chatType = editBox:GetAttribute("chatType")
 	local channel = editBox:GetAttribute("channelTarget")
 
@@ -458,7 +460,7 @@ end
 function CHAT:Setup()
 	local frameLevel = self.Left.Tab:GetFrameLevel()
 
-	for i = 1, NUM_CHAT_WINDOWS do
+	for i = 1, MAX_CHAT_WINDOWS do
 		local frame = _G["ChatFrame" .. i]
 		local tab = _G["ChatFrame" .. i .. "Tab"]
 
@@ -598,7 +600,6 @@ function CHAT:Init()
 	-- Set default position for Voice Activation Alert
 	self.VoiceAlertPosition = { "BOTTOMLEFT", self.Left, "TOPLEFT", 0, 12 }
 
-	hooksecurefunc("ChatEdit_UpdateHeader", self.UpdateEditBoxBorderColor)
 	hooksecurefunc("FCF_OpenTemporaryWindow", self.StyleTemporaryChatFrame)
 	hooksecurefunc("FCF_RestorePositionAndDimensions", self.SetChatFramePosition)
 	-- hooksecurefunc("FCF_SavePositionAndDimensions", Chat.SaveChatFramePositionAndDimensions)
