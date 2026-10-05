@@ -1,7 +1,7 @@
 [submodule "libs/oUF"]
 	path = libs/oUF
 	url = https://github.com/lua-wow/oUF.git
-	branch = retail
+	branch = master
 [submodule "libs/oUF_Classic"]
 	path = libs/oUF_Classic
 	url = https://github.com/lua-wow/oUF.git
