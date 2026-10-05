@@ -9,9 +9,22 @@ local CHAT_FRAMES = _G.CHAT_FRAMES
 local GetChannelName = _G.GetChannelName
 local ActivateChat = _G.ChatFrameUtil.ActivateChat
 local DeactivateChat = _G.ChatFrameUtil.DeactivateChat
+local IsSecureCmd = _G.IsSecureCmd
+local AutoCompleteBox = _G.AutoCompleteBox
+
+-- Lua
+local strmatch = string.match
+local tinsert = table.insert
+local tremove = table.remove
 
 -- Mine
 local RESET_ATTEMPTS = 10
+local SENT_HISTORY_SIZE = 32 -- same as Blizzard's edit box historyLines
+
+-- Session-only, shared by every edit box. 'sentIndex' 0 is the line being typed ('draft').
+local sentHistory = {}
+local sentIndex = 0
+local draft
 
 local TAB_TEXTURES = {
 	"ChatFrame%sTabLeft",
@@ -260,6 +273,40 @@ function CHAT.UpdateEditBoxBorderColor(editBox)
 	end
 end
 
+-- Blizzard adds every sent line (with its header, e.g. "/s hi") through AddHistoryLine.
+function CHAT.AddSentHistory(_, text)
+	-- secure commands set by an addon would be blocked; Alt+Up still recalls them natively
+	local command = strmatch(text, "^/%S+")
+	if command and IsSecureCmd(command) then return end
+	if (text == sentHistory[#sentHistory]) then return end
+
+	tinsert(sentHistory, text)
+	if (#sentHistory > SENT_HISTORY_SIZE) then
+		tremove(sentHistory, 1)
+	end
+end
+
+-- Up/Down walk sent lines; Alt+arrows (native history) and the autocomplete list are left to Blizzard.
+function CHAT.OnEditBoxArrowPressed(editBox, key)
+	if IsAltKeyDown() or AutoCompleteBox:IsShown() then return end
+
+	local count = #sentHistory
+	if (key == "UP") then
+		if (sentIndex == count) then return end
+		if (sentIndex == 0) then
+			draft = editBox:GetText()
+		end
+		sentIndex = sentIndex + 1
+	elseif (key == "DOWN") then
+		if (sentIndex == 0) then return end
+		sentIndex = sentIndex - 1
+	else
+		return
+	end
+
+	editBox:SetText((sentIndex == 0) and draft or sentHistory[count - sentIndex + 1])
+end
+
 function CHAT:OnMouseWheel(delta)
 	if (delta < 0) then
 		if IsShiftKeyDown() then
@@ -433,19 +480,30 @@ function CHAT:Style(frame)
 	EditBox:StripTextures()
 	EditBox:CreateBackdrop()
 	hooksecurefunc(EditBox, "UpdateHeader", self.UpdateEditBoxBorderColor)
+	hooksecurefunc(EditBox, "AddHistoryLine", self.AddSentHistory)
+	EditBox:HookScript("OnArrowPressed", self.OnEditBoxArrowPressed)
 
 	-- hide editbox instead of fading
 	EditBox:HookScript("OnEditFocusLost", function(self)
 		self:Hide()
+		sentIndex = 0
 	end)
 
 	self:HideTextures(frame)
 	self.PositionChat(frame)
 
-	-- Mouse Wheel
+	-- Mouse Wheel: replaces Blizzard's 1-line scroll on purpose; hooking would scroll both
 	frame:SetScript("OnMouseWheel", self.OnMouseWheel)
 
 	frame.__styled = true
+end
+
+local ShowCopyButton = function()
+	CHAT.CopyButton:SetAlpha(1)
+end
+
+local HideCopyButton = function()
+	CHAT.CopyButton:SetAlpha(0)
 end
 
 function CHAT:Setup()
@@ -468,13 +526,8 @@ function CHAT:Setup()
 			end
 		end
 
-		frame:SetScript("OnEnter", function(x)
-			self.CopyButton:SetAlpha(1)
-		end)
-	
-		frame:SetScript("OnLeave", function(x)
-			self.CopyButton:SetAlpha(0)
-		end)
+		frame:HookScript("OnEnter", ShowCopyButton)
+		frame:HookScript("OnLeave", HideCopyButton)
 	end
 
 	-- local ChatConfigFrameDefaultButton = _G.ChatConfigFrameDefaultButton

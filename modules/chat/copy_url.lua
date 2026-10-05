@@ -4,14 +4,13 @@ local E, C = ns.E, ns.C
 local CHAT = E:GetModule("Chat")
 
 -- Blizzard
-local SetHyperlink = ItemRefTooltip.SetHyperlink
 local ChooseBoxForSend = _G.ChatFrameUtil.ChooseBoxForSend
 local ActivateChat = _G.ChatFrameUtil.ActivateChat
 local AddMessageEventFilter = _G.ChatFrameUtil.AddMessageEventFilter
+local RegisterLinkHandler = _G.LinkUtil.RegisterLinkHandler
 
 -- Lua
 local gsub = string.gsub
-local sub = string.sub
 
 local CreatePattner = function(url)
 	local color = C.chat.link.color
@@ -40,22 +39,16 @@ function CHAT:HyperlinkFilter(event, msg, ...)
 	end
 end
 
-function CHAT:SetHyperlink(data, ...)
-	if (data and sub(data, 1, 3) == "url") then
-		local ChatFrameEditBox = ChooseBoxForSend()
+-- Runs from SetItemRef before Blizzard's default link handling; link is "url:<address>".
+local OnURLClick = function(link)
+	local ChatFrameEditBox = ChooseBoxForSend()
 
-		local link = data:sub(5)
-
-		if (not ChatFrameEditBox:IsShown()) then
-			ActivateChat(ChatFrameEditBox)
-		end
-
-		ChatFrameEditBox:Insert(link)
-		ChatFrameEditBox:HighlightText()
-		link = nil
-	else
-		SetHyperlink(self, data, ...)
+	if (not ChatFrameEditBox:IsShown()) then
+		ActivateChat(ChatFrameEditBox)
 	end
+
+	ChatFrameEditBox:Insert(link:sub(5))
+	ChatFrameEditBox:HighlightText()
 end
 
 function CHAT:EnableHiperlinkFilter()
@@ -74,5 +67,5 @@ function CHAT:EnableHiperlinkFilter()
 	AddMessageEventFilter("CHAT_MSG_BN_WHISPER", self.HyperlinkFilter)
 	AddMessageEventFilter("CHAT_MSG_BN_CONVERSATION", self.HyperlinkFilter)
 
-	ItemRefTooltip.SetHyperlink = self.SetHyperlink
+	RegisterLinkHandler("url", OnURLClick)
 end

@@ -6,6 +6,9 @@ local E, C = ns.E, ns.C
 --------------------------------------------------
 if not C.chat.history.enabled then return end
 
+-- Blizzard
+local hasanysecretvalues = _G.hasanysecretvalues
+
 local database = TaintedChatHistory
 
 local frame_proto = {
@@ -46,6 +49,9 @@ function frame_proto:Print()
 end
 
 function frame_proto:Save(event, ...)
+    -- secret payloads (chat lockdown) can't be stored or replayed
+    if hasanysecretvalues(...) then return end
+
     local text = select(1, ...)
     if not text then return end
 
