@@ -79,7 +79,6 @@ E:RegisterEvent("PLAYER_LOGIN")
 if (E.isStandard) then
 	E:RegisterEvent("SETTINGS_LOADED")
 end
-E:RegisterEvent("PLAYER_ENTERING_WORLD")
 E:SetScript("OnEvent", function (self, event, ...)
 	assert(self[event], "Unable to locate " .. event .." event handler")
 	self[event](self, ...)
@@ -129,15 +128,4 @@ function E:SETTINGS_LOADED(...)
 	-- Settings.SetValue("PROXY_SHOW_ACTIONBAR_6", false)
 	-- Settings.SetValue("PROXY_SHOW_ACTIONBAR_7", false)
 	-- Settings.SetValue("PROXY_SHOW_ACTIONBAR_8", false)
-end
-
-function E:PLAYER_ENTERING_WORLD(isInitialLogin, isReloadingUi)
-	if not self.db.chat then
-		-- chat module is not loaded on every TOC
-		local Chat = self:GetModule("Chat")
-		if Chat then
-			Chat:Reset()
-			self.db.chat = true
-		end
-	end
 end

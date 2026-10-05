@@ -11,6 +11,8 @@ local ActivateChat = _G.ChatFrameUtil.ActivateChat
 local DeactivateChat = _G.ChatFrameUtil.DeactivateChat
 
 -- Mine
+local RESET_ATTEMPTS = 10
+
 local TAB_TEXTURES = {
 	"ChatFrame%sTabLeft",
 	"ChatFrame%sTabMiddle",
@@ -80,9 +82,7 @@ local CHAT_CONFIG = {
 		name = _G.COMBAT_LOG or "Combat Log",
 		default = true,
 	},
-	[3] = {
-		default = true
-	},
+	[3] = false, -- Voice window, left to Blizzard
 	[4] = {
 		name = _G.OTHER or "Others",
 		position = "RIGHT",
@@ -121,33 +121,37 @@ local CHAT_CONFIG = {
 	}
 }
 
-function CHAT:SetupChatFrame(frame, config)
-	if not config then return end
-
-	if not config.default then
-		FCF_OpenNewWindow(config.name)
-	else
+function CHAT:SetupChatFrame(index, config, channels)
+	local frame
+	if config.default then
+		frame = _G["ChatFrame" .. index]
 		if config.name then
 			FCF_SetWindowName(frame, config.name)
 		end
+	else
+		frame = FCF_OpenNewWindow(config.name)
+		if not frame then return end
 	end
 
 	FCF_SetChatWindowFontSize(nil, frame, 12)
 
 	if config.position == "RIGHT" then
 		FCF_UnDockFrame(frame)
+
+		local tab = frame.Tab or _G[frame:GetName() .. "Tab"]
+		tab:ClearAllPoints()
+
+		FCF_RestorePositionAndDimensions(frame)
+		FCF_SetTabPosition(frame, 0)
 	else
 		FCF_DockFrame(frame)
 		FCF_SetLocked(frame, 1)
 	end
 
 	if config.channels then
-		if E.isStandard then
-			local channels = { EnumerateServerChannels() }
-			for k, channel in next, channels do
-				-- dont know why, but this works
-				C_Timer.After(1, function() frame:SetChannelEnabled(channel, true) end)
-			end
+		-- still joined after FCF_ResetChatWindows, only the windows lost them
+		for _, channel in next, channels do
+			frame:AddChannel(channel)
 		end
 
 		-- Adjust Chat Colors
@@ -174,11 +178,17 @@ function CHAT:SetupChatFrame(frame, config)
 	end
 end
 
-function CHAT:Reset()
+function CHAT:Reset(attempt)
+	attempt = attempt or 1
+
 	local channels = { EnumerateServerChannels() }
-	if channels and (#channels == 0) then
-		-- restart this function until we are able to query public channels
-		C_Timer.After(1, CHAT.Reset)
+	if (#channels == 0) then
+		-- public channels are not queryable right after login
+		if (attempt < RESET_ATTEMPTS) then
+			C_Timer.After(1, function() CHAT:Reset(attempt + 1) end)
+		else
+			E:print("Chat reset postponed: no public channels found.")
+		end
 		return
 	end
 
@@ -186,17 +196,11 @@ function CHAT:Reset()
 	FCF_ResetChatWindows()
 	DEFAULT_CHAT_FRAME:SetUserPlaced(true)
 
+	-- in order: FCF_OpenNewWindow hands out the next free frame
 	for index = 1, MAX_CHAT_WINDOWS do
-		local frame = _G["ChatFrame" .. index]
 		local config = CHAT_CONFIG[index]
-		CHAT:SetupChatFrame(frame, config)
-
-		if (index == 4) then
-			local tab = frame.Tab or _G[frame:GetName() .. "Tab"]
-			tab:ClearAllPoints()
-
-			FCF_RestorePositionAndDimensions(frame)
-			FCF_SetTabPosition(frame, 0)
+		if config then
+			CHAT:SetupChatFrame(index, config, channels)
 		end
 	end
 
@@ -210,6 +214,8 @@ function CHAT:Reset()
 	-- fix a editbox texture
 	ActivateChat(ChatFrame1EditBox)
 	DeactivateChat(ChatFrame1EditBox)
+
+	E.db.chat = true
 end
 
 -- A post-hook can't see FCF_OpenTemporaryWindow's return value, so style whatever is new.
@@ -574,4 +580,13 @@ function CHAT:Init()
 	hooksecurefunc(_G.ChatFrame1, "SetPoint", self.OnChatFrame1SetPoint)
 	hooksecurefunc("FCFTab_UpdateAlpha", self.UpdateTabAlpha)
 	hooksecurefunc(BNToastFrame, "AddToast", self.AddToast)
+
+	if not E.db.chat then
+		local frame = CreateFrame("Frame")
+		frame:RegisterEvent("PLAYER_ENTERING_WORLD")
+		frame:SetScript("OnEvent", function(f)
+			f:UnregisterAllEvents()
+			CHAT:Reset()
+		end)
+	end
 end

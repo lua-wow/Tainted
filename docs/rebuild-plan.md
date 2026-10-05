@@ -98,8 +98,8 @@ mixins, Edit Mode-managed `ChatFrame1`) is the same on all 6 clients. Tainted's 
    - Change: on `FCF_OpenTemporaryWindow`, style any unstyled `CHAT_FRAMES` (the old hook used `FCF_GetCurrentChatFrame`, the dropdown's frame, not the new window); `Tab.SetAlpha` override → `FCFTab_UpdateAlpha` hook setting tab alphas to 1; `TabText.SetFont` overrides removed (no Blizzard Lua resets tab font); removed dead code and missing-texture `E.error`. Undocked popouts are styled but not placed in a panel.
    - Clients: Classic.
    - Test: whisper window styled; tabs stay visible and in Tainted font; no error spam on login.
-5. **Reset ownership** · Not started · Depends on: 1, 3
-   - Change: reset moves from `core/core.lua` into the chat module (same `db.chat` flag); configure frames returned by `FCF_OpenNewWindow`; undock only `Others`; window 3 left to Blizzard; bounded retry.
+5. **Reset ownership** · Done (verified on Era, TBC, MoP) · Depends on: 1, 3
+   - Change: reset moves from `core/core.lua` into the chat module (same `db.chat` flag, set only once the reset completes; triggered once on the first `PLAYER_ENTERING_WORLD`); configure frames returned by `FCF_OpenNewWindow`; undock only `Others`; window 3 left to Blizzard; bounded retry (10 × 1 s, then retried next login). General tab gets the server channels on every client (was Retail only, so Classic's General tab was empty); channels stay joined across `FCF_ResetChatWindows`, so no `/join`.
    - Clients: Classic.
    - Test: `/tainted reset` → tabs `G, S & W | Combat Log | All NPCs | General` left, `Others` right, channel colours.
 6. **History, copy, URL** · Not started · Depends on: 1
