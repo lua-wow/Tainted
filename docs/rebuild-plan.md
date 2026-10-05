@@ -94,8 +94,8 @@ mixins, Edit Mode-managed `ChatFrame1`) is the same on all 6 clients. Tainted's 
    - Change: one `PositionChat` for left and right frames; one `hooksecurefunc(ChatFrame1, "SetPoint")` re-anchoring via `SetPointBase` replaces the stacked hook (`ApplySystemAnchor` alone misses Classic's `UIParentManageFramePositions`, which re-anchors ChatFrame1 via `SetToLayoutAnchor`); right frame by the stateless rule.
    - Clients: Classic (code is shared; mainline verified in step 7).
    - Test: chats stay in panels after Edit Mode open/close, `/reload`, UI scale change.
-4. **Temporary windows + cleanup** · Not started · Depends on: 3
-   - Change: on `FCF_OpenTemporaryWindow`, style any unstyled `CHAT_FRAMES`; replace `Tab.SetAlpha`/`TabText.SetFont` overrides with hooks; remove dead code and missing-texture `E.error`.
+4. **Temporary windows + cleanup** · Done (verified on Era) · Depends on: 3
+   - Change: on `FCF_OpenTemporaryWindow`, style any unstyled `CHAT_FRAMES` (the old hook used `FCF_GetCurrentChatFrame`, the dropdown's frame, not the new window); `Tab.SetAlpha` override → `FCFTab_UpdateAlpha` hook setting tab alphas to 1; `TabText.SetFont` overrides removed (no Blizzard Lua resets tab font); removed dead code and missing-texture `E.error`. Undocked popouts are styled but not placed in a panel.
    - Clients: Classic.
    - Test: whisper window styled; tabs stay visible and in Tainted font; no error spam on login.
 5. **Reset ownership** · Not started · Depends on: 1, 3
@@ -231,7 +231,7 @@ Unit frames continue in parallel as a leaf. Only item 0 touches them.
   - [x] 1. API migration
   - [x] 2. Edit box header
   - [x] 3. Positioning
-  - [ ] 4. Temporary windows + cleanup
+  - [x] 4. Temporary windows + cleanup
   - [ ] 5. Reset ownership
   - [ ] 6. History, copy, URL
   - [ ] 7. Enable on all clients

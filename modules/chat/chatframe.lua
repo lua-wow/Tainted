@@ -5,10 +5,10 @@ local CHAT = E:CreateModule("Chat")
 -- Blizzard
 local MAX_CHAT_WINDOWS = _G.Constants.ChatFrameConstants.MaxChatWindows
 local CHAT_FRAME_TEXTURES = _G.CHAT_FRAME_TEXTURES
+local CHAT_FRAMES = _G.CHAT_FRAMES
 local GetChannelName = _G.GetChannelName
 local ActivateChat = _G.ChatFrameUtil.ActivateChat
 local DeactivateChat = _G.ChatFrameUtil.DeactivateChat
-local FCF_GetCurrentChatFrame = _G.FCF_GetCurrentChatFrame
 
 -- Mine
 local TAB_TEXTURES = {
@@ -212,18 +212,23 @@ function CHAT:Reset()
 	DeactivateChat(ChatFrame1EditBox)
 end
 
-local Dock = function(frame)
-	FCF_DockFrame(frame, #FCFDock_GetChatFrames(GENERAL_CHAT_DOCK) + 1, true)
+-- A post-hook can't see FCF_OpenTemporaryWindow's return value, so style whatever is new.
+-- Reused temporary frames are already styled.
+function CHAT.StyleTemporaryChatFrames()
+	for _, name in next, CHAT_FRAMES do
+		local frame = _G[name]
+		if frame and (not frame.__styled) then
+			CHAT:Style(frame)
+		end
+	end
 end
 
-local Undock = function(frame)
-	FCF_UnDockFrame(frame)
-	FCF_SetTabPosition(frame, 0)
-end
-
-function CHAT:StyleTemporaryChatFrame()
-	local frame = FCF_GetCurrentChatFrame()
-	CHAT:Style(frame)
+-- Keep tabs fully visible: Blizzard fades tabs towards these values.
+function CHAT.UpdateTabAlpha(frame)
+	local tab = _G[frame:GetName() .. "Tab"]
+	tab.mouseOverAlpha = 1
+	tab.noMouseAlpha = 1
+	tab:SetAlpha(1)
 end
 
 -- Update editbox border color
@@ -353,8 +358,6 @@ function CHAT:HideTextures(frame)
 		if obj and obj:GetObjectType() == "Texture" then
 			obj:SetTexture(nil)
 			obj:Hide()
-		else
-			E.error(name .. "." .. texture .. "  is not a texture.")
 		end
 	end
 
@@ -381,16 +384,7 @@ function CHAT:Style(frame)
 	local fontObject = E.GetFont(C.chat.font)
 	local font, fontSize, fontFlag = fontObject:GetFont()
 	
-	local id = frame:GetID()
 	local name = frame:GetName()
-
-	-- local Tab = _G[name .. "Tab"]
-	-- local Scroll = frame.ScrollBar
-	-- local ScrollBottom = frame.ScrollToBottomButton
-	-- local ScrollTex = _G[name .."ThumbTexture"]
-	-- local TabFont, TabFontSize, TabFontFlags = GetTabFont:GetFont()
-	
-	local anchor = self.Left
 
 	frame:SetClampRectInsets(0, 0, 0, 0)
 	frame:SetClampedToScreen(false)
@@ -401,14 +395,11 @@ function CHAT:Style(frame)
 	if Tab then
 		-- remove default tab textures
 		Tab:StripTextures()
-		Tab:SetAlpha(1)
-		Tab.SetAlpha = UIFrameFadeRemoveFrame
-		
+		self.UpdateTabAlpha(frame)
+
 		local TabText = Tab.Text or _G[name .."TabText"]
 		if TabText then
 			TabText:SetFont(font, fontSize, fontFlag)
-			TabText.SetFont = function() end
-			TabText.SetFontObject = function() end
 		end
 		
 		local ConversationIcon = Tab.conversationIcon or _G[name .. "TabConversationIcon"]
@@ -458,9 +449,7 @@ function CHAT:Setup()
 		local frame = _G["ChatFrame" .. i]
 		local tab = _G["ChatFrame" .. i .. "Tab"]
 
-		tab:SetAlpha(0)
 		tab:SetFrameLevel(frameLevel + 1)
-		tab.noMouseAlpha = 0
 
 		-- frame.BaseAddMessage = frame.AddMessage;
 		-- frame.AddMessage = ChatFrame_AddMessage;
@@ -531,17 +520,6 @@ function CHAT:Setup()
 		-- 	texture:SetVertexColor(1, 1, 1)
 		-- end
     end
-
-	local VoiceChatPromptActivateChannel = _G.VoiceChatPromptActivateChannel
-	if VoiceChatPromptActivateChannel then
-		-- VoiceChatPromptActivateChannel:ClearAllPoints()
-		-- VoiceChatPromptActivateChannel:SetPoint(unpack(Chat.VoiceAlertPosition))
-		-- VoiceChatPromptActivateChannel:CreateBackdrop()
-		-- VoiceChatPromptActivateChannel.AcceptButton:SkinButton()
-		-- VoiceChatPromptActivateChannel.CloseButton:SkinCloseButton()
-		-- VoiceChatPromptActivateChannel.ClearAllPoints = function() end
-		-- VoiceChatPromptActivateChannel.SetPoint = function() end
-	end
 end
 
 function CHAT:CreateBackground(side)
@@ -591,13 +569,9 @@ function CHAT:Init()
 	self:Setup()
 	self:EnableHiperlinkFilter()
 
-	-- Set default position for Voice Activation Alert
-	self.VoiceAlertPosition = { "BOTTOMLEFT", self.Left, "TOPLEFT", 0, 12 }
-
-	hooksecurefunc("FCF_OpenTemporaryWindow", self.StyleTemporaryChatFrame)
+	hooksecurefunc("FCF_OpenTemporaryWindow", self.StyleTemporaryChatFrames)
 	hooksecurefunc("FCF_RestorePositionAndDimensions", self.PositionChat)
 	hooksecurefunc(_G.ChatFrame1, "SetPoint", self.OnChatFrame1SetPoint)
-	-- hooksecurefunc("FCF_SavePositionAndDimensions", Chat.SaveChatFramePositionAndDimensions)
-	-- hooksecurefunc("FCFTab_UpdateAlpha", Chat.NoMouseAlpha)
+	hooksecurefunc("FCFTab_UpdateAlpha", self.UpdateTabAlpha)
 	hooksecurefunc(BNToastFrame, "AddToast", self.AddToast)
 end
