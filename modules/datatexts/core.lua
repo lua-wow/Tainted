@@ -112,15 +112,16 @@ function MODULE:CreateDataText(index, parent)
 	return element
 end
 
-function MODULE:DivideFrameIntoSegments(parent, num)
+-- 'first' fixes the holder's indexes in 'C.datatexts.elements', whether or not other holders exist
+function MODULE:DivideFrameIntoSegments(parent, num, first)
 	if not parent then return end
 
 	local spacing = 1
 	local segments = E.CalcSegmentsSizes(num, parent:GetWidth(), spacing)
 
 	local prev = nil
-	for _, size in next, segments do
-		local index = #self.frames + 1
+	for i, size in next, segments do
+		local index = first + i - 1
 		
 		local datatext = self:CreateDataText(index, parent)
 		datatext:SetWidth(size)
@@ -133,7 +134,7 @@ function MODULE:DivideFrameIntoSegments(parent, num)
 			datatext:SetPoint("LEFT", prev, "RIGHT", spacing, 0)
 		end
 		
-		table.insert(self.frames, datatext)
+		self.frames[index] = datatext
 
 		prev = datatext
 	end
@@ -143,12 +144,12 @@ function MODULE:CreateSegments()
 	self.frames = table.wipe(self.frames or {})
 
 	-- create datatext holders on the left chat
-	self:DivideFrameIntoSegments(_G["TaintedChatLeftDataText"], 3)
+	self:DivideFrameIntoSegments(_G["TaintedChatLeftDataText"], 3, 1)
 	
 	-- create datatext holders on the right chat
-	self:DivideFrameIntoSegments(_G["TaintedChatRightDataText"], 3)
+	self:DivideFrameIntoSegments(_G["TaintedChatRightDataText"], 3, 4)
 	
-	self:DivideFrameIntoSegments(_G["TaintedMinimapDataText"], 2)
+	self:DivideFrameIntoSegments(_G["TaintedMinimapDataText"], 2, 7)
 
 	-- -- create datatext bellow minimap
 	-- local minimap = _G.Minimap
@@ -174,18 +175,16 @@ function MODULE:GetTextColor()
 end
 
 function MODULE:SetupDataText(index, name)
+	-- its panel (e.g. chat) is not loaded on this client
+	local frame = self.frames[index]
+	if not frame then return end
+
 	local element = elements[name]
 	if not element then
 		E:error("DateText element '" .. name .. "' do not exists.")
 		return
 	end
 
-	local frame = self.frames[index]
-	if not frame then
-		E:error("DateText frame '" .. index .. "' do not exists.")
-		return
-	end
-	
 	if not frame.__enabled then
 		frame = Mixin(frame, element)
 		frame.unit = self.__unit

@@ -90,6 +90,7 @@ modules\miscellaneous\init_mists.xml [AllowLoadGameType mists]
 modules\actionbars\init.xml [AllowLoadGameType classic]
 
 ## datatexts
+modules\datatexts\init_mainline.xml [AllowLoadGameType mainline]
 modules\datatexts\init.xml [AllowLoadGameType classic]
 
 ## tooltips

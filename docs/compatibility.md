@@ -36,6 +36,8 @@ A single `Tainted.toc` serves every supported client (`## Interface: 120100, 160
 
 - Retail is being revived. Classic-only modules (auras, bags, chat, actionbars, datatexts,
   tooltips) are tagged `classic` in the TOC for now; drop the tag to enable them on Retail.
+- Datatexts are partially enabled on mainline: `init_mainline.xml` loads only the elements of
+  the minimap strip (Time, Coords) until chat (item 2) and datatexts (item 3) are rebuilt.
 
 ## oUF variants
 

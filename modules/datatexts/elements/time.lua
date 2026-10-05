@@ -12,6 +12,7 @@ local GetNumSavedWorldBosses = _G.GetNumSavedWorldBosses
 local GetSavedInstanceInfo = _G.GetSavedInstanceInfo
 local GetSavedWorldBossInfo = _G.GetSavedWorldBossInfo
 local InCombatLockdown = _G.InCombatLockdown
+local ChatFrameUtil = _G.ChatFrameUtil
 
 -- Mine
 local UPDATE_INTERVAL = 10
@@ -23,6 +24,12 @@ local WORLD_BOSSES = L.WORLD_BOSSES or "World Bosses"
 local INSTANCES = L.INSTANCES or "Saved Instances"
 local SAVED_ENCOUNTERS = "%s - %s (%d/%d)" -- Nerub-ar Palace - Mythic (10/14)
 local SAVED_INSTANCES = "%s - %s" -- Nerub-ar Palace - Mythic
+
+-- mainline loads Blizzard_TimeManager on demand through 'ToggleTimeManager'; classic has only 'TimeManager_Toggle'
+local function ToggleTimeManager()
+	local toggle = _G.ToggleTimeManager or _G.TimeManager_Toggle
+	toggle()
+end
 
 local time_proto = {}
 
@@ -46,7 +53,7 @@ function time_proto:GetTime(wantAMPM)
 end
 
 function time_proto:GetResetTime(value)
-	local days, hours, minutes, seconds = ChatFrame_TimeBreakDown(math.floor(value))
+	local days, hours, minutes, seconds = ChatFrameUtil.TimeBreakDown(math.floor(value))
 	if (days and days > 0) then
 		return ("%dd %dh %dm"):format(days, hours, minutes) -- 7d, 2h, 5m
 	elseif (hours and hours > 0) then
@@ -106,7 +113,7 @@ end
 
 function time_proto:OnMouseUp(click)
 	if click == "RightButton" then
-		TimeManager_Toggle()
+		ToggleTimeManager()
 	else
 		if InCombatLockdown() then
 			E:print(ERR_NOT_IN_COMBAT)
@@ -117,7 +124,7 @@ function time_proto:OnMouseUp(click)
 		if _G.ToggleCalendar then
 			_G.ToggleCalendar()
 		else
-			TimeManager_Toggle()
+			ToggleTimeManager()
 		end
 	end
 end
