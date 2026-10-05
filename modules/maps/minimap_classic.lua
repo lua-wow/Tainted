@@ -2,10 +2,9 @@ local _, ns = ...
 local E, C = ns.E, ns.C
 
 --------------------------------------------------
--- Minimap (Classic Era, TBC, MoP)
+-- Minimap (Classic Era, TBC, WotLK, MoP)
 --------------------------------------------------
 if not C.maps.enabled then return end
-if E.isStandard or E.isCamelot then return end
 
 local MODULE = E:GetModule("Minimap")
 

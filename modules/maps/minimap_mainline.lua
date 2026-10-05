@@ -6,7 +6,6 @@ local E, C, A = ns.E, ns.C, ns.A
 --------------------------------------------------
 -- both clients run Blizzard's mainline minimap code
 if not C.maps.enabled then return end
-if not (E.isStandard or E.isCamelot) then return end
 
 local MODULE = E:GetModule("Minimap")
 
@@ -17,7 +16,7 @@ function MODULE:OnMouseClick(button)
     if (button == "RightButton") then
         local TrackingButton = MinimapCluster.Tracking and MinimapCluster.Tracking.Button
         if TrackingButton then
-            TrackingButton:OpenMenu()
+            TrackingButton:SetMenuOpen(not TrackingButton:IsMenuOpen())
             if TrackingButton.menu then
                 TrackingButton.menu:ClearAllPoints()
                 TrackingButton.menu:SetPoint("TOPRIGHT", Minimap, "TOPLEFT", -5, 0)
@@ -75,6 +74,11 @@ function MODULE:StyleBlizzard()
         Tracking:SetAlpha(0)
         if Tracking.Button then
             Tracking.Button:EnableMouse(false)
+
+            -- otherwise the menu manager closes the menu on mouse down and 'OnMouseUp' reopens it
+            function Minimap:HandlesGlobalMouseEvent(mouseButton, event)
+                return event == "GLOBAL_MOUSE_DOWN" and mouseButton == "RightButton"
+            end
         end
     end
 
