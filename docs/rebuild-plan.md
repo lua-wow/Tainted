@@ -68,6 +68,49 @@ See CLAUDE.md → Philosophy and Changing code. These are the ones specific to t
 - The first-run reset is owned by the chat module, not core.
 - Chat history is preserved.
 
+**Observed:** Blizzard's chat code (`Blizzard_ChatFrameBase/Shared`, `ChatFrameUtil`, chat
+mixins, Edit Mode-managed `ChatFrame1`) is the same on all 6 clients. Tainted's `ChatEdit_*`,
+`ChatFrame_*` and `NUM_CHAT_WINDOWS` exist only via `Blizzard_DeprecatedChatInfo`
+(`loadDeprecationFallbacks` CVar). One shared implementation, no per-client files.
+
+**Decided:**
+- Right chat = first undocked, non-temporary frame (ChatFrame2..max). No fixed ID, no saved state.
+- `CHAT_CONFIG[3]` is the Voice window; keep it, left to Blizzard.
+- Left/right datatext strips stay empty on mainline until item 3. Chat only provides the
+  `TaintedChat{Left,Right}` and `…DataText` anchors; no datatext or action-bar dependency.
+- Chat comes before DataTexts (3) and Action bars (4).
+
+**Steps** (verify on Classic first, where chat loads today; `make check` after each):
+
+1. **API migration** · Done, pending in-game verification · Depends on: —
+   - Change: deprecated globals → `ChatFrameUtil.*`, frame methods, `Constants.ChatFrameConstants.MaxChatWindows` (chatframe, copy_url, history). Removed the global `ChatEdit_UpdateHeader` hook (dead; errors without fallbacks). History replay uses `ChatFrame1:MessageEventHandler` (`ChatFrame_MessageEventHandler` no longer exists on any client, so replay was silently failing).
+   - Clients: Classic (Era, TBC, WotLK, MoP).
+   - Test: `/reload` with `/console loadDeprecationFallbacks 0`; chat, tabs, history, URL links unchanged.
+2. **Edit box header** · Not started · Depends on: 1
+   - Change: per-editbox `UpdateHeader` hook in `Style` (global hook already removed in step 1).
+   - Clients: Classic.
+   - Test: edit box border colour follows `/s`, `/p`, `/g`, `/w`, `/1`.
+3. **Positioning** · Not started · Depends on: 1
+   - Change: one `PositionChat` for left and right frames; one `hooksecurefunc(ChatFrame1, "ApplySystemAnchor")` replaces the stacked `SetPoint`/`SetPointBase` hook; right frame by the stateless rule.
+   - Clients: Classic (code is shared; mainline verified in step 7).
+   - Test: chats stay in panels after Edit Mode open/close, `/reload`, UI scale change.
+4. **Temporary windows + cleanup** · Not started · Depends on: 3
+   - Change: on `FCF_OpenTemporaryWindow`, style any unstyled `CHAT_FRAMES`; replace `Tab.SetAlpha`/`TabText.SetFont` overrides with hooks; remove dead code and missing-texture `E.error`.
+   - Clients: Classic.
+   - Test: whisper window styled; tabs stay visible and in Tainted font; no error spam on login.
+5. **Reset ownership** · Not started · Depends on: 1, 3
+   - Change: reset moves from `core/core.lua` into the chat module (same `db.chat` flag); configure frames returned by `FCF_OpenNewWindow`; undock only `Others`; window 3 left to Blizzard; bounded retry.
+   - Clients: Classic.
+   - Test: `/tainted reset` → tabs `G, S & W | Combat Log | All NPCs | General` left, `Others` right, channel colours.
+6. **History, copy, URL** · Not started · Depends on: 1
+   - Change: skip secret messages in history; fix copy flag (`__copying`/`_copying`); `HookScript` instead of `SetScript` on chat frames; non-overriding URL click (replaces `ItemRefTooltip.SetHyperlink`).
+   - Clients: Classic (secret skip only matters on mainline).
+   - Test: history survives `/reload`; copy toggles on and off; clicking a URL fills the edit box.
+7. **Enable on all clients** · Not started · Depends on: 1–6
+   - Change: drop `[AllowLoadGameType classic]` from the 4 chat TOC lines; update status here and in compatibility.md.
+   - Clients: Retail, Forever (new); recheck all 6.
+   - Test: everything above on Retail and Forever; whisper popout on Retail; no errors after a boss/M+ (secret chat lockdown); taint log clean after combat and chat links.
+
 ### 3. DataTexts
 
 **Status:** Classic only · **Priority:** Medium · **Depends on:** 1, 2
