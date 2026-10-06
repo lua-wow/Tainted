@@ -5,22 +5,26 @@ local ActionBars = E:GetModule("ActionBars")
 local Containers = E:GetModule("Containers")
 
 -- Blizzard
+local BACKPACK_CONTAINER = _G.BACKPACK_CONTAINER or 0
+local NUM_BAG_SLOTS = _G.NUM_BAG_SLOTS or 4
+local NUM_TOTAL_EQUIPPED_BAG_SLOTS = _G.NUM_TOTAL_EQUIPPED_BAG_SLOTS or 4
+
 local IsLoggedIn = _G.IsLoggedIn
 local GetMoney = _G.GetMoney
 
 -- Mine
 local GOLD = L.GOLD
+local BAGS = L.BAGS or "Bags"
+local REAGENTS = L.REAGENTS or "Reagents"
 local CHARACTER = L.CHARACTER or "Character"
 local DEFICIT = L.DEFICIT or "Deficit"
 local EARNED = L.EARNED or "Earned"
 local PROFIT = L.PROFIT or "Profit"
-local SERVER = L.SERVER or "Server"
 local SESSION = L.SESSION or "Session"
 local SPENT = L.SPENT or "Spent"
 local TOGGLE_BAGS_BAR_TEXT = L.TOGGLE_BAGS_BAR_TEXT
 local TOGGLE_BAGS_TEXT = L.TOGGLE_BAGS_TEXT
 local TOTAL = L.TOTAL or "Total"
-local WARBAND = L.WARBAND or "Warband"
 
 
 local gold_proto = {
@@ -116,10 +120,36 @@ function gold_proto:CreateTooltip(tooltip)
         tooltip:AddLine(" ")
         tooltip:AddDoubleLine("Warband", self:FormatMoney(warband), 1.0, 1.0, 1.0, 1.0, 1.0, 1.0)
     end
-    
+
+    local bagSlots, bagFree, reagentSlots, reagentFree = self:GetBagUsage()
+    tooltip:AddLine(" ")
+    tooltip:AddDoubleLine(BAGS, ("%d / %d"):format(bagSlots - bagFree, bagSlots), 1.0, 1.0, 1.0, 1.0, 1.0, 1.0)
+    if reagentSlots > 0 then
+        tooltip:AddDoubleLine(REAGENTS, ("%d / %d"):format(reagentSlots - reagentFree, reagentSlots), 1.0, 1.0, 1.0, 1.0, 1.0, 1.0)
+    end
+
     tooltip:AddLine(" ")
     tooltip:AddLine(TOGGLE_BAGS_TEXT)
     tooltip:AddLine(TOGGLE_BAGS_BAR_TEXT)
+end
+
+-- containers above 'NUM_BAG_SLOTS' are the reagent bag (mainline)
+function gold_proto:GetBagUsage()
+    local bagSlots, bagFree, reagentSlots, reagentFree = 0, 0, 0, 0
+
+    for containerIndex = BACKPACK_CONTAINER, NUM_TOTAL_EQUIPPED_BAG_SLOTS do
+        local numSlots = C_Container.GetContainerNumSlots(containerIndex)
+        local freeSlots = C_Container.GetContainerNumFreeSlots(containerIndex)
+        if containerIndex > NUM_BAG_SLOTS then
+            reagentSlots = reagentSlots + numSlots
+            reagentFree = reagentFree + freeSlots
+        else
+            bagSlots = bagSlots + numSlots
+            bagFree = bagFree + freeSlots
+        end
+    end
+
+    return bagSlots, bagFree, reagentSlots, reagentFree
 end
 
 function gold_proto:OnMouseDown()

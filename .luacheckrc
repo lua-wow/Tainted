@@ -8,6 +8,7 @@ unused_secondaries = false -- e.g. local name, _, itemLevel = GetItemInfo(...)
 -- and https://luacheck.readthedocs.io/en/stable/cli.html#patterns
 exclude_files = {
     '.claude/**',
+    'core/development.lua', -- dead stub, removed in rebuild item 10
     'docs/**',
     'libs/**', -- submodules (oUF is read-only)
     'modules/miscellaneous/dispels/**', -- submodule
@@ -88,6 +89,7 @@ read_globals = {
     'C_PlayerInfo',
     'C_PvP',
     'C_Reputation',
+    'C_Secrets',
     'C_SpecializationInfo',
     'C_Spell',
     'C_SpellBook',
@@ -107,6 +109,7 @@ read_globals = {
     'ERR_NOT_IN_COMBAT',
     'FRIENDS',
     'GENERAL_CHAT_DOCK',
+    'HIGHLIGHT_FONT_COLOR',
     'ISLANDS_QUEUE_WEEKLY_QUEST_PROGRESS',
     'KEYRING_CONTAINER',
     'LE_BATTLE_PET_ALLY',
@@ -236,6 +239,7 @@ read_globals = {
     'PaperDollFrame_UpdateStats',
     'PartyFrame',
     'PetBattlePrimaryAbilityTooltip',
+    'PlayerSpellsUtil',
     'PlaySound',
     'RegisterAttributeDriver',
     'RegisterStateDriver',
@@ -262,6 +266,8 @@ read_globals = {
     'ToggleDropDownMenu',
     'ToggleFriendsFrame',
     'ToggleGuildFrame',
+    'ToggleTalentFrame',
+    'ToggleWorldMap',
     'TooltipDataProcessor',
     'UIDropDownMenu_AddButton',
     'UIDropDownMenu_Initialize',

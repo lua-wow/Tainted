@@ -118,7 +118,7 @@ C["datatexts"] = {
 		[3] = "Friends",
         -- right chat
 		[4] = "System",
-		[5] = "MicroMenu",
+		[5] = "Specialization",
 		[6] = "Gold",
         -- minimap
 		[7] = "Time",

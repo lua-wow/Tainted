@@ -9,34 +9,17 @@ local INVSLOT_LAST_EQUIPPED = _G.INVSLOT_LAST_EQUIPPED or 19
 
 local MAX_SPELL_SCHOOLS = _G.MAX_SPELL_SCHOOLS or 7
 
-local CR_UNUSED_1 = _G.CR_UNUSED_1 or 1
-local CR_DEFENSE_SKILL = _G.CR_DEFENSE_SKILL or 2
 local CR_DODGE = _G.CR_DODGE or 3
 local CR_PARRY = _G.CR_PARRY or 4
-local CR_BLOCK = _G.CR_BLOCK or 5
-local CR_HIT_MELEE = _G.CR_HIT_MELEE or 6
-local CR_HIT_RANGED = _G.CR_HIT_RANGED or 7
 local CR_HIT_SPELL = _G.CR_HIT_SPELL or 8
 local CR_CRIT_MELEE = _G.CR_CRIT_MELEE or 9
 local CR_CRIT_RANGED = _G.CR_CRIT_RANGED or 10
 local CR_CRIT_SPELL = _G.CR_CRIT_SPELL or 11
-local CR_CORRUPTION = _G.CR_CORRUPTION or 12
-local CR_CORRUPTION_RESISTANCE = _G.CR_CORRUPTION_RESISTANCE or 13
 local CR_SPEED = _G.CR_SPEED or 14
-local COMBAT_RATING_RESILIENCE_CRIT_TAKEN = _G.COMBAT_RATING_RESILIENCE_CRIT_TAKEN or 15
-local COMBAT_RATING_RESILIENCE_PLAYER_DAMAGE_TAKEN = _G.COMBAT_RATING_RESILIENCE_PLAYER_DAMAGE_TAKEN or 16
 local CR_LIFESTEAL = _G.CR_LIFESTEAL or 17
 local CR_HASTE_MELEE = _G.CR_HASTE_MELEE or 18
-local CR_HASTE_RANGED = _G.CR_HASTE_RANGED or 19
-local CR_HASTE_SPELL = _G.CR_HASTE_SPELL or 20
 local CR_AVOIDANCE = _G.CR_AVOIDANCE or 21
-local CR_UNUSED_2 = _G.CR_UNUSED_2 or 22
-local CR_WEAPON_SKILL_RANGED = _G.CR_WEAPON_SKILL_RANGED or 23
-local CR_EXPERTISE = _G.CR_EXPERTISE or 24
-local CR_ARMOR_PENETRATION = _G.CR_ARMOR_PENETRATION or 25
 local CR_MASTERY = _G.CR_MASTERY or 26
-local CR_UNUSED_3 = _G.CR_UNUSED_3 or 27
-local CR_UNUSED_4 = _G.CR_UNUSED_4 or 28
 local CR_VERSATILITY_DAMAGE_DONE = _G.CR_VERSATILITY_DAMAGE_DONE or 29
 local CR_VERSATILITY_DAMAGE_TAKEN = _G.CR_VERSATILITY_DAMAGE_TAKEN or 31
 
@@ -66,6 +49,8 @@ local UnitClass = _G.UnitClass
 local UnitLevel = _G.UnitLevel
 local UnitName = _G.UnitName
 local UnitStat = _G.UnitStat
+local UnitAttackPower = _G.UnitAttackPower
+local UnitDefense = _G.UnitDefense
 
 -- Mine
 local DATATEXT_STRING = "%s %s"
@@ -100,34 +85,21 @@ local TOGGLE_CHARACTER_TEXT = L.TOGGLE_CHARACTER_TEXT
 local HIT_CHANCE = L.HIT_CHANCE or "Hit Chance"
 local MANA_REGEN = L.MANA_REGEN or "Mana Regen"
 local HEALING_BONUS = L.HEALING_BONUS or "Healing Bonus"
+local ATTACK_POWER = _G.STAT_ATTACK_POWER or "Attack Power"
+local SPELL_POWER = _G.STAT_SPELLPOWER or "Spell Power"
+local DEFENSE = _G.DEFENSE or "Defense"
+local DUNGEON_SCORE = _G.DUNGEON_SCORE or "Mythic+ Rating"
 
 local CURRENCIES = {
-    -- The War Winthin: Season 1
-    { currencyID = 2813, enabled = false },  -- Harmonized Silk
     { currencyID = 3028, enabled = E.isStandard },  -- Restored Coffer Key
-    { currencyID = 3008, enabled = E.isStandard },  -- Valorstones
-    { currencyID = 3278, enabled = E.isStandard },  -- Ethereal Strands
-    -- path 11.0.0
-    { currencyID = 2914, enabled = false },  -- Weathered Harbringer Crest
-    { currencyID = 2915, enabled = false },  -- Carved Harbringer Crest
-    { currencyID = 2916, enabled = false },  -- Runed Harbringer Crest
-    { currencyID = 2917, enabled = false },  -- Gilded Harbringer Crest
-    -- patch 11.2.0
-    { currencyID = 3284, enabled = E.isStandard },  -- Weathered Ethereal Crest
-    { currencyID = 3286, enabled = E.isStandard },  -- Carved Ethereal Crest
-    { currencyID = 3288, enabled = E.isStandard },  -- Runed Ethereal Crest
-    { currencyID = 3290, enabled = E.isStandard },  -- Gilded Ethereal Crest
+    -- Midnight crests
+    { currencyID = 3442, enabled = E.isStandard },  -- Adventurer
+    { currencyID = 3443, enabled = E.isStandard },  -- Veteran
+    { currencyID = 3444, enabled = E.isStandard },  -- Champion
+    { currencyID = 3445, enabled = E.isStandard },  -- Hero
+    { currencyID = 3446, enabled = E.isStandard },  -- Myth
 }
 
-local SchoolEnum = {
-    [1] = "Physical",
-    [2] = "Holy",
-    [3] = "Fire",
-    [4] = "Nature",
-    [5] = "Frost",
-    [6] = "Shadow",
-    [7] = "Arcane"
-}
 
 local slots = {}
 
@@ -318,25 +290,46 @@ function character_proto:CreateTooltip(tooltip)
             tooltip:AddDoubleLine(HEALING_BONUS, ("%d"):format(bonusHealing), 1.0, 1.0, 1.0, 1.0, 1.0, 1.0)
         end
 
+        -- attack power
+        local attackPower = self:GetAttackPower()
+        if attackPower and attackPower > 0 then
+            tooltip:AddDoubleLine(ATTACK_POWER, ("%d"):format(attackPower), 1.0, 1.0, 1.0, 1.0, 1.0, 1.0)
+        end
+
+        -- spell power
+        local spellPower = GetSpellBonusDamage and self:GetSpellBonusDamage()
+        if spellPower and spellPower > 0 then
+            tooltip:AddDoubleLine(SPELL_POWER, ("%d"):format(spellPower), 1.0, 1.0, 1.0, 1.0, 1.0, 1.0)
+        end
+
+        -- defense
+        local defense = self:GetDefense()
+        if defense and defense > 0 then
+            tooltip:AddDoubleLine(DEFENSE, ("%d"):format(defense), 1.0, 1.0, 1.0, 1.0, 1.0, 1.0)
+        end
+
         tooltip:AddLine(" ")
     end
     
     tooltip:AddLine(DURABILITY)
     
-    local r, g, b = 0, 0, 0
+    local b = 0
     for k, row in next, slots do
-        g = math.max(row.percentage * 2, 1)
-        r = (1 - g) + 0.5
+        local g = math.max(row.percentage * 2, 1)
+        local r = (1 - g) + 0.5
         tooltip:AddDoubleLine(row.slotName, ("%.0f%%"):format(row.percentage * 100), 1.0, 1.0, 1.0, r, g, b)
     end
     
-    tooltip:AddLine(" ")
-    tooltip:AddLine(CURRENCY)
-    
+    local hasCurrency = false
     for _, row in next, CURRENCIES do
         if row.enabled then
             local currency = C_CurrencyInfo.GetCurrencyInfo(row.currencyID)
             if currency then
+                if not hasCurrency then
+                    tooltip:AddLine(" ")
+                    tooltip:AddLine(CURRENCY)
+                    hasCurrency = true
+                end
                 local icon = "|T" .. currency.iconFileID .. ":16:16:0:0:64:64:4:60:4:60|t "
                 local quantityText = currency.quantity
                 if currency.maxQuantity > 0 then
@@ -350,10 +343,16 @@ function character_proto:CreateTooltip(tooltip)
         end
     end
     
+    local score = self:GetDungeonScore()
     local length = #self.keystones
-    if length > 0 then
+    if score or length > 0 then
         tooltip:AddLine(" ")
         tooltip:AddLine(KEY_STONES)
+
+        if score then
+            local color = C_ChallengeMode.GetDungeonScoreRarityColor(score) or HIGHLIGHT_FONT_COLOR
+            tooltip:AddDoubleLine(DUNGEON_SCORE, score, 1.0, 1.0, 1.0, color.r, color.g, color.b)
+        end
 
         for index, row in next, self.keystones do
             if isShiftKeyDown or index <= self.threshold then
@@ -507,6 +506,26 @@ function character_proto:GetSpellHitModifier()
     local hitModRating = GetCombatRating(rating)
     local hitModRatingBonus = GetCombatRatingBonus(rating)
     return hitMod, hitModRating, hitModRatingBonus
+end
+
+function character_proto:GetAttackPower()
+    if not UnitAttackPower then return end
+    local base, posBuff, negBuff = UnitAttackPower(self.unit)
+    return base + posBuff + negBuff
+end
+
+-- defense skill exists until wrath; later builds return nothing useful
+function character_proto:GetDefense()
+    if not UnitDefense then return end
+    local base, modifier = UnitDefense(self.unit)
+    return base and (base + (modifier or 0)) or nil
+end
+
+-- mythic+ rating (mainline)
+function character_proto:GetDungeonScore()
+    if not (C_ChallengeMode and C_ChallengeMode.GetOverallDungeonScore) then return end
+    local score = C_ChallengeMode.GetOverallDungeonScore()
+    return (score and score > 0) and score or nil
 end
 
 function character_proto:GetSpellBonusDamage()

@@ -3,10 +3,8 @@ local E, C, L = ns.E, ns.C, ns.L
 local MODULE = E:GetModule("DataTexts")
 
 -- Blizzard
-local GetCVar = C_CVar and C_CVar.GetCVar or GetCVar
 local SetCVar = C_CVar and C_CVar.SetCVar or SetCVar
 local GetCVarBool = C_CVar and C_CVar.GetCVarBool or GetCVarBool
-local GetGameTime = _G.GetGameTime
 local GetNumSavedInstances = _G.GetNumSavedInstances
 local GetNumSavedWorldBosses = _G.GetNumSavedWorldBosses
 local GetSavedInstanceInfo = _G.GetSavedInstanceInfo
@@ -17,13 +15,13 @@ local ChatFrameUtil = _G.ChatFrameUtil
 -- Mine
 local UPDATE_INTERVAL = 10
 
-local TIME = L.TIME or "Time"
 local LOCAL_TIME = L.LOCAL_TIME or "Local"
 local SERVER_TIME = L.SERVER_TIME or "Server"
 local WORLD_BOSSES = L.WORLD_BOSSES or "World Bosses"
 local INSTANCES = L.INSTANCES or "Saved Instances"
 local SAVED_ENCOUNTERS = "%s - %s (%d/%d)" -- Nerub-ar Palace - Mythic (10/14)
 local SAVED_INSTANCES = "%s - %s" -- Nerub-ar Palace - Mythic
+local DATE_STRING = "%A, %d %B" -- Monday, 05 October
 
 -- mainline loads Blizzard_TimeManager on demand through 'ToggleTimeManager'; classic has only 'TimeManager_Toggle'
 local function ToggleTimeManager()
@@ -102,8 +100,10 @@ function time_proto:CreateTooltip(tooltip)
 		tooltip:AddLine(" ")
 	end
 	
+	tooltip:AddLine(date(DATE_STRING), 1.0, 1.0, 1.0)
+
 	do
-    	local localTime = self:GetLocalTime(true)
+		local localTime = self:GetLocalTime(true)
 		tooltip:AddDoubleLine(LOCAL_TIME, localTime, NORMAL_FONT_COLOR.r, NORMAL_FONT_COLOR.g, NORMAL_FONT_COLOR.b, 1.0, 1.0, 1.0)
 
 		local serverTime = self:GetServerTime(true)
