@@ -182,7 +182,13 @@ end
 function character_proto:CreateTooltip(tooltip)
     local isShiftKeyDown = IsShiftKeyDown()
 
-    PaperDollFrame_UpdateStats()
+    -- on mainline it re-lays out Blizzard's stats pane from addon code; the stat APIs below do not need it
+    if E.isClassic then
+        PaperDollFrame_UpdateStats()
+    end
+
+    -- mainline: stat APIs return secrets while stats are restricted (SecretWhenUnitStatsRestricted)
+    local secretStats = C_Secrets and C_Secrets.ShouldUnitStatsBeSecret()
 
     self:UpdateKeyStones()
 
@@ -203,7 +209,7 @@ function character_proto:CreateTooltip(tooltip)
     tooltip:AddLine(" ")
     
     -- primary stats
-    do
+    if not secretStats then
         tooltip:AddLine(PRIMARY_STATS)
 
         local strength = UnitStat(self.unit, _G.LE_UNIT_STAT_STRENGTH or 1)
@@ -232,7 +238,7 @@ function character_proto:CreateTooltip(tooltip)
     end
     
     -- secondary stats
-    do
+    if not secretStats then
         tooltip:AddLine(SECONDARY_STATS)
 
         -- critical strike
@@ -585,7 +591,7 @@ function character_proto:Enable()
 	self:SetScript("OnLeave", self.OnLeave)
 	self:SetScript("OnMouseDown", self.OnMouseDown)
 	self:Update()
-    self:Show()
+    return true
 end
 
 function character_proto:Disable()

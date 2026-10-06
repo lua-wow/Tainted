@@ -6,10 +6,8 @@
 	<Script file="elements\friends.lua"/>
 	<Script file="elements\gold.lua"/>
 	<Script file="elements\guild.lua"/>
-	<Script file="elements\meter.lua"/>
 	<Script file="elements\micromenu.lua"/>
 	<Script file="elements\system.lua"/>
-	<Script file="elements\template.lua"/>
 	<Script file="elements\time.lua"/>
 	<Script file="elements\voice_chat.lua"/>
 </Ui>

@@ -73,7 +73,7 @@ function coords_proto:Enable()
     self:SetScript("OnUpdate", self.OnUpdate)
     self:SetScript("OnEnter", self.OnEnter)
     self:SetScript("OnLeave", self.OnLeave)
-    self:Show()
+    return true
 end
 
 function coords_proto:Disable()

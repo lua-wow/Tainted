@@ -247,7 +247,7 @@ function friends_proto:Enable()
 	self:SetScript("OnLeave", self.OnLeave)
 	self:SetScript("OnMouseDown", self.OnMouseDown)
     self:Update()
-    self:Show()
+    return true
 end
 
 function friends_proto:Disable()

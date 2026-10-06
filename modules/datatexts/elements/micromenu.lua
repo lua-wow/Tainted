@@ -9,13 +9,19 @@ local MICRO_MENU = L.MICRO_MENU or "Micro Menu"
 local micromenu_proto = {}
 
 function micromenu_proto:OnMouseDown()
-    ActionBars:ToggleMicroMenu()
+    -- the micro menu bar belongs to Tainted action bars, which mainline does not load yet
+    if ActionBars then
+        ActionBars:ToggleMicroMenu()
+    end
 
     local GameMenuFrame = _G.GameMenuFrame
     if GameMenuFrame:IsShown() then
         PlaySound(SOUNDKIT.IG_MAINMENU_QUIT)
         HideUIPanel(GameMenuFrame)
-        MainMenuMicroButton_SetNormal()
+        -- not defined on Forever
+        if MainMenuMicroButton_SetNormal then
+            MainMenuMicroButton_SetNormal()
+        end
     else
         CloseMenus()
         CloseAllWindows()
@@ -34,7 +40,7 @@ function micromenu_proto:Enable()
     end
 
 	self:SetScript("OnMouseDown", self.OnMouseDown)
-    self:Show()
+    return true
 end
 
 function micromenu_proto:Disable()

@@ -126,7 +126,7 @@ function gold_proto:OnMouseDown()
     if IsShiftKeyDown() then
         if Containers then
             Containers:Toggle()
-        else
+        elseif ActionBars then
             ActionBars:ToggleBagsBar()
         end
     else
@@ -183,7 +183,7 @@ function gold_proto:Enable()
 	self:SetScript("OnLeave", self.OnLeave)
 	self:SetScript("OnMouseDown", self.OnMouseDown)
 	self:Update()
-    self:Show()
+    return true
 end
 
 function gold_proto:Disable()

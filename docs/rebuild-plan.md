@@ -10,11 +10,11 @@ Legend: **Observed** = seen in the code · **Recommended** = proposal, not yet a
 ## 1. Current state
 
 - Revived after a long maintenance gap. TOC, references and settings have been cleaned up.
-- **Observed:** on Retail and Forever, only core, unit frames, maps (minimap/worldmap) and chat
-  load. Auras, bags, action bars, datatexts and tooltips are tagged `classic`. Blizzard and
+- **Observed:** on Retail and Forever, only core, unit frames, maps (minimap/worldmap), chat and datatexts
+  load. Auras, bags, action bars and tooltips are tagged `classic`. Blizzard and
   miscellaneous only load on Classic and MoP.
-- **Observed:** working: unit frames (most mature), minimap and chat on all clients. Classic-only,
-  not verified on Retail: datatexts, action bars, auras, tooltips, Blizzard tweaks. Stub/WIP:
+- **Observed:** working: unit frames (most mature), minimap, chat and datatexts on all clients. Classic-only,
+  not verified on Retail: action bars, auras, tooltips, Blizzard tweaks. Stub/WIP:
   bags (only the bag-slot bar loads).
 - Constraints: one TOC for 6 clients; Retail oUF is read-only; Midnight secret values
   (see compatibility.md).
@@ -113,7 +113,7 @@ mixins, Edit Mode-managed `ChatFrame1`) is the same on all 6 clients. Tainted's 
 
 ### 3. DataTexts
 
-**Status:** Classic only · **Priority:** Medium · **Depends on:** 1, 2
+**Status:** Done · **Priority:** Medium · **Depends on:** 1, 2
 
 **Objective:** bring the framework to every client, then each element one at a time.
 Started by item 1: holders have fixed indexes (left 1–3, right 4–6, minimap 7–8), and mainline
@@ -122,6 +122,21 @@ loads the framework with only the minimap elements (`init_mainline.xml`).
 **Done when:**
 - Datatexts look up their holders explicitly.
 - A missing provider (keystone, bags, action bars) disables that element without errors.
+
+**Steps:**
+1. **Element / registration / holder / capability split** · Done · Depends on: —
+   - Change: `C.datatexts.elements` keeps indexes 1–8; `core.lua` declares each holder's frame, index range and tooltip anchor (tooltips no longer branch on index). Like oUF's `EnableElement`, an element is active only if `Enable` returns `true`; a missing holder or element leaves its slot empty. One untagged `init.xml` loads every element on every client; `init_mainline.xml` and the dead `template.lua` are removed.
+   - Mainline fixes (checked against Retail 12.1 / Forever 1.60 API docs): MicroMenu and Gold treat ActionBars/Containers as optional; MicroMenu skips `MainMenuMicroButton_SetNormal` where undefined (Forever); Character skips `PaperDollFrame_UpdateStats` on mainline and hides the stat sections while `C_Secrets.ShouldUnitStatsBeSecret()`. Meter removed on all clients (`COMBAT_LOG_EVENT_UNFILTERED` is restricted on mainline; `C_DamageMeter` notes in `docs/wiki/c-damagemeter.md`).
+   - Clients: all 6.
+   - Test: classic layout and tooltips unchanged; on Retail/Forever all 8 slots work (text, tooltip, click), Character tooltip in and out of combat/instances.
+2. **Debug panel** · Done · Depends on: 1
+   - Change: `C.datatexts.debug` (code constant, default `false`) adds a centered panel with one row per registered element (name + live slot, sorted), so elements beyond the 8 slots can be tested; an element that can't run on the client leaves its row empty.
+   - Clients: all 6.
+   - Test: `debug = true` shows the panel with every element and tooltips below it; `false` shows nothing.
+3. **Guild tooltip** · Done · Depends on: 1
+   - Change: loops the whole roster and keeps online members (online members aren't guaranteed first); adds to the passed tooltip; names via `Ambiguate(name, "guild")`. Realm repeated in Retail names (`docs/issues/_retail_/datatext-guild.png`) is unverified: check `/dump GetGuildRosterInfo(i)`.
+   - Clients: all 6.
+   - Test: Retail tooltip lists all online members, own-realm names short.
 
 ### 4. Action bars
 
@@ -193,7 +208,7 @@ Unit frames continue in parallel as a leaf. Only item 0 touches them.
 ## 5. Deferred work (don't fix early)
 
 - Unit-frame raid-holder healer repositioning: currently dead machinery. Revisit with unit frames.
-- Dead stubs (party unit, datatext template, `development.lua`, `event_trace.lua`): remove during
+- Dead stubs (party unit, `development.lua`, `event_trace.lua`): remove during
   item 10.
 - Settings with no effect (`C.blizzard.ghost/talkinghead/raid_utility`, `C.bags.*`): resolve
   with their items.
@@ -235,7 +250,10 @@ Unit frames continue in parallel as a leaf. Only item 0 touches them.
   - [x] 5. Reset ownership
   - [x] 6. History, copy, URL
   - [x] 7. Enable on all clients
-- [ ] 3. DataTexts
+- [x] 3. DataTexts
+  - [x] 1. Element / registration / holder / capability split
+  - [x] 2. Debug panel
+  - [x] 3. Guild tooltip
 - [ ] 4. Action bars
 - [ ] 5. Auras (player buffs/debuffs)
 - [ ] 6. Tooltips

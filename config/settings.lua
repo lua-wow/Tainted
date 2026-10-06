@@ -100,6 +100,7 @@ C["chat"] = {
 
 C["datatexts"] = {
     ["enabled"] = true,
+    ["debug"] = false, -- shows every element in a panel at the screen center
 	["font"] = "Tainted",
 	["colors"] = {
         ["class"] = true,

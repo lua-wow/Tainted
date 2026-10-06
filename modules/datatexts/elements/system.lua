@@ -247,7 +247,7 @@ function system_proto:Enable()
 	self:SetScript("OnLeave", self.OnLeave)
 	self:SetScript("OnMouseUp", self.OnMouseUp)
 	self:Update()
-    self:Show()
+    return true
 end
 
 function system_proto:Disable()

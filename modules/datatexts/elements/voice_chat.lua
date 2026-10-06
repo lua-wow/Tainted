@@ -68,7 +68,7 @@ function voice_proto:Enable()
 	self:SetScript("OnEnter", self.OnEnter)
 	self:SetScript("OnLeave", self.OnLeave)
 	self:SetScript("OnMouseDown", self.OnMouseDown)
-    self:Show()
+    return true
 end
 
 function voice_proto:Disable()

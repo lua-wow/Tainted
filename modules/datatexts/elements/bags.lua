@@ -96,7 +96,7 @@ function bags_proto:Enable()
 	self:SetScript("OnLeave", self.OnLeave)
 	self:SetScript("OnMouseDown", self.OnMouseDown)
     self:Update()
-    self:Show()
+    return true
 end
 
 function bags_proto:Disable()

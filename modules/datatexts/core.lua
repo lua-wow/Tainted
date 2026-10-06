@@ -4,30 +4,32 @@ local MODULE = E:CreateModule("DataTexts")
 
 local elements = {}
 
+-- holders are created by their panels (chat, minimap); each owns a fixed range of 'C.datatexts.elements' indexes
+local holders = {
+	{ frame = "TaintedChatLeftDataText", first = 1, num = 3, owner = "TaintedChatLeft", anchor = "ANCHOR_TOPLEFT", experience = true },
+	{ frame = "TaintedChatRightDataText", first = 4, num = 3, owner = "TaintedChatRight", anchor = "ANCHOR_TOPRIGHT" },
+	{ frame = "TaintedMinimapDataText", first = 7, num = 2 }
+}
+
 local element_proto = {}
 
 function element_proto:GetTooltipAnchor()
-	local index = self.__index
+	local holder = self.__holder
 	local parent = self:GetParent()
-	
-	local owner, anchor, x, y = parent, "ANCHOR_TOP", 0, 0
 
-	if (index <= 3) then
-		owner = _G["TaintedChatLeft"] or parent
-		anchor, y = "ANCHOR_TOPLEFT", 5
+	if not holder.anchor then
+		return parent, "ANCHOR_NONE", 0, -5
+	end
 
+	local owner, y = _G[holder.owner] or parent, 5
+	if holder.experience then
 		local exp = _G["TaintedExperience"]
 		if exp and exp:IsShown() then
 			y = y + 12
 		end
-	elseif (index <= 6) then
-		owner = _G["TaintedChatRight"] or parent
-		anchor, y = "ANCHOR_TOPRIGHT", 5
-	else
-		anchor, y = "ANCHOR_NONE", -5
 	end
 
-	return owner, anchor, x, y
+	return owner, holder.anchor, 0, y
 end
 
 function element_proto:OnEnter()
@@ -79,26 +81,24 @@ end
 
 function MODULE:Update()
 	for _, frame in next, self.frames do
-		if frame.__enabled then
-			frame:Update()
-		end
+		frame:Update()
 	end
 end
 
-function MODULE:CreateDataText(index, parent)
+function MODULE:CreateDataText(name, parent)
 	local fontObject = E.GetFont(C.datatexts.font)
-	
-	local element = CreateFrame("Frame", "TaintedDataText" .. index, parent)
+
+	local element = CreateFrame("Frame", name, parent)
 	element:SetFrameLevel(parent:GetFrameLevel() + 1)
 	element:EnableMouse(true)
 	element:SetFrameStrata("MEDIUM")
 	element:Hide()
-	
+
 	local text = element:CreateFontString(nil, "OVERLAY")
 	text:SetPoint("CENTER", element, "CENTER", 0, 0)
 	text:SetFontObject(fontObject)
 
-	local color = C.datatexts.colors.class 
+	local color = C.datatexts.colors.class
 		and E.colors.class[self.__class]
 		or  C.datatexts.colors.text
 	if color then
@@ -106,111 +106,103 @@ function MODULE:CreateDataText(index, parent)
 	end
 
 	element.Text = text
-	element.__index = index
-	element.__parent = parent
 
 	return element
 end
 
--- 'first' fixes the holder's indexes in 'C.datatexts.elements', whether or not other holders exist
-function MODULE:DivideFrameIntoSegments(parent, num, first)
-	if not parent then return end
-
-	local spacing = 1
-	local segments = E.CalcSegmentsSizes(num, parent:GetWidth(), spacing)
-
-	local prev = nil
-	for i, size in next, segments do
-		local index = first + i - 1
-		
-		local datatext = self:CreateDataText(index, parent)
-		datatext:SetWidth(size)
-		datatext:SetPoint("TOP", parent, "TOP", 0, 0)
-		datatext:SetPoint("BOTTOM", parent, "BOTTOM", 0, 0)
-		
-		if not prev then
-			datatext:SetPoint("LEFT", parent, "LEFT", 0, 0)
-		else
-			datatext:SetPoint("LEFT", prev, "RIGHT", spacing, 0)
-		end
-		
-		self.frames[index] = datatext
-
-		prev = datatext
-	end
-end
-
-function MODULE:CreateSegments()
-	self.frames = table.wipe(self.frames or {})
-
-	-- create datatext holders on the left chat
-	self:DivideFrameIntoSegments(_G["TaintedChatLeftDataText"], 3, 1)
-	
-	-- create datatext holders on the right chat
-	self:DivideFrameIntoSegments(_G["TaintedChatRightDataText"], 3, 4)
-	
-	self:DivideFrameIntoSegments(_G["TaintedMinimapDataText"], 2, 7)
-
-	-- -- create datatext bellow minimap
-	-- local minimap = _G.Minimap
-	-- if minimap then
-	-- 	local index = #self.frames + 1
-
-	-- 	local datatext = self:CreateDataText(index, minimap)
-	-- 	datatext:ClearAllPoints()
-	-- 	datatext:SetPoint("TOPLEFT", minimap, "BOTTOMLEFT", 0, -3)
-	-- 	datatext:SetPoint("TOPRIGHT", minimap, "BOTTOMRIGHT", 0, -3)
-	-- 	datatext:SetHeight(20)
-	-- 	datatext:CreateBackdrop()
-
-	-- 	table.insert(self.frames, datatext)
-	-- end
-end
-
-function MODULE:GetTextColor()
-	if C.datatexts.colors.class then
-		return E.colors.class[self.class]
-	end
-	return C.datatexts.colors.text
-end
-
-function MODULE:SetupDataText(index, name)
-	-- its panel (e.g. chat) is not loaded on this client
-	local frame = self.frames[index]
-	if not frame then return end
-
-	-- not loaded on this client (mainline loads only the minimap elements)
+-- like oUF's EnableElement: the element is active only if its 'Enable' returns true
+function MODULE:EnableSlot(slot, name)
 	local element = elements[name]
 	if not element then return end
 
-	if not frame.__enabled then
-		frame = Mixin(frame, element)
-		frame.unit = self.__unit
-		frame.name = self.__name
-		frame.guid = self.__guid
-		frame.class = self.__class
-		frame.color = C.datatexts.colors.value
+	Mixin(slot, element)
+	slot.unit = self.__unit
+	slot.name = self.__name
+	slot.guid = self.__guid
+	slot.class = self.__class
+	slot.color = C.datatexts.colors.value
 
-		frame:Enable()
-		
-		if not frame:IsShown() then
-			frame:Show()
-		end
-
-		hooksecurefunc(frame, "Enable", frame.Enable)
-		hooksecurefunc(frame, "Disable", frame.Disable)
-
-		frame.__enabled = true
+	if slot:Enable() then
+		slot:Show()
+		self.frames[#self.frames + 1] = slot
 	end
 end
 
-function MODULE:Setup()
-	for index, name in next, self.__elements do
-		self:SetupDataText(index, name)
+-- every slot is created, so a skipped element leaves its slot empty
+function MODULE:SetupHolder(holder)
+	local parent = _G[holder.frame]
+	if not parent then return end
+
+	local spacing = 1
+	local segments = E.CalcSegmentsSizes(holder.num, parent:GetWidth(), spacing)
+
+	local prev = nil
+	for i, size in next, segments do
+		local index = holder.first + i - 1
+
+		local slot = self:CreateDataText("TaintedDataText" .. index, parent)
+		slot:SetWidth(size)
+		slot:SetPoint("TOP", parent, "TOP", 0, 0)
+		slot:SetPoint("BOTTOM", parent, "BOTTOM", 0, 0)
+
+		if not prev then
+			slot:SetPoint("LEFT", parent, "LEFT", 0, 0)
+		else
+			slot:SetPoint("LEFT", prev, "RIGHT", spacing, 0)
+		end
+
+		slot.__holder = holder
+
+		local name = self.__elements[index]
+		if name then
+			self:EnableSlot(slot, name)
+		end
+
+		prev = slot
+	end
+end
+
+-- 'C.datatexts.debug': one row per registered element (label + slot); a row stays empty if its element can't run here
+function MODULE:SetupDebug()
+	local names = {}
+	for name in next, elements do
+		names[#names + 1] = name
+	end
+	table.sort(names)
+
+	local height, spacing, labelWidth = 21, 1, 90
+
+	local panel = CreateFrame("Frame", "TaintedDataTextDebug", UIParent)
+	panel:SetPoint("CENTER", UIParent, "CENTER", 0, 0)
+	panel:SetSize(270, #names * (height + spacing) - spacing)
+	panel:SetFrameStrata("MEDIUM")
+	panel:CreateBackdrop()
+
+	local fontObject = E.GetFont(C.datatexts.font)
+	local holder = {}
+
+	for i, name in ipairs(names) do
+		local y = -(i - 1) * (height + spacing)
+
+		local label = panel:CreateFontString(nil, "OVERLAY")
+		label:SetPoint("TOPLEFT", panel, "TOPLEFT", 4, y)
+		label:SetSize(labelWidth, height)
+		label:SetJustifyH("LEFT")
+		label:SetFontObject(fontObject)
+		label:SetText(name)
+
+		local slot = self:CreateDataText("TaintedDataTextDebug" .. i, panel)
+		slot:SetPoint("TOPLEFT", panel, "TOPLEFT", labelWidth, y)
+		slot:SetPoint("RIGHT", panel, "RIGHT", 0, 0)
+		slot:SetHeight(height)
+		slot.__holder = holder
+
+		self:EnableSlot(slot, name)
 	end
 end
 
 function MODULE:Init()
+	self.frames = {}
 	if not C.datatexts.enabled then return end
 	self.__elements = C.datatexts.elements or {}
 
@@ -219,7 +211,11 @@ function MODULE:Init()
 	self.__guid = UnitGUID(self.__unit)
 	self.__class = select(2, UnitClass(self.__unit))
 
-	self:CreateSegments()
-	self:Setup()
-end
+	for _, holder in ipairs(holders) do
+		self:SetupHolder(holder)
+	end
 
+	if C.datatexts.debug then
+		self:SetupDebug()
+	end
+end
