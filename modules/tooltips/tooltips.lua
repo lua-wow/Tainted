@@ -182,9 +182,7 @@ local GameTooltip_UnitColor = function(unit)
     return color.r, color.g, color.b;
 end
 
-local GameTooltip_ClearMoney = function(self)
-    local tooltip = self
-
+local OnTooltipCleared = function(tooltip)
     local borderColor = C.general.border.color
     local statusbarColor = E:CreateColor(0, 1, 0)
 
@@ -192,8 +190,9 @@ local GameTooltip_ClearMoney = function(self)
         tooltip.Backdrop:SetBackdropBorderColor(borderColor.r, borderColor.g, borderColor.b)
     end
 
+    -- the health bar belongs to GameTooltip only
     local GameTooltipStatusBar = _G.GameTooltipStatusBar
-    if GameTooltipStatusBar then
+    if tooltip == _G.GameTooltip and GameTooltipStatusBar then
         GameTooltipStatusBar:SetStatusBarColor(statusbarColor.r, statusbarColor.g, statusbarColor.b)
         
         if GameTooltipStatusBar.Text then
@@ -443,112 +442,10 @@ local UpdateUnitTooltip = function(tooltip, data)
     end
 end
 
-local GameTooltip_AnchorComparisonTooltips = function(tooltip, anchorFrame, primaryTooltip, secondaryTooltip, primaryShown, secondaryShown)
-    primaryTooltip:SetShown(primaryShown);
-    secondaryTooltip:SetShown(secondaryShown);
-
-    local sideAnchorFrame = anchorFrame;
-    if anchorFrame and anchorFrame.IsEmbedded then
-        sideAnchorFrame = anchorFrame:GetParent():GetParent();
-    end
-
-    local leftPos = sideAnchorFrame:GetLeft();
-    local rightPos = sideAnchorFrame:GetRight();
-
-    local selfLeftPos = tooltip:GetLeft();
-    local selfRightPos = tooltip:GetRight();
-
-    -- if we get the Left, we have the Right
-    if leftPos and selfLeftPos then
-        leftPos = math.min(selfLeftPos, leftPos);-- get the left most bound
-        rightPos = math.max(selfRightPos, rightPos);-- get the right most bound
-    else
-        leftPos = leftPos or selfLeftPos or 0;
-        rightPos = rightPos or selfRightPos or 0;
-    end
-
-    -- sometimes the sideAnchorFrame is an actual tooltip, and sometimes it's a script region, so make sure we're getting the actual anchor type
-    local anchorType = sideAnchorFrame.GetAnchorType and sideAnchorFrame:GetAnchorType() or tooltip:GetAnchorType();
-
-    local totalWidth = 0;
-    if primaryShown then
-        totalWidth = totalWidth + primaryTooltip:GetWidth();
-    end
-    if secondaryShown then
-        totalWidth = totalWidth + secondaryTooltip:GetWidth();
-    end
-
-    local rightDist = 0;
-    local screenWidth = GetScreenWidth();
-    rightDist = screenWidth - rightPos;
-
-    -- find correct side
-    local side;
-    if anchorType and (totalWidth < leftPos) and (anchorType == "ANCHOR_LEFT" or anchorType == "ANCHOR_TOPLEFT" or anchorType == "ANCHOR_BOTTOMLEFT") then
-        side = "left";
-    elseif anchorType and (totalWidth < rightDist) and (anchorType == "ANCHOR_RIGHT" or anchorType == "ANCHOR_TOPRIGHT" or anchorType == "ANCHOR_BOTTOMRIGHT") then
-        side = "right";
-    elseif rightDist < leftPos then
-        side = "left";
-    else
-        side = "right";
-    end
-
-    -- see if we should slide the tooltip
-    if totalWidth > 0 and (anchorType and anchorType ~= "ANCHOR_PRESERVE") then --we never slide a tooltip with a preserved anchor
-        local slideAmount = 0;
-        if ( (side == "left") and (totalWidth > leftPos) ) then
-            slideAmount = totalWidth - leftPos;
-        elseif ( (side == "right") and (rightPos + totalWidth) >  screenWidth ) then
-            slideAmount = screenWidth - (rightPos + totalWidth);
-        end
-
-        if slideAmount ~= 0 then -- if we calculated a slideAmount, we need to slide
-            if sideAnchorFrame.SetAnchorType then
-                sideAnchorFrame:SetAnchorType(anchorType, slideAmount, 0);
-            else
-                tooltip:SetAnchorType(anchorType, slideAmount, 0);
-            end
-        end
-    end
-
-    local offset = 5
-    if secondaryShown then
-        primaryTooltip:SetPoint("TOP", anchorFrame, 0, 0);
-        secondaryTooltip:SetPoint("TOP", anchorFrame, 0, 0);
-        if side and side == "left" then
-            primaryTooltip:SetPoint("RIGHT", sideAnchorFrame, "LEFT", -offset, 0);
-        else
-            secondaryTooltip:SetPoint("LEFT", sideAnchorFrame, "RIGHT", offset, 0);
-        end
-
-        if side and side == "left" then
-            secondaryTooltip:SetPoint("TOPRIGHT", primaryTooltip, "TOPLEFT", -offset, 0);
-        else
-            primaryTooltip:SetPoint("TOPLEFT", secondaryTooltip, "TOPRIGHT", offset, 0);
-        end
-    else
-        primaryTooltip:SetPoint("TOP", anchorFrame, 0, 0);
-        if side and side == "left" then
-            primaryTooltip:SetPoint("RIGHT", sideAnchorFrame, "LEFT", -offset, 0);
-        else
-            primaryTooltip:SetPoint("LEFT", sideAnchorFrame, "RIGHT", offset, 0);
-        end
-    end
-end
-
 local GameTooltip_ShowCompareItem = function(tooltip, anchorFrame)
     for index, element in next, (tooltip.shoppingTooltips or {}) do
         SetItemTooltipBorderColorByQuality(element or _G["ShoppingTooltip" .. index])
     end
-end
-
-local TooltipComparisonManager_AnchorShoppingTooltips = function(self, primaryShown, secondaryShown)
-    local tooltip = self.tooltip
-    local anchorFrame = self.anchorFrame
-    local primaryTooltip = tooltip.shoppingTooltips[1];
-    local secondaryTooltip = tooltip.shoppingTooltips[2];
-    GameTooltip_AnchorComparisonTooltips(tooltip, anchorFrame, primaryTooltip, secondaryTooltip, primaryShown, secondaryShown)
 end
 
 function tooltip_proto:SetupHooks(owner)
@@ -559,15 +456,6 @@ function tooltip_proto:SetupHooks(owner)
 
     -- update tooltip colors
     hooksecurefunc("GameTooltip_UnitColor", GameTooltip_UnitColor)
-    hooksecurefunc("GameTooltip_ClearMoney", GameTooltip_ClearMoney)
-
-    -- update comparison tooltip anchors
-    local TooltipComparisonManager = _G.TooltipComparisonManager
-    if TooltipComparisonManager then
-        hooksecurefunc(TooltipComparisonManager, "AnchorShoppingTooltips", TooltipComparisonManager_AnchorShoppingTooltips)
-    else
-        hooksecurefunc("GameTooltip_AnchorComparisonTooltips", GameTooltip_AnchorComparisonTooltips)
-    end
 
     hooksecurefunc("GameTooltip_ShowCompareItem", GameTooltip_ShowCompareItem)
 
@@ -582,42 +470,20 @@ function tooltip_proto:SetupHooks(owner)
     if not E.isStandard then
 		GameTooltip:HookScript("OnTooltipSetItem", UpdateItemTooltip)
         GameTooltip:HookScript("OnTooltipSetUnit", UpdateUnitTooltip)
+        ItemRefTooltip:HookScript("OnTooltipSetItem", UpdateItemTooltip)
     end
 end
 
 
 function tooltip_proto:CreateAnchor()
-    local x = 10
-    local y = C.chat.height + 10 + 5
-
     local element = CreateFrame("Frame", "TaintedTooltipAnchor", UIParent)
-    element:SetPoint("BOTTOMRIGHT", UIParent, "BOTTOMRIGHT", -x, y)
+    element:SetPoint("BOTTOMRIGHT", _G.TaintedChatRight, "TOPRIGHT", 0, C.chat.margin)
     element:SetSize(200, 20)
     element:SetFrameStrata("TOOLTIP")
 	element:SetFrameLevel(20)
     element:SetClampedToScreen(true)
     element:SetMovable(false)
     return element
-end
-
-function tooltip_proto:UpdateAnchors()
-    local owner = self.Anchor
-
-    do
-        local container = _G.GameTooltipDefaultContainer
-        if container then
-            container:ClearAllPoints()
-            container:SetPoint("BOTTOMRIGHT", owner, "BOTTOMRIGHT", 0, 0)
-        end
-    end
-
-    do
-        local container = _G.SharedTooltipDefaultContainer
-        if container then
-            container:ClearAllPoints()
-            container:SetPoint("BOTTOMRIGHT", owner, "BOTTOMRIGHT", 0, 0)
-        end
-    end
 end
 
 function tooltip_proto:Update(element)
@@ -631,6 +497,11 @@ function tooltip_proto:Update(element)
 			element.NineSlice:SetAlpha(0)
 		end
 
+        -- EmbeddedItemTooltip is a plain frame without this script
+        if element:HasScript("OnTooltipCleared") then
+            element:HookScript("OnTooltipCleared", OnTooltipCleared)
+        end
+
         element.isSkinned = true
     end
 
@@ -641,7 +512,6 @@ end
 
 function tooltip_proto:Init()
     self.Anchor = self:CreateAnchor()
-    self:UpdateAnchors()
     self:Update(_G.GameTooltip)
     self:Update(_G.ItemRefTooltip)
     self:Update(_G.EmbeddedItemTooltip)

@@ -161,6 +161,73 @@ loads the framework with only the minimap elements (`init_mainline.xml`).
 
 **Done when:** works on all clients, using the tooltip data post-calls on Retail.
 
+**Observed:**
+- `TooltipDataProcessor` post-calls fire only where GameTooltip mixes `TooltipDataHandlerMixin`
+  (Retail, Forever). Era doesn't load `TooltipDataHandler.lua`; TBC/WotLK/MoP load it but no tooltip
+  uses it, so post-calls never fire there. Branch on `GameTooltip.ProcessInfo`, not on
+  `TooltipDataProcessor` existing. Classic keeps `OnTooltipSetUnit/Item/Spell`; mainline has none.
+- Retail and Forever share the same secret flags on unit/health APIs (`UnitHealth`, `UnitClass`,
+  `UnitGUID`, `UnitName`, `UnitPVPName`, `UnitIsAFK`, …); aura tooltip data is
+  `SecretWhenUnitAuraRestricted`; line text can be secret. `GetGuildInfo` is undocumented on Retail
+  (secret status unverified). Classic has no secret flags.
+- Retail health bar value is a secret 0–1 percent (`UnitPercentHealthFromGUID`).
+- `GameTooltip_ClearMoney` is only reached through `OnTooltipCleared` (all clients).
+- Known bugs to fix: line scanning by text, `data.hiperlink` typo, `SpellButton_OnEnter` hooked
+  with the wrong callback, pet-battle hooks concatenating a nil label, `kinds` missing
+  `talent`/`item`/`macro`, double blank line on auras without a source, `HookScript("OnTooltipSet*")`
+  also attempted on Forever (`not E.isStandard`).
+
+**Decided:**
+- Spell/aura IDs stay always-on. NPC ID stays Shift-only.
+- Era vendor-price line stays.
+- Comparison tooltips use Blizzard's anchoring (no copied anchoring code).
+- No tooltip content beyond what Tainted has today; pet-battle, talent, recipe, azerite, conduit
+  and totem ID hooks are dropped.
+
+**Steps** (`make check` after each; Classic regressions checked on Era first):
+
+1. **Skin + anchor cleanup** · Done · Depends on: —
+   - Change: `TaintedTooltipAnchor` anchored to `TaintedChatRight` TOPRIGHT + `C.chat.margin` (same
+     position as before); `UpdateAnchors` removed (moved Edit Mode containers from addon code);
+     copied comparison anchoring removed; border/health-bar reset via `HookScript("OnTooltipCleared")`
+     on each skinned tooltip instead of the `GameTooltip_ClearMoney` hook, health bar reset only for
+     GameTooltip; Classic `ItemRefTooltip` gets the `OnTooltipSetItem` quality-border hook (chat links
+     were always black).
+   - Clients: Classic (Era, TBC, WotLK, MoP).
+   - Test: tooltip above the right chat; border resets between hovers; Shift-compare beside the
+     tooltip with quality borders; chat item link shows quality border; Edit Mode open/close (MoP).
+2. **Classic entry-point cleanup** · Depends on: 1
+   - Change: `OnTooltipSet*` hooks only when `not GameTooltip.ProcessInfo`, post-calls only when set;
+     fix the known bugs above; drop the hooks listed under Decided. Era: temporary `print` in
+     `HookScript(GameTooltip, "OnTooltipAddMoney")` to check whether Blizzard already shows a sell
+     price away from a vendor (would duplicate Tainted's line); remove after checking.
+   - Clients: Classic.
+   - Test: same content as today, no duplicate ID lines; spellbook, action bar, player/target auras,
+     chat spell link, reagent item; Era bag items away from a vendor (report the print).
+3. **Unit tooltip on mainline** · Depends on: 2
+   - Change: one unit handler shared by the Unit post-call and `OnTooltipSetUnit`; mainline finds lines
+     by `TooltipDataLineType` (`UnitName`, `UnitLevel`) + `lineIndex`, Classic keeps the text scan;
+     `issecretvalue` guard before any compare, index or concatenation; NPC ID only with a non-secret GUID.
+     Secret values fall back to Blizzard's text.
+   - Clients: Retail, Forever (+ Classic regression).
+   - Test: no errors in open world, dungeon, M+, PvP/arena; name/guild/level/target as on Classic when
+     accessible.
+4. **Health bar on mainline** · Depends on: 3
+   - Change: `OnValueChanged` never compares the value; text via
+     `SetFormattedText("%s / %s", AbbreviateNumbers(...))`.
+   - Clients: Retail, Forever.
+   - Test: bar and text update in and out of combat; taint log clean after combat.
+5. **Item, spell and aura content on mainline** · Depends on: 2
+   - Change: Item (quality border incl. ShoppingTooltips, reagent count), Spell, Macro and UnitAura
+     post-calls through the shared handlers; skip secret `data.id`.
+   - Clients: Retail, Forever.
+   - Test: quality borders, reagent count, spell IDs on spells/actions/macros/auras; secret auras in
+     combat show no ID and no error.
+6. **Enable on all clients** · Depends on: 1–5
+   - Change: drop `[AllowLoadGameType classic]` from the tooltips TOC line; update compatibility.md.
+   - Clients: all 6.
+   - Test: steps 1–5 on Retail and Forever; no errors on any client.
+
 ### 7. Blizzard UI tweaks
 
 **Status:** Classic/MoP only · **Priority:** Low · **Depends on:** 1, 2
