@@ -196,11 +196,17 @@ loads the framework with only the minimap elements (`init_mainline.xml`).
    - Clients: Classic (Era, TBC, WotLK, MoP).
    - Test: tooltip above the right chat; border resets between hovers; Shift-compare beside the
      tooltip with quality borders; chat item link shows quality border; Edit Mode open/close (MoP).
-2. **Classic entry-point cleanup** · Depends on: 1
-   - Change: `OnTooltipSet*` hooks only when `not GameTooltip.ProcessInfo`, post-calls only when set;
-     fix the known bugs above; drop the hooks listed under Decided. Era: temporary `print` in
-     `HookScript(GameTooltip, "OnTooltipAddMoney")` to check whether Blizzard already shows a sell
-     price away from a vendor (would duplicate Tainted's line); remove after checking.
+2. **Classic entry-point cleanup** · Done · Depends on: 1
+   - Change: Classic hooks (`Set*` methods and `OnTooltipSet*`) only when `not GameTooltip.ProcessInfo`,
+     post-calls only when set; the SpellID line is added at most once per tooltip content (flag reset by
+     `OnTooltipCleared`) instead of scanning line text; only spell IDs (`spell:` links, `spell` actions),
+     so `kinds` is gone; `data.hyperlink` typo fixed; no double blank line on auras without a source.
+     `SpellButton_OnEnter` hook removed: the global doesn't exist on Classic (`SpellButtonMixin`), and
+     `SetSpellBookItem` already fires `OnTooltipSetSpell`. Pet-battle, talent, recipe, azerite, conduit
+     and totem hooks dropped. Player aura buttons (`modules/auras`) get `UpdateTooltip`, like Blizzard's
+     buff buttons, so a tooltip rebuilt after the first hover keeps its SpellID line. Era: temporary `print` in `HookScript(GameTooltip, "OnTooltipAddMoney")`
+     to check whether Blizzard already shows a sell price away from a vendor (would duplicate Tainted's
+     line); remove after checking.
    - Clients: Classic.
    - Test: same content as today, no duplicate ID lines; spellbook, action bar, player/target auras,
      chat spell link, reagent item; Era bag items away from a vendor (report the print).

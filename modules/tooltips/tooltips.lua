@@ -258,7 +258,7 @@ local UpdateItemTooltip = function(tooltip, data)
         if data then
             guid = data.guid
             id = data.id
-            if data.hiperlink then
+            if data.hyperlink then
                 link = data.hyperlink
             elseif guid then
                 link = C_Item.GetItemLinkByGUID(guid)
@@ -459,15 +459,14 @@ function tooltip_proto:SetupHooks(owner)
 
     hooksecurefunc("GameTooltip_ShowCompareItem", GameTooltip_ShowCompareItem)
 
-    if TooltipDataProcessor and TooltipDataProcessor.AddTooltipPostCall then
+    -- tooltip data post-calls only fire where GameTooltip uses TooltipDataHandlerMixin (mainline)
+    if GameTooltip.ProcessInfo then
         -- color tooltip border by item quality
         TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Item, UpdateItemTooltip)
 
         -- unit tooltip customization
         TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Unit, UpdateUnitTooltip)
-    end
-
-    if not E.isStandard then
+    else
 		GameTooltip:HookScript("OnTooltipSetItem", UpdateItemTooltip)
         GameTooltip:HookScript("OnTooltipSetUnit", UpdateUnitTooltip)
         ItemRefTooltip:HookScript("OnTooltipSetItem", UpdateItemTooltip)

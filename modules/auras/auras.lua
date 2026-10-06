@@ -113,7 +113,12 @@ do
         if GameTooltip:IsForbidden() then return end
 
 		GameTooltip:SetOwner(self, "ANCHOR_BOTTOMLEFT", -5, -5)
+        self:UpdateTooltip()
+    end
 
+    -- GameTooltip_OnUpdate calls this every TOOLTIP_UPDATE_TIME while the button owns the tooltip,
+    -- so content rebuilt after the first set (e.g. uncached spell data) gets the SpellID line again
+    function button_proto:UpdateTooltip()
         if self:GetAttribute("index") then
             GameTooltip:SetUnitAura(self:GetParent():GetAttribute("unit"), self:GetID(), self:GetAttribute("filter"))
         else
