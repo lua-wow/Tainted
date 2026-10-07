@@ -24,7 +24,6 @@ local UnitIsDND = _G.UnitIsDND
 local UnitIsGhost = _G.UnitIsGhost
 local UnitIsOtherPlayersBattlePet = _G.UnitIsOtherPlayersBattlePet
 local UnitIsPlayer = _G.UnitIsPlayer
-local UnitIsPVP = _G.UnitIsPVP
 local UnitIsWildBattlePet = _G.UnitIsWildBattlePet
 local UnitLevel = _G.UnitLevel
 local UnitName = _G.UnitName
@@ -35,6 +34,8 @@ local UnitReaction = _G.UnitReaction
 local UnitRealmRelationship = _G.UnitRealmRelationship
 local TooltipDataProcessor = _G.TooltipDataProcessor
 local GetQuestDifficultyColor = _G.GetQuestDifficultyColor
+local issecretvalue = _G.issecretvalue
+local ShouldUnitIdentityBeSecret = C_Secrets and C_Secrets.ShouldUnitIdentityBeSecret
 
 --------------------------------------------------
 -- Tooltips
@@ -60,11 +61,29 @@ local PLAYER_LEVEL = "%s %s (" .. _G.PLAYER .. ")"
 local BATTLE_PET_LEVEL = "%s %s%s"
 local CREATURE_LEVEL = "%s %s"
 
+local function IsSecret(value)
+    return issecretvalue and issecretvalue(value)
+end
+
+-- name, class, race and GUID are secret together; the token itself can be secret on mainline
+local function IsSecretUnit(unit)
+    return IsSecret(unit) or (ShouldUnitIdentityBeSecret and ShouldUnitIdentityBeSecret(unit))
+end
+
 local function GetTooltipLine(tooltip, offset, pattern)
     for i = offset, tooltip:NumLines() do
         local text = _G["GameTooltipTextLeft" .. i]:GetText()
-        if text and text:match(pattern) then
+        if text and not IsSecret(text) and text:match(pattern) then
             return _G["GameTooltipTextLeft" .. i], i + 1
+        end
+    end
+end
+
+-- mainline: tooltip data lines carry their type and the index they were added at
+local function GetDataLine(data, lineType)
+    for _, line in ipairs(data.lines) do
+        if line.type == lineType and line.lineIndex then
+            return _G["GameTooltipTextLeft" .. line.lineIndex], line.lineIndex + 1
         end
     end
 end
@@ -127,33 +146,19 @@ do
 end
 
 local GameTooltip_UnitColor = function(unit)
+    -- a secret token can only be passed to unit APIs by untainted code: keep the default border
+    if IsSecret(unit) then return end
+
     local color = E.colors.white
 
-    local isPlayer = UnitIsPlayer(unit)
-    local isFriend = UnitIsFriend("player", unit)
-
     if UnitPlayerControlled(unit) then
-        if UnitCanAttack(unit, "player") then
+        if UnitCanAttack(unit, "player") and UnitCanAttack("player", unit) then
             -- hostile players are red
-            if UnitCanAttack("player", unit) then
-                color = E.colors.reaction[2]
-            else
-                local _, class = UnitClass(unit)
-                if class then
-                    color = E.colors.class[class]
-                end
-            end
+            color = E.colors.reaction[2]
         elseif UnitCanAttack("player", unit) then
             -- players we can attack but which are not hostile are yellow
             color = E.colors.reaction[4]
-        elseif UnitIsPVP(unit) then
-            -- players we can assist but are PvP flagged are green
-            -- color = E.colors.reaction[6]
-            local _, class = UnitClass(unit)
-            if class then
-                color = E.colors.class[class]
-            end
-        else
+        elseif not IsSecretUnit(unit) then
             local _, class = UnitClass(unit)
             if class then
                 color = E.colors.class[class]
@@ -280,10 +285,13 @@ local UpdateItemTooltip = function(tooltip, data)
 end
 
 local UpdateUnitTooltip = function(tooltip, data)
+    -- this writes GameTooltip's font strings; post-calls fire for every tooltip with unit data
+    if tooltip ~= _G.GameTooltip then return end
     if C_PetBattles.IsInBattle() then return end
     
     local name, unit, guid = tooltip:GetUnit()
-    if not unit then return end
+    -- restricted identity: keep Blizzard's text
+    if not unit or IsSecretUnit(unit) then return end
 
     guid = guid or UnitGUID(unit)
     local _, realm = UnitName(unit)
@@ -294,8 +302,8 @@ local UpdateUnitTooltip = function(tooltip, data)
     local classification = UnitClassification(unit)
     local isShiftKeyDown = IsShiftKeyDown()
 
-    -- name
-    do
+    -- name (UnitName has its own restriction, separate from unit identity)
+    if not IsSecret(name) and not IsSecret(realm) then
         local line = _G.GameTooltipTextLeft1
 
         if UnitIsPlayer(unit) then
@@ -318,6 +326,9 @@ local UpdateUnitTooltip = function(tooltip, data)
                 -- end
             end
 
+            -- secret during chat messaging lockdown
+            local isAFK, isDND = UnitIsAFK(unit), UnitIsDND(unit)
+
             local status = ""
             if not UnitIsConnected(unit) then
                 status = OFFLINE
@@ -325,9 +336,9 @@ local UpdateUnitTooltip = function(tooltip, data)
                 status = GHOST
             elseif UnitIsDead(unit) then
                 status = DEAD
-            elseif UnitIsAFK(unit) then
+            elseif not IsSecret(isAFK) and isAFK then
                 status = AFK
-            elseif UnitIsDND(unit) then
+            elseif not IsSecret(isDND) and isDND then
                 status = DND
             end
             
@@ -350,8 +361,9 @@ local UpdateUnitTooltip = function(tooltip, data)
 
     -- guild
     do
+        -- GetGuildInfo is undocumented on mainline: secret status unverified
         local guildName, _, _, guildRealm = GetGuildInfo(unit)
-        if guildName then
+        if guildName and not IsSecret(guildName) and not IsSecret(guildRealm) then
             local line, _offset = GetTooltipLine(tooltip, offset, guildName) -- offset = 3
             if line then
                 offset = _offset
@@ -369,7 +381,12 @@ local UpdateUnitTooltip = function(tooltip, data)
 
     -- level
     do
-        local line, _offset = GetTooltipLine(tooltip, offset, (scaledLevel > 0) and scaledLevel or "%?%?")
+        local line, _offset
+        if data then
+            line, _offset = GetDataLine(data, Enum.TooltipDataLineType.UnitLevel)
+        else
+            line, _offset = GetTooltipLine(tooltip, offset, (scaledLevel > 0) and scaledLevel or "%?%?")
+        end
         offset = _offset
 
         if line then
@@ -385,9 +402,10 @@ local UpdateUnitTooltip = function(tooltip, data)
 
                 -- specialization
                 local specLine = _G["GameTooltipTextLeft" .. offset]
-                if specLine then
-                    local specText = string.trim(specLine:GetText() or "")
-                    if specText and specText ~= "" then
+                local specText = specLine and specLine:GetText()
+                if specText and not IsSecret(specText) then
+                    specText = string.trim(specText)
+                    if specText ~= "" then
                         specLine:SetTextColor(color.r, color.g, color.b)
                     end
                 end
@@ -412,10 +430,12 @@ local UpdateUnitTooltip = function(tooltip, data)
     -- target
     do
         local target = unit .. "target"
-        if UnitExists(target) then
-            local color = E.GetUnitColor(target)
-            local name = color:WrapTextInColorCode(UnitName(target))
-            tooltip:AddLine(TARGET:format(name), 1, 1, 1)
+        if UnitExists(target) and not IsSecretUnit(target) then
+            local targetName = UnitName(target)
+            if not IsSecret(targetName) then
+                local color = E.GetUnitColor(target)
+                tooltip:AddLine(TARGET:format(color:WrapTextInColorCode(targetName)), 1, 1, 1)
+            end
         end
     end
 
@@ -434,7 +454,7 @@ local UpdateUnitTooltip = function(tooltip, data)
         end
     end
     
-    do
+    if guid and not IsSecret(guid) then
         local guidType, _, _, _, _, guidID, _ = string.split("-", guid)
         if IsShiftKeyDown() and guidType == "Creature" then
             tooltip:AddDoubleLine("NPC ID", guidID, nil, nil, nil, 1.0, 1.0, 1.0)
