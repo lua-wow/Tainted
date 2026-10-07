@@ -34,6 +34,7 @@ local UnitReaction = _G.UnitReaction
 local UnitRealmRelationship = _G.UnitRealmRelationship
 local TooltipDataProcessor = _G.TooltipDataProcessor
 local GetQuestDifficultyColor = _G.GetQuestDifficultyColor
+local FACTION_BAR_COLORS = _G.FACTION_BAR_COLORS
 local issecretvalue = _G.issecretvalue
 local ShouldUnitIdentityBeSecret = C_Secrets and C_Secrets.ShouldUnitIdentityBeSecret
 
@@ -103,25 +104,18 @@ local tooltip_proto = {}
 do
     local statusbar_proto = {}
 
-    function statusbar_proto:OnValueChanged(value, smooth)
+    function statusbar_proto:OnValueChanged()
         local _, unit = self:GetParent():GetUnit()
-        if unit then
-            if UnitIsDeadOrGhost(unit) then
-                if self.Text then
-                    self.Text:SetText(DEAD)
-                end
-            else
-                local cur, max = UnitHealth(unit), UnitHealthMax(unit)
-                local text = (cur and max and E.ShortValue(cur) .. " / " .. E.ShortValue(max)) or "???"
-                if self.Text then
-                    self.Text:SetText(text)
+        -- a secret token can't be passed to unit APIs by addon code; health is secret on mainline,
+        -- so it's only formatted, never tested or concatenated
+        if not unit or IsSecret(unit) or not self.Text then return end
 
-                    if not self.Text:IsShown() then
-                        self.Text:Show()
-                    end
-                end
-            end
+        if UnitIsDeadOrGhost(unit) then
+            self.Text:SetText(DEAD)
+        else
+            self.Text:SetFormattedText("%s / %s", E.ShortValue(UnitHealth(unit)), E.ShortValue(UnitHealthMax(unit)))
         end
+        self.Text:Show()
     end
 
     function tooltip_proto:UpdateStatusBar()
@@ -142,6 +136,19 @@ do
             text:SetPoint("CENTER", element, "CENTER", 0, 6)
             element.Text = text
         end
+    end
+end
+
+local function SetUnitColor(color)
+    local GameTooltip = _G.GameTooltip
+    if GameTooltip.Backdrop then
+        GameTooltip.Backdrop:SetBackdropBorderColor(color.r, color.g, color.b)
+    end
+
+    local GameTooltipStatusBar = _G.GameTooltipStatusBar
+    GameTooltipStatusBar:SetStatusBarColor(color.r, color.g, color.b)
+    if GameTooltipStatusBar.Backdrop then
+        GameTooltipStatusBar.Backdrop:SetBackdropBorderColor(color.r, color.g, color.b)
     end
 end
 
@@ -173,18 +180,31 @@ local GameTooltip_UnitColor = function(unit)
         end
     end
 
-    local GameTooltip = _G.GameTooltip
-    if GameTooltip.Backdrop then
-        GameTooltip.Backdrop:SetBackdropBorderColor(color.r, color.g, color.b)
-    end
-
-    local GameTooltipStatusBar = _G.GameTooltipStatusBar
-    GameTooltipStatusBar:SetStatusBarColor(color.r, color.g, color.b)
-    if GameTooltipStatusBar.Backdrop then
-        GameTooltipStatusBar.Backdrop:SetBackdropBorderColor(color.r, color.g, color.b)
-    end
+    SetUnitColor(color)
 
     return color.r, color.g, color.b;
+end
+
+-- secret token: Blizzard's GameTooltip_UnitColor ran untainted and left a FACTION_BAR_COLORS
+-- entry (or white, no reaction) on the name line; map it back to our reaction colors
+local function GetSecretUnitColor(data)
+    for _, line in ipairs(data.lines) do
+        if line.type == Enum.TooltipDataLineType.UnitName then
+            local color = line.leftColor
+            if not color then return end
+
+            -- usually the color itself is secret: it can't be mapped, only passed to the color setters
+            if IsSecret(color.r) then return color end
+
+            for reaction, factionColor in ipairs(FACTION_BAR_COLORS) do
+                if color:IsRGBEqualTo(factionColor) then
+                    return E.colors.reaction[reaction]
+                end
+            end
+            -- white: no reaction, keep the cleared colors
+            return
+        end
+    end
 end
 
 local OnTooltipCleared = function(tooltip)
@@ -290,8 +310,28 @@ local UpdateUnitTooltip = function(tooltip, data)
     if C_PetBattles.IsInBattle() then return end
     
     local name, unit, guid = tooltip:GetUnit()
+    if not unit then return end
+
+    if IsSecret(unit) and data then
+        -- the plain mouseover token stays readable while the tooltip's token is secret (checked in a
+        -- Retail dungeon), so world tooltips get our own colors; else fall back to Blizzard's
+        if UnitExists("mouseover") then
+            local r, g, b = GameTooltip_UnitColor("mouseover")
+            -- Blizzard colored the name from its own (sometimes white) result
+            local line = GetDataLine(data, Enum.TooltipDataLineType.UnitName)
+            if line then
+                line:SetTextColor(r, g, b)
+            end
+        else
+            local color = GetSecretUnitColor(data)
+            if color then
+                SetUnitColor(color)
+            end
+        end
+    end
+
     -- restricted identity: keep Blizzard's text
-    if not unit or IsSecretUnit(unit) then return end
+    if IsSecretUnit(unit) then return end
 
     guid = guid or UnitGUID(unit)
     local _, realm = UnitName(unit)

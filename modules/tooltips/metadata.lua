@@ -155,11 +155,10 @@ end
 local function TooltipDataProcessor_UnitAura(tooltip, data)
     if tooltip == _G.GameTooltip or tooltip == _G.EmbeddedItemTooltip then
         local id = data.id
-        if id then
-            local getterName = tooltip.processingInfo and tooltip.processingInfo.getterName
-            local getterArgs = tooltip.processingInfo and tooltip.processingInfo.getterArgs
-            local accessor = TooltipDataAccessor[getterName]
-            local sourceUnit = accessor and accessor(getterArgs)
+        if id and not (issecretvalue and issecretvalue(id)) then
+            -- aura data can't be queried from tainted code while auras are secret: show only the ID
+            local accessor = not C_Secrets.ShouldAurasBeSecret() and tooltip.processingInfo and TooltipDataAccessor[tooltip.processingInfo.getterName]
+            local sourceUnit = accessor and accessor(tooltip.processingInfo.getterArgs)
 
             if sourceUnit then
                 local source = UnitName(sourceUnit)

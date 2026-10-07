@@ -210,7 +210,7 @@ loads the framework with only the minimap elements (`init_mainline.xml`).
    - Clients: Classic.
    - Test: same content as today, no duplicate ID lines; spellbook, action bar, player/target auras,
      chat spell link, reagent item; Era bag items away from a vendor (report the print).
-3. **Unit tooltip on mainline** · Depends on: 2
+3. **Unit tooltip on mainline** · Done · Depends on: 2
    - Change: one unit handler shared by the Unit post-call and `OnTooltipSetUnit`; mainline finds lines
      by `TooltipDataLineType` (`UnitName`, `UnitLevel`) + `lineIndex`, Classic keeps the text scan;
      `issecretvalue` guard before any compare, index or concatenation; NPC ID only with a non-secret GUID.
@@ -218,14 +218,22 @@ loads the framework with only the minimap elements (`init_mainline.xml`).
    - Clients: Retail, Forever (+ Classic regression).
    - Test: no errors in open world, dungeon, M+, PvP/arena; name/guild/level/target as on Classic when
      accessible.
-4. **Health bar on mainline** · Depends on: 3
-   - Change: `OnValueChanged` never compares the value; text via
-     `SetFormattedText("%s / %s", AbbreviateNumbers(...))`.
+4. **Health bar on mainline** · Done · Depends on: 3
+   - Change: `OnValueChanged` ignores the (secret) bar value and skips secret unit tokens; text via
+     `SetFormattedText("%s / %s", E.ShortValue(...))` (`AbbreviateNumbers` for secret health), no test or
+     concatenation on health; `<Dead>` text is shown again after `OnTooltipCleared` hid it.
+     Secret unit token (instances): border, bar and name colored by `GameTooltip_UnitColor("mouseover")`
+     (plain `mouseover` reaction stays readable, verified on Retail); without a mouseover, Blizzard's
+     name-line color is used (secret colors passed as is, white = no reaction keeps the cleared colors).
+     Assumes the mouseover is the tooltip unit (can't compare a secret token).
    - Clients: Retail, Forever.
-   - Test: bar and text update in and out of combat; taint log clean after combat.
+   - Test: bar and text update in and out of combat; taint log clean after combat; dungeon enemies
+     red (bar, border, name) while switching targets. Verified on Retail.
 5. **Item, spell and aura content on mainline** · Depends on: 2
    - Change: Item (quality border incl. ShoppingTooltips, reagent count), Spell, Macro and UnitAura
      post-calls through the shared handlers; skip secret `data.id`.
+     Already done: UnitAura post-call skips a secret `data.id` and the source lookup while
+     `C_Secrets.ShouldAurasBeSecret()` (tainted `GetAuraDataByIndex` errored).
    - Clients: Retail, Forever.
    - Test: quality borders, reagent count, spell IDs on spells/actions/macros/auras; secret auras in
      combat show no ID and no error.
