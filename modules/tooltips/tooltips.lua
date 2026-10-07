@@ -274,33 +274,24 @@ local SetCraftingReagentsQuantityInBag = function(tooltip, id)
     end
 end
 
+-- mainline: the Item post-call fires for every tooltip, ShoppingTooltips included
 local UpdateItemTooltip = function(tooltip, data)
-    if tooltip == _G.GameTooltip or tooltip == _G.ItemRefTooltip then
-        -- on Retail, tooltip:GetItem() returns (name, link, id)
-        -- on Classic, tooltip:GetItem() returns (name, link)
-        local link, id, guid
+    local link
+    if data then
+        -- C_Item APIs reject secret arguments from tainted code
+        if IsSecret(data.hyperlink) or IsSecret(data.guid) then return end
+        link = data.hyperlink or (data.guid and C_Item.GetItemLinkByGUID(data.guid))
+    else
+        _, link = tooltip:GetItem()
+    end
+    if not link then return end
 
-        if data then
-            guid = data.guid
-            id = data.id
-            if data.hyperlink then
-                link = data.hyperlink
-            elseif guid then
-                link = C_Item.GetItemLinkByGUID(guid)
-            end
-        else
-            _, link, id = tooltip:GetItem()
-        end
-        
-        if link then
-            local _, _, quality, itemLevel, _, itemType, itemSubtype, _, _, _, _, _, _, _, _, _, isCraftingReagent = C_Item.GetItemInfo(link)
+    local _, _, quality, _, _, _, _, _, _, _, _, _, _, _, _, _, isCraftingReagent = C_Item.GetItemInfo(link)
 
-            SetItemBorderColor(tooltip, quality)
+    SetItemBorderColor(tooltip, quality)
 
-            if isCraftingReagent then
-                SetCraftingReagentsQuantityInBag(tooltip, link)
-            end
-        end
+    if isCraftingReagent and (tooltip == _G.GameTooltip or tooltip == _G.ItemRefTooltip) then
+        SetCraftingReagentsQuantityInBag(tooltip, link)
     end
 end
 
@@ -517,8 +508,6 @@ function tooltip_proto:SetupHooks(owner)
     -- update tooltip colors
     hooksecurefunc("GameTooltip_UnitColor", GameTooltip_UnitColor)
 
-    hooksecurefunc("GameTooltip_ShowCompareItem", GameTooltip_ShowCompareItem)
-
     -- tooltip data post-calls only fire where GameTooltip uses TooltipDataHandlerMixin (mainline)
     if GameTooltip.ProcessInfo then
         -- color tooltip border by item quality
@@ -527,6 +516,7 @@ function tooltip_proto:SetupHooks(owner)
         -- unit tooltip customization
         TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Unit, UpdateUnitTooltip)
     else
+        hooksecurefunc("GameTooltip_ShowCompareItem", GameTooltip_ShowCompareItem)
 		GameTooltip:HookScript("OnTooltipSetItem", UpdateItemTooltip)
         GameTooltip:HookScript("OnTooltipSetUnit", UpdateUnitTooltip)
         ItemRefTooltip:HookScript("OnTooltipSetItem", UpdateItemTooltip)

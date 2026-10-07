@@ -229,10 +229,15 @@ loads the framework with only the minimap elements (`init_mainline.xml`).
    - Clients: Retail, Forever.
    - Test: bar and text update in and out of combat; taint log clean after combat; dungeon enemies
      red (bar, border, name) while switching targets. Verified on Retail.
-5. **Item, spell and aura content on mainline** · Depends on: 2
-   - Change: Item (quality border incl. ShoppingTooltips, reagent count), Spell, Macro and UnitAura
-     post-calls through the shared handlers; skip secret `data.id`.
-     Already done: UnitAura post-call skips a secret `data.id` and the source lookup while
+5. **Item, spell and aura content on mainline** · Done, pending in-game verification · Depends on: 2
+   - Change: Item post-call colors any skinned tooltip (ShoppingTooltips get their own post-call on
+     mainline, so the `GameTooltip_ShowCompareItem` hook is Classic-only); reagent count only on
+     GameTooltip/ItemRefTooltip; secret `hyperlink`/`guid` skipped (`C_Item` rejects secret args).
+     Spell/PetAction post-call uses `data.id` (was `GetSpell()`, nil for PetAction) and now also covers
+     ItemRefTooltip (chat spell links). Macro post-call: `GetActionInfo(slot)` from
+     `processingInfo.getterArgs`, `"macro"` + subType `"spell"` gives the spell ID (as Blizzard's
+     action buttons do). PetAction `data.id` being a spell ID is unverified (idTip assumes it).
+     UnitAura post-call skips a secret `data.id` and the source lookup while
      `C_Secrets.ShouldAurasBeSecret()` (tainted `GetAuraDataByIndex` errored).
    - Clients: Retail, Forever.
    - Test: quality borders, reagent count, spell IDs on spells/actions/macros/auras; secret auras in

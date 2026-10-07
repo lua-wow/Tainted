@@ -143,10 +143,27 @@ local OnTooltipSetItem = function(self)
     end
 end
 
+local function IsSecret(value)
+    return issecretvalue and issecretvalue(value)
+end
+
+-- Spell and PetAction data carry the spell ID (PetAction unverified)
 local function TooltipDataProcessor_Spell(tooltip, data)
-    if tooltip == _G.GameTooltip or tooltip == _G.EmbeddedItemTooltip then
-        local name, id = tooltip:GetSpell()
-        if id then
+    if tooltip == _G.GameTooltip or tooltip == _G.ItemRefTooltip or tooltip == _G.EmbeddedItemTooltip then
+        if not IsSecret(data.id) then
+            AddLine(tooltip, data.id)
+        end
+    end
+end
+
+-- macro data has no spell: resolve the action like Blizzard's action buttons do
+local function TooltipDataProcessor_Macro(tooltip, data)
+    if tooltip ~= _G.GameTooltip then return end
+
+    local info = tooltip.processingInfo
+    if info and info.getterName == "GetAction" and info.getterArgs then
+        local kind, id, subType = GetActionInfo(info.getterArgs[1])
+        if kind == "macro" and subType == "spell" and not IsSecret(id) then
             AddLine(tooltip, id)
         end
     end
@@ -155,7 +172,7 @@ end
 local function TooltipDataProcessor_UnitAura(tooltip, data)
     if tooltip == _G.GameTooltip or tooltip == _G.EmbeddedItemTooltip then
         local id = data.id
-        if id and not (issecretvalue and issecretvalue(id)) then
+        if id and not IsSecret(id) then
             -- aura data can't be queried from tainted code while auras are secret: show only the ID
             local accessor = not C_Secrets.ShouldAurasBeSecret() and tooltip.processingInfo and TooltipDataAccessor[tooltip.processingInfo.getterName]
             local sourceUnit = accessor and accessor(tooltip.processingInfo.getterArgs)
@@ -181,6 +198,7 @@ function MODULE:AddMetadata()
         -- display spellID
         TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Spell, TooltipDataProcessor_Spell)
         TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.PetAction, TooltipDataProcessor_Spell)
+        TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Macro, TooltipDataProcessor_Macro)
 
         -- display aura spellID and source name
         TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.UnitAura, TooltipDataProcessor_UnitAura)
