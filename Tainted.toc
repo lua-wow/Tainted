@@ -93,7 +93,7 @@ modules\actionbars\init.xml [AllowLoadGameType classic]
 modules\datatexts\init.xml
 
 ## tooltips
-modules\tooltips\init.xml [AllowLoadGameType classic]
+modules\tooltips\init.xml
 
 ## unitframes
 modules\unitframes\core.lua

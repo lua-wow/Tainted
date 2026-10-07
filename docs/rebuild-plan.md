@@ -11,10 +11,10 @@ Legend: **Observed** = seen in the code · **Recommended** = proposal, not yet a
 
 - Revived after a long maintenance gap. TOC, references and settings have been cleaned up.
 - **Observed:** on Retail and Forever, only core, unit frames, maps (minimap/worldmap), chat and datatexts
-  load. Auras, bags, action bars and tooltips are tagged `classic`. Blizzard and
+  load, plus tooltips. Auras, bags and action bars are tagged `classic`. Blizzard and
   miscellaneous only load on Classic and MoP.
 - **Observed:** working: unit frames (most mature), minimap, chat and datatexts on all clients. Classic-only,
-  not verified on Retail: action bars, auras, tooltips, Blizzard tweaks. Stub/WIP:
+  not verified on Retail: action bars, auras, Blizzard tweaks. Stub/WIP:
   bags (only the bag-slot bar loads).
 - Constraints: one TOC for 6 clients; Retail oUF is read-only; Midnight secret values
   (see compatibility.md).
@@ -157,7 +157,7 @@ loads the framework with only the minimap elements (`init_mainline.xml`).
 
 ### 6. Tooltips
 
-**Status:** Classic only · **Priority:** Medium · **Depends on:** 0
+**Status:** Done, pending in-game verification · **Priority:** Medium · **Depends on:** 0
 
 **Done when:** works on all clients, using the tooltip data post-calls on Retail.
 
@@ -242,7 +242,7 @@ loads the framework with only the minimap elements (`init_mainline.xml`).
    - Clients: Retail, Forever.
    - Test: quality borders, reagent count, spell IDs on spells/actions/macros/auras; secret auras in
      combat show no ID and no error.
-6. **Enable on all clients** · Depends on: 1–5
+6. **Enable on all clients** · Done, pending in-game verification · Depends on: 1–5
    - Change: drop `[AllowLoadGameType classic]` from the tooltips TOC line; update compatibility.md.
    - Clients: all 6.
    - Test: steps 1–5 on Retail and Forever; no errors on any client.
@@ -342,7 +342,7 @@ Unit frames continue in parallel as a leaf. Only item 0 touches them.
   - [x] 3. Guild tooltip
 - [ ] 4. Action bars
 - [ ] 5. Auras (player buffs/debuffs)
-- [ ] 6. Tooltips
+- [x] 6. Tooltips (pending in-game verification)
 - [ ] 7. Blizzard UI tweaks
 - [ ] 8. Bags
 - [ ] 9. Miscellaneous

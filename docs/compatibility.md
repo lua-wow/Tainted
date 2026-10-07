@@ -34,11 +34,13 @@ A single `Tainted.toc` serves every supported client (`## Interface: 120100, 160
 
 ## Current status
 
-- Retail is being revived. Classic-only modules (auras, bags, actionbars, tooltips)
+- Retail is being revived. Classic-only modules (auras, bags, actionbars)
   are tagged `classic` in the TOC for now; drop the tag to enable them on Retail.
 - Chat loads on all clients (one shared implementation, no per-client files).
 - Datatexts load on all clients. An element's `Enable` returns `true` only if it can run on
   the client.
+- Tooltips load on all clients: tooltip data post-calls where `GameTooltip.ProcessInfo` exists
+  (Retail, Forever), `OnTooltipSet*` hooks elsewhere.
 
 ## oUF variants
 
