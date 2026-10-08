@@ -275,11 +275,6 @@ function MODULE:DisableBlizzard()
         _G.MainActionBar:SetParent(E.Hider)
     end
 
-    if not E.isStandard then
-        MultiActionBar_Update = function() end
-        BeginActionBarTransition = function() end
-    end
-
     local MicroMenu = _G.MicroMenu
     if MicroMenu then
         MicroMenu:ClearAllPoints()

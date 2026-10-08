@@ -55,8 +55,6 @@ do
 			frame:SetParent(element)
 			frame:ClearAllPoints()
 			frame:SetAllPoints(E.Hider)
-			frame.ignoreFramePositionManager = true
-			frame.ignoreInLayout = true
         end
     end
 end

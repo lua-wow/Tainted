@@ -14,13 +14,8 @@ do
 
         local frame = _G.MultiBarRight
         if frame then
-            if not E.isStandard then
-                frame:SetShown(true)
-                frame:EnableMouse(false)
-            end
             frame:SetParent(element)
-            frame.ignoreFramePositionManager = true
-            frame.ignoreInLayout = true
+            element:FollowBar(frame)
         end
     end
 

@@ -36,8 +36,6 @@ do
 		if frame then
 			frame:StripTextures()
 			frame:EnableMouse(false)
-			frame.ignoreFramePositionManager = true
-			frame.ignoreInLayout = true
 		end
 
 		if _G.StanceBar then

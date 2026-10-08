@@ -40,11 +40,9 @@ globals = {
     'SlashCmdList',
 
     -- Blizzard overrides
-    'BeginActionBarTransition',
     'EventTrace',
     'ItemRefTooltip',
     'Minimap',
-    'MultiActionBar_Update',
 }
 
 -- oUF tag environment

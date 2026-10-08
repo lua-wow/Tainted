@@ -23,13 +23,8 @@ do
 
         local frame = _G.MultiBarBottomLeft
         if frame then
-            if not E.isStandard then
-                frame:SetShown(true)
-                frame:EnableMouse(false)
-            end
             frame:SetParent(element)
-            frame.ignoreFramePositionManager = true
-            frame.ignoreInLayout = true
+            element:FollowBar(frame)
         end
     end
 
@@ -61,6 +56,11 @@ do
         right:SetFrameLevel(self:GetFrameLevel())
         right:CreateBackdrop("transparent")
         self.Right = right
+    end
+
+    function element_proto:SetBackgroundShown(shown)
+        self.Left:SetShown(shown)
+        self.Right:SetShown(shown)
     end
 
     function element_proto:UpdateButtonPosition(button, index)
