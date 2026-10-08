@@ -274,6 +274,11 @@ function MODULE:DisableBlizzard()
     self:Hide(_G.MainStatusTrackingBarContainer, true)
     self:Hide(_G.SecondaryStatusTrackingBarContainer, true)
 
+    -- reparent only: MultiActionBar_Update hides every multi-bar while MainActionBar:IsShown() is false
+    if _G.MainActionBar then
+        _G.MainActionBar:SetParent(E.Hider)
+    end
+
     if not E.isStandard then
         MultiActionBar_Update = function() end
         BeginActionBarTransition = function() end
