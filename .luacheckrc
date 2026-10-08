@@ -65,6 +65,7 @@ read_globals = {
 
     -- namespaces
     'C_AddOns',
+    'C_ActionBar',
     'C_ArtifactUI',
     'C_AzeriteItem',
     'C_Bank',

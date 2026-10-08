@@ -5,7 +5,10 @@ local MODULE = E:GetModule("ActionBars")
 -- Blizzard
 local MAIN_MENU_BAR_NUM_BUTTONS  = _G.MAIN_MENU_BAR_NUM_BUTTONS or 12
 
-local GetActionTexture  = _G.GetActionTexture
+local GetActionTexture = C_ActionBar.GetActionTexture
+local GetVehicleBarIndex = C_ActionBar.GetVehicleBarIndex
+local GetTempShapeshiftBarIndex = C_ActionBar.GetTempShapeshiftBarIndex
+local GetOverrideBarIndex = C_ActionBar.GetOverrideBarIndex
 
 -- Mine
 local PAGE_STATE = {

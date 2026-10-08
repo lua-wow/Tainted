@@ -30,7 +30,7 @@ function MODULE:CreateExtraActionButton(holder)
     local button = frame.button or _G.ExtraActionButton1
     if button then
         button:SetSize(size, size)
-        MODULE:StyleActionButton(button)
+        MODULE.StyleActionButton(button)
     end
 
     hooksecurefunc(frame, "SetParent", function(self, parent)

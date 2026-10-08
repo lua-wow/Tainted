@@ -69,7 +69,6 @@ do
 		local spacing = element.spacing or 5
 		local horizontal = element.horizontal or false
 
-        element:ClearAllPoints()
 		if index == 1 then
 			button:SetPoint("TOPLEFT", element.Left, "TOPLEFT", spacing, -spacing)
         elseif index == 7 then

@@ -48,7 +48,7 @@ do
 	function element_proto:PostCreate()
         local element = self
 
-        local frame = _G.PetActionBar or _G.PetActionBarFrame
+        local frame = _G.PetActionBar
         if frame then
 			-- frame:SetShown(true)
 			-- frame:EnableMouse(false)

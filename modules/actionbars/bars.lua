@@ -129,10 +129,6 @@ do
 				element:SetAttribute("addchild", button)
 			end
 
-			if ActionButton_ShowGrid then
-				ActionButton_ShowGrid(button)
-			end
-
 			element:UpdateButtonPosition(button, index)
 	
 			element._buttons[index] = button

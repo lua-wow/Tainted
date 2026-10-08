@@ -14,7 +14,7 @@ local UpdateDisplayedZoneAbilities = function(self)
         button:ClearAllPoints()
         button:SetPoint("TOPLEFT", container, "TOPLEFT", xOffset, 0)
         button:SetSize(size, size)
-        MODULE:StyleActionButton(button)
+        MODULE.StyleActionButton(button)
 
         index = index + 1
     end

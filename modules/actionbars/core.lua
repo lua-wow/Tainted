@@ -264,10 +264,6 @@ function MODULE:DisableBlizzard()
     self:Hide(_G.MainMenuBar, true)
     self:Hide(_G.MainMenuBarArtFrame, true)
     self:Hide(_G.OverrideActionBar, true)
-    self:Hide(_G.PossessBarFrame, true)
-    self:Hide(_G.ShapeshiftBarLeft, true)
-    self:Hide(_G.ShapeshiftBarMiddle, true)
-    self:Hide(_G.ShapeshiftBarRight, true)
 
     -- Retail
     self:Hide(_G.StatusTrackingBarManager, true)

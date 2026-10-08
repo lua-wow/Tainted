@@ -32,15 +32,7 @@ do
 	function element_proto:PostCreate()
 		local element = self
 
-		if _G.StanceBarFrame then
-			element:RegisterEvent("UPDATE_SHAPESHIFT_COOLDOWN")
-			element:RegisterEvent("UPDATE_SHAPESHIFT_FORM")
-			element:RegisterEvent("UPDATE_SHAPESHIFT_FORMS")
-			element:RegisterEvent("UPDATE_SHAPESHIFT_USABLE")
-			element:SetScript("OnEvent", element.OnEvent)
-		end
-
-		local frame = _G.StanceBar or _G.StanceBarFrame
+		local frame = _G.StanceBar
 		if frame then
 			frame:StripTextures()
 			frame:EnableMouse(false)
