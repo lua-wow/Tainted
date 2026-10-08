@@ -76,9 +76,6 @@ end
 E:RegisterEvent("ADDON_LOADED")
 E:RegisterEvent("VARIABLES_LOADED")
 E:RegisterEvent("PLAYER_LOGIN")
-if (E.isStandard) then
-	E:RegisterEvent("SETTINGS_LOADED")
-end
 E:SetScript("OnEvent", function (self, event, ...)
 	assert(self[event], "Unable to locate " .. event .." event handler")
 	self[event](self, ...)
@@ -115,17 +112,4 @@ function E:PLAYER_LOGIN()
 
 	-- load modules
 	self:InitModules()
-end
-
-function E:SETTINGS_LOADED(...)
-	-- only write when needed, to avoid redundant addon-side writes on the multi-bar path
-	for i = 2, 5 do
-		local variable = "PROXY_SHOW_ACTIONBAR_" .. i
-		if Settings.GetValue(variable) ~= true then
-			Settings.SetValue(variable, true)
-		end
-	end
-	-- Settings.SetValue("PROXY_SHOW_ACTIONBAR_6", false)
-	-- Settings.SetValue("PROXY_SHOW_ACTIONBAR_7", false)
-	-- Settings.SetValue("PROXY_SHOW_ACTIONBAR_8", false)
 end

@@ -89,8 +89,7 @@ local variables = {
 	-- ["showVKeyCastbarOnlyOnTarget"] = 0,
 	-- ["showVKeyCastbarSpellName"] = 1,
 
-	-- action bars
-	["alwaysShowActionBars"] = 1,
+	-- cooldowns
 	["countdownForCooldowns"] = 1,
 
 	-- auras

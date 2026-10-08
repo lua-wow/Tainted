@@ -298,32 +298,19 @@ end
 function MODULE:Init()
     if not C.actionbars.enabled then return end
 
-    -- diplay action bar grid
-    local actionbars = nil
-    if E.isStandard then
-        actionbars = {
-            true, -- bar 2
-            true, -- bar 3
-            true, -- bar 4
-            true, -- bar 5
-            C.actionbars.bar6 and true or false, -- bar 6
-            C.actionbars.bar7 and true or false, -- bar 7
-            C.actionbars.bar8 and true or false, -- bar 8
-            true -- always show action bars
-        }
-    else
-        SetCVar("alwaysShowActionBars", 1)
-        actionbars = {
-            true, -- bar 2
-            true, -- bar 3
-            true, -- bar 4
-            true, -- bar 5
-            true -- always show action bars
-        }
-    end
-
-    -- sets the visible state for each action bar
-    SetActionBarToggles(unpack(actionbars))
+    -- sets the visible state of bars 2-8, written every login: GetActionBarToggles can be stale before
+    -- the server mirrors it, so it can't detect a change. Starting from its values (as Blizzard's settings
+    -- panel does) keeps any value past bar 8 untouched. Settings.SetValue is not used: it runs Blizzard's
+    -- proxy and callbacks from addon code.
+    local toggles = { GetActionBarToggles() }
+    toggles[1] = true -- bar 2
+    toggles[2] = true -- bar 3
+    toggles[3] = true -- bar 4
+    toggles[4] = true -- bar 5
+    toggles[5] = C.actionbars.bar6 and true or false -- bar 6
+    toggles[6] = C.actionbars.bar7 and true or false -- bar 7
+    toggles[7] = C.actionbars.bar8 and true or false -- bar 8
+    SetActionBarToggles(unpack(toggles))
 
     -- hide blizzard frames
     self:DisableBlizzard()

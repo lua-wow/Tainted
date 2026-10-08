@@ -193,6 +193,7 @@ read_globals = {
     'GameTimeFrame_OnClick',
     'GameTooltip_SetDefaultAnchor',
     'GameTooltip',
+    'GetActionBarToggles',
     'GetBuildInfo',
     'GetCurrentCombatTextEventInfo',
     'GetCVar',
