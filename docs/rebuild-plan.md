@@ -11,10 +11,10 @@ Legend: **Observed** = seen in the code · **Recommended** = proposal, not yet a
 
 - Revived after a long maintenance gap. TOC, references and settings have been cleaned up.
 - **Observed:** on Retail and Forever, only core, unit frames, maps (minimap/worldmap), chat and datatexts
-  load, plus tooltips. Auras, bags and action bars are tagged `classic`. Blizzard and
+  load, plus tooltips and auras. Bags and action bars are tagged `classic`. Blizzard and
   miscellaneous only load on Classic and MoP.
 - **Observed:** working: unit frames (most mature), minimap, chat and datatexts on all clients. Classic-only,
-  not verified on Retail: action bars, auras, Blizzard tweaks. Stub/WIP:
+  not verified on Retail: action bars, Blizzard tweaks. Stub/WIP:
   bags (only the bag-slot bar loads).
 - Constraints: one TOC for 6 clients; Retail oUF is read-only; Midnight secret values
   (see compatibility.md).
@@ -151,9 +151,59 @@ loads the framework with only the minimap elements (`init_mainline.xml`).
 
 ### 5. Auras (player buffs/debuffs)
 
-**Status:** Classic only · **Priority:** Medium · **Depends on:** 1
+**Status:** Done, pending in-game verification · **Priority:** Medium · **Depends on:** 1
 
 **Done when:** works on all clients, secret-value safe on Retail, no leaked globals.
+
+**Observed:**
+- The secure aura header exists on all clients and still sets `index`, `filter` and `target-slot`
+  on its children.
+- `C_UnitAuras.GetAuraDataByIndex` is `SecretWhenUnitAuraRestricted` on Retail/Forever: the player's
+  own stacks, duration, expiration and dispel type are secret in combat, encounters, M+ and PvP.
+- `E.colors.debuff` only exists in Classic/MoP oUF; Retail oUF has `colors.dispel`.
+- `GetAuraDuration`, `GetAuraApplicationDisplayCount`, `GetAuraDispelTypeColor`, curves, duration
+  objects and `C_StringUtil.TruncateWhenZero` exist on all 6 clients.
+- `GetWeaponEnchantInfo` only exists on Retail/Forever as a deprecation fallback;
+  `C_PaperDollInfo.GetTemporaryEnchantmentInfo` exists only there.
+
+**Decided:**
+- Secret timers show raw seconds (`TruncateWhenZero`), like unit-frame auras; non-secret timers
+  keep `E.FormatTime`.
+
+**Steps** (`make check` after each; Classic regressions checked on Era first):
+
+1. **Secret-safe aura content** · Done (verified on Era, TBC, MoP) · Depends on: —
+   - Change: unit taken from the header (vehicle); duration object from `GetAuraDuration`; stacks from
+     `GetAuraApplicationDisplayCount(unit, id, 2)`; debuff border from `colors.debuff`/`colors.dispel`,
+     or `GetAuraDispelTypeColor` with `E.curves.auras.dispel` when `dispelName` is secret (curve x =
+     dispel type ID, unverified). The timer keeps `E.FormatTime` and white/orange/red colors when the
+     remaining time isn't secret; when secret, it shows raw seconds colored by `E.curves.auras.timer`.
+     Removed the unused locals.
+   - Clients: Classic (code is shared).
+   - Test: stacks, timers and timer colors, debuff borders, tooltips, right-click cancel, vehicle.
+2. **Temporary enchants** · Done (verified on Era, TBC, MoP) · Depends on: —
+   - Change: `C_PaperDollInfo.GetTemporaryEnchantmentInfo` where it exists, otherwise `GetWeaponEnchantInfo`
+     with offset `(slot - 16) * 4 + 1` (the ranged slot read off-hand data before).
+   - Clients: Classic (mainline enchants are handled by the container, step 3).
+   - Test: weapon oil/poison/imbue on main and off hand.
+3. **Mainline aura containers** · Done, pending in-game verification · Depends on: 1, 2
+   - Observed: `SecureAuraHeader.lua/.xml` load only for `classic` game types (Retail 12.1, Forever 1.60);
+     `CreateFrame(..., "SecureAuraHeaderTemplate")` fails on mainline (`docs/issues/_retail_/secure-head-template.log`).
+     Mainline uses `Blizzard_AuraContainer` (`CustomAuraContainerTemplate`), as Retail oUF does.
+   - Change: `modules/auras/auras.lua` → `classic/aura.lua` (tagged `classic`); new `mainline/aura.lua`
+     (tagged `mainline`): one container per filter at the same Minimap anchors, flow layout with the
+     classic header's spacing/rows/columns, sort mapped from `C.auras.sort`, weapon enchants before the buffs.
+     Buttons get the same backdrop, icon, count and duration text; Blizzard fills them (secret values
+     included), the duration text uses Blizzard's default seconds formatter colored by
+     `E.curves.auras.timer`, debuff borders via `AddDispelTypeTexture` with `E.colors.dispel`.
+     Right-click cancels. Unit is always `player` (no vehicle switch).
+   - Known limitation: buttons show Blizzard's forbidden `AuraButtonTooltip` (no addon access, no
+     override); only its backdrop can be set (`AuraContainerInbound.SetTooltipBackdrop`, tooltips
+     module), so there is no Spell ID line.
+   - Clients: Retail, Forever.
+   - Test: buffs/debuffs/enchants placed and sized like Classic; stacks, timers, debuff border colors,
+     tooltips, right-click cancel; hidden in pet battles; Blizzard buff/debuff frames hidden; Edit Mode
+     open/close; no errors or taint in combat, dungeon, M+, boss.
 
 ### 6. Tooltips
 
@@ -341,7 +391,10 @@ Unit frames continue in parallel as a leaf. Only item 0 touches them.
   - [x] 2. Debug panel
   - [x] 3. Guild tooltip
 - [ ] 4. Action bars
-- [ ] 5. Auras (player buffs/debuffs)
+- [x] 5. Auras (player buffs/debuffs) (pending in-game verification)
+  - [x] 1. Secret-safe aura content
+  - [x] 2. Temporary enchants
+  - [x] 3. Mainline aura containers (pending in-game verification)
 - [x] 6. Tooltips (pending in-game verification)
 - [ ] 7. Blizzard UI tweaks
 - [ ] 8. Bags

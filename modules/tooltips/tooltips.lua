@@ -1,5 +1,5 @@
 local _, ns = ...
-local E, C, L = ns.E, ns.C, ns.L
+local E, C, L, A = ns.E, ns.C, ns.L, ns.A
 
 -- Blizzard
 local GetGuildInfo = _G.GetGuildInfo
@@ -559,6 +559,27 @@ function tooltip_proto:Update(element)
     end
 end
 
+-- AuraContainer buttons (mainline) use their own forbidden tooltip; this is the only way to style it
+function tooltip_proto:UpdateAuraTooltip()
+    local AuraContainerInbound = _G.AuraContainerInbound
+    if not AuraContainerInbound then return end
+
+    -- same as CreateBackdrop("transparent")
+    local inset = E.Scale(C.general.border.size or 1)
+    local backdrop = C.general.backdrop.color
+    AuraContainerInbound.SetTooltipBackdrop({
+        backdropInfo = {
+            bgFile = C.general.backdrop.texture,
+            edgeFile = A.textures.blank,
+            edgeSize = inset,
+            insets = { left = inset, right = inset, top = inset, bottom = inset }
+        },
+        borderColor = C.general.border.color,
+        centerColor = CreateColor(backdrop.r, backdrop.g, backdrop.b, 0.70),
+        anchorOffsets = { left = -inset, right = inset, top = inset, bottom = -inset }
+    })
+end
+
 function tooltip_proto:Init()
     self.Anchor = self:CreateAnchor()
     self:Update(_G.GameTooltip)
@@ -566,6 +587,7 @@ function tooltip_proto:Init()
     self:Update(_G.EmbeddedItemTooltip)
     self:Update(_G.ShoppingTooltip1)
     self:Update(_G.ShoppingTooltip2)
+    self:UpdateAuraTooltip()
     self:UpdateStatusBar()
     self:SetupHooks(self.Anchor)
     self:AddMetadata()

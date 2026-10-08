@@ -83,6 +83,7 @@ read_globals = {
     'C_Map',
     'C_MerchantFrame',
     'C_MythicPlus',
+    'C_PaperDollInfo',
     'C_PartyInfo',
     'C_PetBattles',
     'C_PetJournal',
@@ -143,7 +144,11 @@ read_globals = {
 
     -- API and FrameXML
     'ActionButton_ShowGrid',
+    'AnchorUtil',
     'ArtifactBarGetNumArtifactTraitsPurchasableFromXP',
+    'AuraContainerItemEnchantmentSlot',
+    'AuraContainerSortDirection',
+    'AuraContainerSortMethod',
     'AzeriteUtil',
     'BagsBar',
     'BankFrame',
