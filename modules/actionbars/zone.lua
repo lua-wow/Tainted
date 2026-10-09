@@ -37,8 +37,6 @@ function MODULE:CreateZoneAbilityButton(holder)
     frame:ClearAllPoints()
     frame:SetAllPoints()
     frame:EnableMouse(false)
-    frame.ignoreFramePositionManager = true
-    frame.ignoreInLayout = true
 
     -- remove artwork
     local style = frame.Style

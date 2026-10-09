@@ -7,11 +7,6 @@ local NUM_SPECIAL_BUTTONS  = _G.NUM_SPECIAL_BUTTONS  or 10
 
 local InCombatLockdown = _G.InCombatLockdown
 local GetNumShapeshiftForms = _G.GetNumShapeshiftForms
-local GetShapeshiftFormInfo = _G.GetShapeshiftFormInfo
-local GetShapeshiftFormCooldown = _G.GetShapeshiftFormCooldown
-
--- Mine
-local StyleActionButton = MODULE.StyleActionButton
 
 local element_proto = {
 	name = "StanceButton",
@@ -36,69 +31,42 @@ do
 		if frame then
 			frame:StripTextures()
 			frame:EnableMouse(false)
-		end
 
-		if _G.StanceBar then
-			hooksecurefunc(StanceBar, "UpdateGridLayout", function(self)
+			-- Blizzard's Update runs on every form change and sets icon, cooldown and checked state
+			hooksecurefunc(frame, "Update", function()
 				element:Update()
 			end)
 		end
 	end
 
 	function element_proto:Update()
-		if InCombatLockdown() then return end
-
 		local element = self
 
 		local numForms = GetNumShapeshiftForms() or 0
-		if numForms == 0 then
-			element:SetAlpha(0)
-			element:Hide()
-		else
-			element:SetAlpha(1)
-			element:Show(true)
 
-			-- resize backdrop
-			element:CreateBackground(numForms)
+		if not InCombatLockdown() then
+			if numForms == 0 then
+				element:SetAlpha(0)
+				element:Hide()
+			else
+				element:SetAlpha(1)
+				element:Show(true)
 
-			for index = 1, numForms do
-				local button = _G[element.name .. index]
-				if button then
-					local texture, isActive, isCastable = GetShapeshiftFormInfo(index)
-					local start, duration, enable =  GetShapeshiftFormCooldown(index)
-					
-					local icon = _G[button:GetName() .. "Icon"]
-					if icon then
-						icon:SetTexture(texture)
+				-- resize backdrop
+				element:CreateBackground(numForms)
+			end
+		end
 
-						if isCastable then
-							icon:SetVertexColor(1.0, 1.0, 1.0)
-						else
-							icon:SetVertexColor(0.4, 0.4, 0.4)
-						end
-					end
-
-					local cd = _G[button:GetName() .. "Cooldown"]
-					if cd then
-						CooldownFrame_Set(cd, start, duration, enable)
-					end
-
-					button:SetChecked(isActive)
-
-					if button.Backdrop then
-						if isActive then
-							button.Backdrop:SetBackdropBorderColor(C.general.highlight.color:GetRGB())
-						else
-							button.Backdrop:SetBackdropBorderColor(C.general.border.color:GetRGB())
-						end
-					end
+		for index = 1, numForms do
+			local button = _G[element.name .. index]
+			if button and button.Backdrop then
+				if button:GetChecked() then
+					button.Backdrop:SetBackdropBorderColor(C.general.highlight.color:GetRGB())
+				else
+					button.Backdrop:SetBackdropBorderColor(C.general.border.color:GetRGB())
 				end
 			end
 		end
-	end
-
-	function element_proto:OnEvent()
-		self:Update()
 	end
 end
 
