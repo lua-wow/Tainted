@@ -30,6 +30,8 @@ local hooksecurefunc = _G.hooksecurefunc
 -- Mine
 local QUEST_COLOR = { r = 1, g = 0.82, b = 0 }
 local FOOTER_HEIGHT = 20
+local MARGIN = 10
+local SECTION_SPACING = 10
 
 local BLIZZARD_BAG_SLOTS = {
     "CharacterBag0Slot",
@@ -164,41 +166,52 @@ do
         local size = C.bags.buttons.size
         local spacing = C.bags.buttons.spacing
         local columns = C.bags.buttons.columns
+        local step = size + spacing
 
-        local index = 0
-        for _, bag in ipairs(self.bags) do
-            -- reagent bag and keyring start on their own row
-            if bag.newRow and bag.numSlots > 0 then
-                index = math.ceil(index / columns) * columns
+        -- sections stack top to bottom, SECTION_SPACING apart; y is the next section's top
+        local y = MARGIN
+        for _, section in ipairs(self.sections) do
+            local total = 0
+            for _, bag in ipairs(section) do
+                total = total + bag.numSlots
             end
 
-            for slot = 1, math.max(bag.numSlots, #bag.slots) do
-                local button = bag.slots[slot]
-                if slot <= bag.numSlots then
-                    button = button or self:CreateSlot(bag, slot)
+            -- a section shorter than a row sits on the right
+            local offset = section.alignRight and (columns - math.min(total, columns)) or 0
 
-                    local column = index % columns
-                    local row = math.floor(index / columns)
-                    button:ClearAllPoints()
-                    button:SetPoint("TOPLEFT", self, "TOPLEFT", spacing + column * (size + spacing), -(spacing + row * (size + spacing)))
-                    button:Show()
+            local index = 0
+            for _, bag in ipairs(section) do
+                for slot = 1, math.max(bag.numSlots, #bag.slots) do
+                    local button = bag.slots[slot]
+                    if slot <= bag.numSlots then
+                        button = button or self:CreateSlot(bag, slot)
 
-                    index = index + 1
-                else
-                    button:Hide()
+                        local column = offset + index % columns
+                        local row = math.floor(index / columns)
+                        button:ClearAllPoints()
+                        button:SetPoint("TOPLEFT", self, "TOPLEFT", MARGIN + column * step, -(y + row * step))
+                        button:Show()
+
+                        index = index + 1
+                    else
+                        button:Hide()
+                    end
                 end
             end
+
+            if total > 0 then
+                y = y + math.ceil(total / columns) * step - spacing + SECTION_SPACING
+            end
         end
 
-        local rows = math.max(1, math.ceil(index / columns))
         if self.BagSlots and self.BagSlots:IsShown() then
             self.BagSlots:ClearAllPoints()
-            self.BagSlots:SetPoint("TOPLEFT", self, "TOPLEFT", spacing, -(spacing + rows * (size + spacing)))
-            rows = rows + 1
+            self.BagSlots:SetPoint("TOPRIGHT", self, "TOPRIGHT", -MARGIN, -y)
+            y = y + size + SECTION_SPACING
         end
 
-        self:SetWidth(columns * (size + spacing) + spacing)
-        self:SetHeight(rows * (size + spacing) + spacing + FOOTER_HEIGHT + spacing)
+        self:SetWidth(MARGIN + columns * step - spacing + MARGIN)
+        self:SetHeight(y + FOOTER_HEIGHT + MARGIN)
     end
 
     function element_proto:UpdateFreeSlots()
@@ -330,16 +343,17 @@ end
 function MODULE:CreateBags()
     local element = Mixin(CreateFrame("Frame", "TaintedBags", UIParent), element_proto)
     element:SetPoint("BOTTOMRIGHT", _G.TaintedChatRight, "TOPRIGHT", 0, C.chat.margin)
-    element:SetFrameStrata("MEDIUM")
+    -- blizzard raises the action bars to MEDIUM whenever the cursor picks something up
+    -- (ActionBarMixin:UpdateFrameStrata), above a MEDIUM window
+    element:SetFrameStrata("HIGH")
     element:CreateBackdrop("transparent")
     element:EnableMouse(true)
     element:Hide()
 
     element.fontObject = E.GetFont(C.bags.font)
 
-    local spacing = C.bags.buttons.spacing
     local freeSlots = element:CreateFontString(nil, "OVERLAY")
-    freeSlots:SetPoint("BOTTOMRIGHT", -spacing, spacing)
+    freeSlots:SetPoint("BOTTOMRIGHT", -MARGIN, MARGIN)
     freeSlots:SetHeight(FOOTER_HEIGHT)
     freeSlots:SetFontObject(element.fontObject)
     element.FreeSlots = freeSlots
@@ -357,31 +371,40 @@ function MODULE:CreateBags()
 
     element.bags = {}
     element.bagsByID = {}
+    element.sections = {}
 
-    local function AddBag(bagID, newRow)
+    local function AddSection(alignRight)
+        local section = { alignRight = alignRight }
+        element.sections[#element.sections + 1] = section
+        return section
+    end
+
+    local function AddBag(section, bagID)
         local bag = CreateFrame("Frame", nil, element)
         bag:SetAllPoints(element)
         bag:SetID(bagID)
         bag.slots = {}
         bag.numSlots = 0
         bag.dirty = true
-        bag.newRow = newRow
+        section[#section + 1] = bag
         element.bags[#element.bags + 1] = bag
         element.bagsByID[bagID] = bag
     end
 
+    local section = AddSection(false)
     for bagID = BACKPACK_CONTAINER, NUM_BAG_SLOTS do
-        AddBag(bagID)
+        AddBag(section, bagID)
     end
 
     if NUM_REAGENTBAG_SLOTS and NUM_TOTAL_EQUIPPED_BAG_SLOTS then
+        section = AddSection(true)
         for bagID = NUM_BAG_SLOTS + 1, NUM_TOTAL_EQUIPPED_BAG_SLOTS do
-            AddBag(bagID, bagID == NUM_BAG_SLOTS + 1)
+            AddBag(section, bagID)
         end
     end
 
     if KEYRING_CONTAINER and GetKeyRingSize then
-        AddBag(KEYRING_CONTAINER, true)
+        AddBag(AddSection(true), KEYRING_CONTAINER)
     end
 
     element:SetScript("OnShow", element.OnShow)
@@ -396,12 +419,10 @@ end
 
 -- the template sets the item search on text change and clears it on hide
 function MODULE:CreateSearchBox(window, anchor)
-    local spacing = C.bags.buttons.spacing
-
     local element = CreateFrame("EditBox", "TaintedBagsSearchBox", window, "BagSearchBoxTemplate")
     element:SetHeight(FOOTER_HEIGHT)
-    element:SetPoint("BOTTOMLEFT", spacing, spacing)
-    element:SetPoint("RIGHT", anchor, "LEFT", -spacing, 0)
+    element:SetPoint("BOTTOMLEFT", MARGIN, MARGIN)
+    element:SetPoint("RIGHT", anchor, "LEFT", -C.bags.buttons.spacing, 0)
     element:StripTextures("BACKGROUND")
     element:CreateBackdrop()
 
@@ -436,22 +457,14 @@ function MODULE:CreateBagSlots(window)
 
     local element = CreateFrame("Frame", nil, window)
     element:SetSize(#BLIZZARD_BAG_SLOTS * (size + spacing) - spacing, size)
-    element:Hide()
 
-    local previous
+    local buttons = {}
     for _, name in ipairs(BLIZZARD_BAG_SLOTS) do
         local button = _G[name]
         if button then
             button:SetParent(element)
-            button:ClearAllPoints()
             button:SetSize(size, size)
             button:CreateBackdrop()
-
-            if previous then
-                button:SetPoint("LEFT", previous, "RIGHT", spacing, 0)
-            else
-                button:SetPoint("TOPLEFT", element, "TOPLEFT", 0, 0)
-            end
 
             local icon = button.icon or _G[name .. "IconTexture"]
             if icon then
@@ -475,8 +488,31 @@ function MODULE:CreateBagSlots(window)
                 button:SetCheckedTexture(0)
             end
 
-            previous = button
+            buttons[#buttons + 1] = button
         end
+    end
+
+    -- BagsBarMixin:Layout re-anchors every bag button to the backpack button, also through closures
+    -- that bypass a hook on BagsBar.Layout, so each button is anchored back whenever it is moved
+    local offsets = {}
+    local function Anchor(button)
+        local _, relativeTo = button:GetPoint()
+        if relativeTo == element then return end
+
+        button:ClearAllPoints()
+        button:SetPoint("TOPLEFT", element, "TOPLEFT", offsets[button], 0)
+    end
+
+    for index, button in ipairs(buttons) do
+        offsets[button] = (index - 1) * (size + spacing)
+        Anchor(button)
+        hooksecurefunc(button, "SetPoint", Anchor)
+    end
+
+    -- the rest of blizzard's bags bar (backpack and keyring buttons) has no use with the window.
+    -- Hide alone is not enough: BagsBarMixin shows it again.
+    if _G.BagsBar then
+        _G.BagsBar:SetParent(E.Hider)
     end
 
     return element
