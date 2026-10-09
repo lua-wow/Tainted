@@ -398,9 +398,17 @@ raid utility, widgets.
    - Clients: all 6.
    - Test: B, backpack button and Gold click open/close only the Tainted window. Use, drag and split items,
      tooltips, sell at a vendor, use an item in combat without `ADDON_ACTION_BLOCKED`.
-2. **Slot presentation and updates** · Depends on: 1
+2. **Slot presentation and updates** · Depends on: 1 · **Status:** implemented, awaiting in-game test
    - Change: icon, count, quality border, cooldown, lock, quest marker. Dirty-bag updates. Free/total slot
      count in the window.
+   - Done: Tainted fills the slots itself (no Blizzard update functions; classic ones address buttons by
+     the container frame's name). Cropped icon, outlined count (`C.bags.font`), backdrop border colored by
+     quality above common or yellow for quest items, quest-starter bang over the icon, desaturated when
+     locked, dimmed while the cooldown is disabled. `BAG_UPDATE`/`BAG_CLOSED` mark a bag dirty,
+     `BAG_UPDATE_DELAYED` refreshes dirty bags (relayout only on a slot-count change), `ITEM_LOCK_CHANGED`
+     updates one slot, `BAG_UPDATE_COOLDOWN` updates cooldowns, `QUEST_ACCEPTED/REMOVED` mark all bags
+     dirty. While hidden, events only mark state; `OnShow` catches up. Free/total (`free/total`) sits
+     bottom-right in a footer row.
    - Clients: all 6.
    - Test: looting, moving and stacking items updates only the affected bag. Equipping a bigger bag
      re-lays out the window. Cooldowns sweep. The free count matches the Gold tooltip.

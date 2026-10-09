@@ -61,6 +61,7 @@ C["auras"] = {
 
 C["bags"] = {
     ["enabled"] = true,
+    ["font"] = "Tainted Outlined",
     ["buttons"] = {
         ["size"] = 32,
         ["spacing"] = 5,
