@@ -88,7 +88,7 @@ modules\miscellaneous\init_classic.xml [AllowLoadGameType vanilla, tbc, wrath]
 modules\miscellaneous\init_mists.xml [AllowLoadGameType mists]
 
 ## actionbars
-modules\actionbars\init.xml [AllowLoadGameType classic]
+modules\actionbars\init.xml
 
 ## datatexts
 modules\datatexts\init.xml

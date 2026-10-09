@@ -36,7 +36,7 @@ do
     function element_proto:PostCreate()
         local element = self
 
-        local frame = _G.MultiBar5
+        local frame = _G.MultiBar6
         if frame then
             frame:SetParent(element)
             element:FollowBar(frame)

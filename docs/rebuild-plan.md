@@ -11,10 +11,10 @@ Legend: **Observed** = seen in the code · **Recommended** = proposal, not yet a
 
 - Revived after a long maintenance gap. TOC, references and settings have been cleaned up.
 - **Observed:** on Retail and Forever, only core, unit frames, maps (minimap/worldmap), chat and datatexts
-  load, plus tooltips and auras. Bags and action bars are tagged `classic`. Blizzard and
+  load, plus tooltips, auras and action bars. Bags are tagged `classic`. Blizzard and
   miscellaneous only load on Classic and MoP.
-- **Observed:** working: unit frames (most mature), minimap, chat and datatexts on all clients. Classic-only,
-  not verified on Retail: action bars, Blizzard tweaks. Stub/WIP:
+- **Observed:** working: unit frames (most mature), minimap, chat and datatexts on all clients; action bars on Classic (Retail/Forever pending verification). Classic-only,
+  not verified on Retail: Blizzard tweaks. Stub/WIP:
   bags (only the bag-slot bar loads).
 - Constraints: one TOC for 6 clients; Retail oUF is read-only; Midnight secret values
   (see compatibility.md).
@@ -140,7 +140,7 @@ loads the framework with only the minimap elements (`init_mainline.xml`).
 
 ### 4. Action bars
 
-**Status:** Classic only · **Priority:** High · **Depends on:** 0
+**Status:** Done, pending in-game verification on Retail/Forever · **Priority:** High · **Depends on:** 0
 
 **Objective:** working bars on Retail, including Edit Mode, without taint.
 
@@ -148,6 +148,61 @@ loads the framework with only the minimap elements (`init_mainline.xml`).
 - Loads on all clients.
 - Core no longer touches action-bar settings.
 - No global function overrides unless proven necessary.
+
+Feasibility study: [actionbar-report.md](actionbar-report.md).
+
+**Observed:**
+- All 6 clients load the same `Blizzard_ActionBar/Shared` code: `MainActionBar`, `MultiBar*` (incl.
+  `MultiBar5-7`), `StanceBar`, `PetActionBar`, `ExtraActionBarFrame`, Edit Mode bar systems. Button
+  names are identical. Classic only adds the `MainMenuBar`/`MainMenuBarArtFrame` art frames.
+- `MultiActionBar_Update` hides every multi-bar while `MainActionBar:IsShown()` is false.
+- `showgrid` is a bit field of show reasons; Edit Mode's "Always show buttons" (off in Blizzard's
+  Classic presets) clears bit 1.
+- `GetActionBarToggles` can be stale before the server mirrors it; nothing re-runs
+  `MultiActionBar_Update` after an addon's `SetActionBarToggles`, so a changed `C.actionbars.bar6/7/8`
+  may need one more `/reload`.
+
+**Decided:**
+- `countdownForCooldowns` stays in Core install (affects every cooldown); `alwaysShowActionBars` removed
+  (`GetCVar` returns nil).
+- Bars 6–8 are created on every client and disabled by `C.actionbars.bar6/7/8 = false`.
+- Bar backgrounds follow their Blizzard bar: disabling a bar in game options hides its background.
+- Main-bar paging keeps Blizzard behavior (warrior stances, rogue stealth, druid forms page).
+
+**Steps** (`make check` after each; verified on TBC unless noted):
+
+1. **Bug fixes** · Done · Depends on: —
+   - Change: extra/zone buttons styled (`StyleActionButton` was called with a colon); bar 1 uses
+     `C_ActionBar.*` instead of deprecation fallbacks; bar 2 no longer clears its own anchor per button;
+     dead frame names and `ActionButton_ShowGrid` removed. Classic Era: `MainActionBar` reparented to
+     `E.Hider` (never `Hide()`d).
+2. **Settings ownership** · Done · Depends on: 1
+   - Change: Core's `SETTINGS_LOADED` `Settings.SetValue("PROXY_SHOW_ACTIONBAR_n")` and the
+     `alwaysShowActionBars` CVar removed; the module calls `SetActionBarToggles` once per login,
+     built from `GetActionBarToggles()`.
+3. **No global overrides** · Done · Depends on: 2
+   - Change: Classic no-ops of `MultiActionBar_Update`/`BeginActionBarTransition` removed;
+     `ignoreFramePositionManager`/`ignoreInLayout` writes on bars, pet and stance removed. Empty slots use
+     a Tainted-only `showgrid` reason (`0x100`) and are shown once at login. Bar 1 no longer resets
+     `actionpage` to 1 after the page state driver. Backgrounds follow their Blizzard bar (`FollowBar`).
+4. **Stance and extra cleanup** · Done (extra button seen styled on MoP) · Depends on: 3
+   - Change: stance border via a `StanceBar.Update` method hook reading `GetChecked()` (no duplicated
+     icon/cooldown/checked updates, no shapeshift API reads); global `ExtraActionBar_Update` hook and
+     `ExtraAbilityContainer` field writes removed.
+5. **All clients** · Done, pending Retail/Forever verification · Depends on: 4
+   - Change: bars 6–8 created on every client; bar 7/8 hold `MultiBar6`/`MultiBar7` (both held
+     `MultiBar5`); `modules\actionbars\init.xml` untagged in the TOC.
+   - Test (Retail/Forever): no Lua errors; Blizzard main bar gone; bars 2–5 shown on a fresh character
+     (login order); Edit Mode enter/exit keeps empty slots, sizes and hidden art; taint log clean for
+     `ExtraAbilityContainer`, `ZoneAbilityFrame`, `MainActionBar`, `MultiBar*` in combat; zone ability
+     changing in combat (`zone.lua` re-anchors its buttons without a combat check); paging in druid forms,
+     stealth, vehicle/dragonriding.
+
+**Open:**
+- Forever paging: should druid/rogue use the Classic page strings (`E.isStandard` is false)? Untested,
+  no Forever access.
+- Bars 6–8 on Classic: action slots 145–180 keep a spell across `/reload` (unverified).
+- Zone ability exists only on mainline (`ZoneAbilityFrame` isn't defined on Classic).
 
 ### 5. Auras (player buffs/debuffs)
 
@@ -333,7 +388,7 @@ Unit frames continue in parallel as a leaf. Only item 0 touches them.
   Forever and TBC/WotLK/MoP can take wrong paths until each item moves them to family flags.
 - **Implicit dependencies.** Modules find each other's frames by global name and rely on TOC
   order (chat/minimap → datatexts).
-- **Core does module work.** It forces action-bar settings on Retail and triggers the chat reset.
+- **Core does module work.** It triggers the chat reset (action-bar settings moved out in item 4).
 - **Two startup models.** Some modules use the registry `Init`. About 15 others create their own
   frame and initialize on login. Errors in the second group aren't isolated.
 - **Secret values / restricted APIs on Midnight.** Most likely to affect auras, tags, the combat
@@ -390,7 +445,12 @@ Unit frames continue in parallel as a leaf. Only item 0 touches them.
   - [x] 1. Element / registration / holder / capability split
   - [x] 2. Debug panel
   - [x] 3. Guild tooltip
-- [ ] 4. Action bars
+- [x] 4. Action bars (pending in-game verification on Retail/Forever)
+  - [x] 1. Bug fixes
+  - [x] 2. Settings ownership
+  - [x] 3. No global overrides
+  - [x] 4. Stance and extra cleanup
+  - [x] 5. All clients (pending Retail/Forever verification)
 - [x] 5. Auras (player buffs/debuffs) (pending in-game verification)
   - [x] 1. Secret-safe aura content
   - [x] 2. Temporary enchants

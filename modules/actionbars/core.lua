@@ -317,11 +317,9 @@ function MODULE:Init()
     self:CreateActionBar4()
     self:CreateActionBar5()
 
-    if E.isStandard then
-        self:CreateActionBar6()
-        self:CreateActionBar7()
-        self:CreateActionBar8()
-    end
+    self:CreateActionBar6()
+    self:CreateActionBar7()
+    self:CreateActionBar8()
 
     if not E.isVanilla then
         do
