@@ -5,6 +5,9 @@ local MODULE = E:CreateModule("Bags")
 -- Blizzard
 local BACKPACK_CONTAINER = _G.BACKPACK_CONTAINER or 0
 local NUM_BAG_SLOTS = _G.NUM_BAG_SLOTS or 4
+local NUM_REAGENTBAG_SLOTS = _G.NUM_REAGENTBAG_SLOTS
+local NUM_TOTAL_EQUIPPED_BAG_SLOTS = _G.NUM_TOTAL_EQUIPPED_BAG_SLOTS
+local KEYRING_CONTAINER = _G.KEYRING_CONTAINER
 local TEXTURE_ITEM_QUEST_BANG = _G.TEXTURE_ITEM_QUEST_BANG
 
 local GetContainerItemCooldown = _G.C_Container.GetContainerItemCooldown
@@ -12,26 +15,53 @@ local GetContainerItemInfo = _G.C_Container.GetContainerItemInfo
 local GetContainerItemQuestInfo = _G.C_Container.GetContainerItemQuestInfo
 local GetContainerNumFreeSlots = _G.C_Container.GetContainerNumFreeSlots
 local GetContainerNumSlots = _G.C_Container.GetContainerNumSlots
+local SortBags = _G.C_Container.SortBags
+local GetKeyRingSize = _G.GetKeyRingSize
 local GetItemQualityColor = _G.C_Item.GetItemQualityColor
 local CooldownFrame_Set = _G.CooldownFrame_Set
 local GameTooltip = _G.GameTooltip
+local GameTooltip_Hide = _G.GameTooltip_Hide
+local BAG_CLEANUP_BAGS = _G.BAG_CLEANUP_BAGS
 local IsBagOpen = _G.IsBagOpen
+local OpenAllBags = _G.OpenAllBags
+local PlaySound = _G.PlaySound
 local hooksecurefunc = _G.hooksecurefunc
 
 -- Mine
 local QUEST_COLOR = { r = 1, g = 0.82, b = 0 }
+local FOOTER_HEIGHT = 20
+
+local BLIZZARD_BAG_SLOTS = {
+    "CharacterBag0Slot",
+    "CharacterBag1Slot",
+    "CharacterBag2Slot",
+    "CharacterBag3Slot",
+}
 
 local function IsPlayerBag(bagID)
     return bagID >= BACKPACK_CONTAINER and bagID <= NUM_BAG_SLOTS
 end
 
-local function AnyPlayerBagOpen()
-    for bagID = BACKPACK_CONTAINER, NUM_BAG_SLOTS do
-        if IsBagOpen(bagID) then
+-- blizzard sizes the keyring with GetKeyRingSize, not GetContainerNumSlots
+local function GetNumSlots(bagID)
+    if bagID == KEYRING_CONTAINER then
+        return GetKeyRingSize()
+    end
+    return GetContainerNumSlots(bagID)
+end
+
+local function AnyBagOpen(window)
+    for _, bag in ipairs(window.bags) do
+        if IsBagOpen(bag:GetID()) then
             return true
         end
     end
     return false
+end
+
+local function UpdateSearch(bagID, button)
+    local info = GetContainerItemInfo(bagID, button:GetID())
+    button.searchOverlay:SetShown(info and info.isFiltered or false)
 end
 
 local function UpdateCooldown(bagID, button)
@@ -62,6 +92,7 @@ local function UpdateSlot(bagID, button)
 
     button.icon:SetTexture(texture)
     button.icon:SetDesaturated(info and info.isLocked or false)
+    button.searchOverlay:SetShown(info and info.isFiltered or false)
 
     local count = info and info.stackCount or 0
     button.Count:SetText(count > 1 and count or "")
@@ -136,6 +167,11 @@ do
 
         local index = 0
         for _, bag in ipairs(self.bags) do
+            -- reagent bag and keyring start on their own row
+            if bag.newRow and bag.numSlots > 0 then
+                index = math.ceil(index / columns) * columns
+            end
+
             for slot = 1, math.max(bag.numSlots, #bag.slots) do
                 local button = bag.slots[slot]
                 if slot <= bag.numSlots then
@@ -154,17 +190,25 @@ do
             end
         end
 
-        local _, fontHeight = self.fontObject:GetFont()
         local rows = math.max(1, math.ceil(index / columns))
+        if self.BagSlots and self.BagSlots:IsShown() then
+            self.BagSlots:ClearAllPoints()
+            self.BagSlots:SetPoint("TOPLEFT", self, "TOPLEFT", spacing, -(spacing + rows * (size + spacing)))
+            rows = rows + 1
+        end
+
         self:SetWidth(columns * (size + spacing) + spacing)
-        self:SetHeight(rows * (size + spacing) + spacing + fontHeight + spacing)
+        self:SetHeight(rows * (size + spacing) + spacing + FOOTER_HEIGHT + spacing)
     end
 
     function element_proto:UpdateFreeSlots()
         local free, total = 0, 0
         for _, bag in ipairs(self.bags) do
-            free = free + GetContainerNumFreeSlots(bag:GetID())
-            total = total + bag.numSlots
+            local bagID = bag:GetID()
+            if IsPlayerBag(bagID) then
+                free = free + GetContainerNumFreeSlots(bagID)
+                total = total + bag.numSlots
+            end
         end
         self.FreeSlots:SetFormattedText("%d/%d", free, total)
     end
@@ -174,7 +218,7 @@ do
         local changed = false
         for _, bag in ipairs(self.bags) do
             if bag.dirty then
-                local numSlots = GetContainerNumSlots(bag:GetID())
+                local numSlots = GetNumSlots(bag:GetID())
                 if numSlots ~= bag.numSlots then
                     bag.numSlots = numSlots
                     changed = true
@@ -213,6 +257,16 @@ do
         self.cooldownsDirty = false
     end
 
+    function element_proto:UpdateSearch()
+        for _, bag in ipairs(self.bags) do
+            local bagID = bag:GetID()
+            for slot = 1, bag.numSlots do
+                UpdateSearch(bagID, bag.slots[slot])
+            end
+        end
+        self.searchDirty = false
+    end
+
     function element_proto:SetAllDirty()
         for _, bag in ipairs(self.bags) do
             bag.dirty = true
@@ -248,6 +302,12 @@ do
             else
                 self.cooldownsDirty = true
             end
+        elseif event == "INVENTORY_SEARCH_UPDATE" then
+            if self:IsShown() then
+                self:UpdateSearch()
+            else
+                self.searchDirty = true
+            end
         elseif event == "QUEST_ACCEPTED" or event == "QUEST_REMOVED" then
             self:SetAllDirty()
             if self:IsShown() then
@@ -260,6 +320,9 @@ do
         self:Refresh()
         if self.cooldownsDirty then
             self:UpdateCooldowns()
+        end
+        if self.searchDirty then
+            self:UpdateSearch()
         end
     end
 end
@@ -277,42 +340,173 @@ function MODULE:CreateBags()
     local spacing = C.bags.buttons.spacing
     local freeSlots = element:CreateFontString(nil, "OVERLAY")
     freeSlots:SetPoint("BOTTOMRIGHT", -spacing, spacing)
+    freeSlots:SetHeight(FOOTER_HEIGHT)
     freeSlots:SetFontObject(element.fontObject)
     element.FreeSlots = freeSlots
 
+    local searchAnchor = freeSlots
+    if SortBags then
+        element.SortButton = self:CreateSortButton(element)
+        searchAnchor = element.SortButton
+    end
+    element.SearchBox = self:CreateSearchBox(element, searchAnchor)
+
+    if E.isClassic then
+        element.BagSlots = self:CreateBagSlots(element)
+    end
+
     element.bags = {}
     element.bagsByID = {}
-    for bagID = BACKPACK_CONTAINER, NUM_BAG_SLOTS do
+
+    local function AddBag(bagID, newRow)
         local bag = CreateFrame("Frame", nil, element)
         bag:SetAllPoints(element)
         bag:SetID(bagID)
         bag.slots = {}
         bag.numSlots = 0
         bag.dirty = true
+        bag.newRow = newRow
         element.bags[#element.bags + 1] = bag
         element.bagsByID[bagID] = bag
+    end
+
+    for bagID = BACKPACK_CONTAINER, NUM_BAG_SLOTS do
+        AddBag(bagID)
+    end
+
+    if NUM_REAGENTBAG_SLOTS and NUM_TOTAL_EQUIPPED_BAG_SLOTS then
+        for bagID = NUM_BAG_SLOTS + 1, NUM_TOTAL_EQUIPPED_BAG_SLOTS do
+            AddBag(bagID, bagID == NUM_BAG_SLOTS + 1)
+        end
+    end
+
+    if KEYRING_CONTAINER and GetKeyRingSize then
+        AddBag(KEYRING_CONTAINER, true)
     end
 
     element:SetScript("OnShow", element.OnShow)
     element:SetScript("OnEvent", element.OnEvent)
 
-    for _, event in next, { "BAG_UPDATE", "BAG_CLOSED", "BAG_UPDATE_DELAYED", "ITEM_LOCK_CHANGED", "BAG_UPDATE_COOLDOWN", "QUEST_ACCEPTED", "QUEST_REMOVED" } do
+    for _, event in next, { "BAG_UPDATE", "BAG_CLOSED", "BAG_UPDATE_DELAYED", "ITEM_LOCK_CHANGED", "BAG_UPDATE_COOLDOWN", "INVENTORY_SEARCH_UPDATE", "QUEST_ACCEPTED", "QUEST_REMOVED" } do
         element:RegisterEvent(event)
     end
 
     return element
 end
 
--- blizzard keeps its bag state: frames holding a player bag are only reparented to the hider,
--- so IsBagOpen stays valid and blizzard still closes them (CloseAllBags, Escape). Classic reuses
--- frames for bank bags and the keyring, which get their own parent back.
+-- the template sets the item search on text change and clears it on hide
+function MODULE:CreateSearchBox(window, anchor)
+    local spacing = C.bags.buttons.spacing
+
+    local element = CreateFrame("EditBox", "TaintedBagsSearchBox", window, "BagSearchBoxTemplate")
+    element:SetHeight(FOOTER_HEIGHT)
+    element:SetPoint("BOTTOMLEFT", spacing, spacing)
+    element:SetPoint("RIGHT", anchor, "LEFT", -spacing, 0)
+    element:StripTextures("BACKGROUND")
+    element:CreateBackdrop()
+
+    return element
+end
+
+function MODULE:CreateSortButton(window)
+    local element = CreateFrame("Button", nil, window)
+    element:SetSize(FOOTER_HEIGHT, FOOTER_HEIGHT)
+    element:SetPoint("RIGHT", window.FreeSlots, "LEFT", -C.bags.buttons.spacing, 0)
+    element:SetNormalAtlas("bags-button-autosort-up")
+    element:SetPushedAtlas("bags-button-autosort-down")
+
+    element:SetScript("OnClick", function()
+        PlaySound(SOUNDKIT.UI_BAG_SORTING_01)
+        SortBags()
+    end)
+    element:SetScript("OnEnter", function(self)
+        GameTooltip:SetOwner(self, "ANCHOR_TOP")
+        GameTooltip:SetText(BAG_CLEANUP_BAGS)
+        GameTooltip:Show()
+    end)
+    element:SetScript("OnLeave", GameTooltip_Hide)
+
+    return element
+end
+
+-- classic only: the equipped bag slots, shown as a row under the item slots
+function MODULE:CreateBagSlots(window)
+    local size = C.bags.buttons.size
+    local spacing = C.bags.buttons.spacing
+
+    local element = CreateFrame("Frame", nil, window)
+    element:SetSize(#BLIZZARD_BAG_SLOTS * (size + spacing) - spacing, size)
+    element:Hide()
+
+    local previous
+    for _, name in ipairs(BLIZZARD_BAG_SLOTS) do
+        local button = _G[name]
+        if button then
+            button:SetParent(element)
+            button:ClearAllPoints()
+            button:SetSize(size, size)
+            button:CreateBackdrop()
+
+            if previous then
+                button:SetPoint("LEFT", previous, "RIGHT", spacing, 0)
+            else
+                button:SetPoint("TOPLEFT", element, "TOPLEFT", 0, 0)
+            end
+
+            local icon = button.icon or _G[name .. "IconTexture"]
+            if icon then
+                icon:SetTexCoord(unpack(E.IconCoord))
+                icon:SetInside(button.Backdrop or button)
+            end
+
+            local normal = _G[name .. "NormalTexture"]
+            if normal then
+                normal:SetAlpha(0)
+            end
+
+            if button.IconBorder then
+                button.IconBorder:SetAlpha(0)
+            end
+
+            button:SetNormalTexture(0)
+            button:SetPushedTexture(0)
+            button:SetHighlightTexture(0)
+            if button.SetCheckedTexture then
+                button:SetCheckedTexture(0)
+            end
+
+            previous = button
+        end
+    end
+
+    return element
+end
+
+-- false where the window has no bag-slot row (mainline keeps blizzard's bags bar)
+function MODULE:ToggleBagSlots()
+    local window = self.Bags
+    local slots = window and window.BagSlots
+    if not slots then return false end
+
+    slots:SetShown(not slots:IsShown())
+    window:Layout()
+
+    if not window:IsShown() then
+        OpenAllBags()
+    end
+    return true
+end
+
+-- blizzard keeps its bag state: frames holding a bag of the window are only reparented to the
+-- hider, so IsBagOpen stays valid and blizzard still closes them (CloseAllBags, Escape). Classic
+-- reuses frames for bank bags, which get their own parent back.
 function MODULE:DisableBlizzard(window)
     local parents = {}
 
     hooksecurefunc("ContainerFrame_GenerateFrame", function(frame, _, bagID)
         parents[frame] = parents[frame] or frame:GetParent()
 
-        if IsPlayerBag(bagID) then
+        if window.bagsByID[bagID] then
             frame:SetParent(E.Hider)
             window:Show()
         else
@@ -329,9 +523,14 @@ function MODULE:Init()
 
     self:DisableBlizzard(window)
 
+    if SortBags then
+        C_Container.SetSortBagsRightToLeft(true)
+        C_Container.SetInsertItemsLeftToRight(true)
+    end
+
     -- the window mirrors blizzard's bag state after every toggle
     local function Update()
-        window:SetShown(AnyPlayerBagOpen())
+        window:SetShown(AnyBagOpen(window))
     end
 
     for _, name in next, { "ToggleAllBags", "OpenAllBags", "CloseAllBags", "ToggleBag", "ToggleBackpack" } do

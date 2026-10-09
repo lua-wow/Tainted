@@ -99,12 +99,6 @@ function E:PLAYER_LOGIN()
 		self:SetupDefaultsCVars()
 		self:SetupUiScale()
 
-		-- fix bag sorting order
-		if E.isStandard then
-			C_Container.SetSortBagsRightToLeft(true)
-			C_Container.SetInsertItemsLeftToRight(true)
-		end
-		
 		self.db.installed = true
 	else
 		self:ApplyUiScale()

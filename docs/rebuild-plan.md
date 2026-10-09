@@ -412,11 +412,18 @@ raid utility, widgets.
    - Clients: all 6.
    - Test: looting, moving and stacking items updates only the affected bag. Equipping a bigger bag
      re-lays out the window. Cooldowns sweep. The free count matches the Gold tooltip.
-3. **Client extras** · Depends on: 2
+3. **Client extras** · Depends on: 2 · **Status:** implemented, awaiting in-game test
    - Change: search box on all clients (`C_Container.SetItemSearch` + `isFiltered`). Sort button and
      sort direction on mainline (moves the `isStandard` setup out of `core/core.lua`). Reagent bag on
      mainline. Keyring when present. On Classic the bag-slot strip (`containers.lua`) is attached to the
      window; Gold shift-click still toggles it.
+   - Done: footer row with `BagSearchBoxTemplate` (left; clears on hide), sort button where
+     `C_Container.SortBags` exists, free/total (right; bags 0..`NUM_BAG_SLOTS` only). Filtered slots show
+     the template's `searchOverlay` (`INVENTORY_SEARCH_UPDATE`, caught up on show). Sort direction is set in
+     the bags module on every load. Reagent bag and keyring (`GetKeyRingSize`) are window bags, each starting
+     on its own row, and their Blizzard frames are hidden too. Classic `CharacterBag0..3Slot` form a row
+     below them, hidden by default and toggled by Gold shift-click (opens the window if closed).
+     `containers.lua` is removed.
    - Clients: all 6.
    - Test: search dims non-matches and clears on close. Retail/Forever sort works. The reagent bag shows on
      Retail/Forever. The keyring shows where it exists. Classic bag slots swap bags.

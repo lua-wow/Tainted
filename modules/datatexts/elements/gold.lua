@@ -2,7 +2,7 @@ local _, ns = ...
 local E, C, L = ns.E, ns.C, ns.L
 local MODULE = E:GetModule("DataTexts")
 local ActionBars = E:GetModule("ActionBars")
-local Containers = E:GetModule("Containers")
+local Bags = E:GetModule("Bags")
 
 -- Blizzard
 local BACKPACK_CONTAINER = _G.BACKPACK_CONTAINER or 0
@@ -154,9 +154,7 @@ end
 
 function gold_proto:OnMouseDown()
     if IsShiftKeyDown() then
-        if Containers then
-            Containers:Toggle()
-        elseif ActionBars then
+        if not Bags:ToggleBagSlots() and ActionBars then
             ActionBars:ToggleBagsBar()
         end
     else
