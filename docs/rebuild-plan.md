@@ -384,10 +384,17 @@ raid utility, widgets.
   markers, categories/filters, gold or currencies in the window, movers, options.
 
 **Steps:**
-1. **Bag window** · Depends on: —
+1. **Bag window** · Depends on: — · **Status:** implemented, awaiting in-game test
    - Change: unified frame for bags 0..`NUM_BAG_SLOTS` (bottom-right, `C.bags` columns). Hooks on
      `ToggleAllBags/OpenAllBags/CloseAllBags/ToggleBag/ToggleBackpack`. Blizzard container frames
      (and `ContainerFrameCombinedBags`) disabled. The `classic` TOC tag is removed. Stub files are deleted.
+   - Done: `modules/bags/bags.lua` (loads after chat, anchors above `TaintedChatRight`). A
+     `ContainerFrame_GenerateFrame` hook reparents Blizzard frames that hold a player bag to `E.Hider`.
+     Their shown state is kept, and the window mirrors it after each toggle (`IsBagOpen(0..NUM_BAG_SLOTS)`),
+     because on mainline with individual bags, `ToggleBackpack` calls `CloseAllBags` from inside the
+     same call. The reagent bag, keyring and Classic bank bags stay in Blizzard frames until Steps 3/4.
+     `containers.lua` stays `classic`-tagged until Step 3. Slots are empty until Step 2 (icons come from
+     Blizzard's own frame updates); tooltips and clicks work.
    - Clients: all 6.
    - Test: B, backpack button and Gold click open/close only the Tainted window. Use, drag and split items,
      tooltips, sell at a vendor, use an item in combat without `ADDON_ACTION_BLOCKED`.

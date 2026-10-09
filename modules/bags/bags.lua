@@ -1,466 +1,151 @@
 local _, ns = ...
 local E, C = ns.E, ns.C
-local MODULE = E:GetModule("Bags")
+local MODULE = E:CreateModule("Bags")
 
 -- Blizzard
-local KEYRING_CONTAINER = _G.KEYRING_CONTAINER or -2
 local BACKPACK_CONTAINER = _G.BACKPACK_CONTAINER or 0
 local NUM_BAG_SLOTS = _G.NUM_BAG_SLOTS or 4
-local NUM_CONTAINER_FRAMES = _G.NUM_CONTAINER_FRAMES or 13
 
-local BAGTYPE_QUIVER = _G.BAGTYPE_QUIVER or -2
-
-local GetKeyRingSize = _G.GetKeyRingSize
+local GetContainerNumSlots = _G.C_Container.GetContainerNumSlots
+local IsBagOpen = _G.IsBagOpen
+local hooksecurefunc = _G.hooksecurefunc
 
 -- Mine
-local BlizzardBags = {
-	"CharacterBag0Slot",
-	"CharacterBag1Slot",
-	"CharacterBag2Slot",
-	"CharacterBag3Slot",
-	"CharacterReagentBag0Slot",
-}
-
-local close_proto = {}
-
-do
+local function IsPlayerBag(bagID)
+    return bagID >= BACKPACK_CONTAINER and bagID <= NUM_BAG_SLOTS
 end
 
-local searchbox_proto = {
-    placeholder = "Search"
-}
-
-do
-    function searchbox_proto:OnEscapePressed()
-        self:ClearFocus()
-        self:SetText("")
-    end
-
-    function searchbox_proto:OnEnterPressed()
-        self:ClearFocus()
-        self:SetText("")
-    end
-
-    function searchbox_proto:OnTextChanged(value)
-        local text = self:GetText()
-        E:print(text, value, text == value)
-        -- SetItemSearch(value)
-    end
-
-    function searchbox_proto:OnEditFocusLost()
-        if self.Text then
-            self.Text:Show()
-        end
-
-        if self.Backdrop then
-            self.Backdrop:SetBackdropBorderColor(C.general.border.color:GetRGB())
+local function AnyPlayerBagOpen()
+    for bagID = BACKPACK_CONTAINER, NUM_BAG_SLOTS do
+        if IsBagOpen(bagID) then
+            return true
         end
     end
-
-    function searchbox_proto:OnEditFocusGained()
-        if self.Text then
-            self.Text:Hide()
-        end
-
-        if self.Backdrop then
-            self.Backdrop:SetBackdropBorderColor(C.general.highlight.color:GetRGB())
-        end
-    end
+    return false
 end
 
-local element_proto = {
-    anchor = { "CENTER", UIParent, "CENTER", 200, 200 }
-}
+local element_proto = {}
 
 do
-    function element_proto:CreateSearchBox(parent)
-        local fontObject = E.GetFont(C.bags.font)
+    function element_proto:CreateSlot(bag, slot)
+        local size = C.bags.buttons.size
 
-        local element = Mixin(CreateFrame("EditBox", self:GetName() .. "SearchBox", self), searchbox_proto)
-        element:SetPoint("TOPLEFT", parent, "TOPLEFT", 5, -5)
-        element:SetWidth(self:GetWidth() - 28)
-        element:SetHeight(16)
-        element:SetFrameLevel(self:GetFrameLevel() + 10)
-        element:SetMultiLine(false)
-        element:EnableMouse(true)
-        element:SetAutoFocus(false)
-        element:SetFontObject(fontObject)
-        element:CreateBackdrop()
+        -- the bag is read by blizzard from the parent's id, never from a field on the button (taints)
+        local button = CreateFrame("ItemButton", ("TaintedBag%dSlot%d"):format(bag:GetID(), slot), bag, "ContainerFrameItemButtonTemplate")
+        button:SetID(slot)
+        button:SetSize(size, size)
+        button:SetNormalTexture(0)
+        button:CreateBackdrop()
 
-        local text = element:CreateFontString(nil, "OVERLAY")
-        text:SetAllPoints()
-        text:SetFontObject(fontObject)
-        text:SetJustifyH("CENTER")
-        text:SetText(element.placeholder)
-        element.Text = text
+        -- shown by default in the template; only blizzard's container update hides it
+        button.BattlepayItemTexture:Hide()
 
-        element:SetScript("OnEditFocusGained", element.OnEditFocusGained)
-        element:SetScript("OnEditFocusLost", element.OnEditFocusLost)
-        element:SetScript("OnEnterPressed", element.OnEnterPressed)
-        element:SetScript("OnEscapePressed", element.OnEscapePressed)
-        element:SetScript("OnTextChanged", element.OnTextChanged)
-
-        element._parent = parent
-
-        return element
+        bag.slots[slot] = button
+        return button
     end
 
-    function element_proto:CreateSlotsContainer(parent)
-        local size = C.bags.buttons.size or 32
-        local spacing = C.bags.buttons.spacing or 5
+    function element_proto:Layout()
+        local size = C.bags.buttons.size
+        local spacing = C.bags.buttons.spacing
+        local columns = C.bags.buttons.columns
 
-        local element = CreateFrame("Frame", self:GetName() .. "SlotsContainer", self)
-        element:SetPoint("TOP", parent, "BOTTOM", 0, -spacing)
-        element:SetPoint("LEFT", self, "LEFT", spacing, 0)
-        element:SetPoint("RIGHT", self, "RIGHT", -spacing, 0)
-        element:SetHeight(size)
-        -- element:CreateBackdrop()
+        local index = 0
+        for _, bag in ipairs(self.bags) do
+            for slot = 1, math.max(bag.numSlots, #bag.slots) do
+                local button = bag.slots[slot]
+                if slot <= bag.numSlots then
+                    button = button or self:CreateSlot(bag, slot)
 
-        local previous = nil
-        for index, bag in next, BlizzardBags do
-            local button = _G[bag]
-            if button then
-                button:SetParent(element)
-                button:ClearAllPoints()
-                button:SetSize(size, size)
-                button:CreateBackdrop()
-
-                if not previous then
-                    button:SetPoint("TOPRIGHT", element, "TOPRIGHT", 0, 0)
-                else
-                    button:SetPoint("RIGHT", previous, "LEFT", -spacing, 0)
-                end
-
-                local icon = button.icon or _G[button:GetName() .. "IconTexture"]
-                if icon then
-                    icon:SetTexCoord(unpack(E.IconCoord))
-                    icon:SetInside(button.Backdrop or button)
-                end
-
-                local NormalTexture = _G[button:GetName() .. "NormalTexture"]
-                if NormalTexture then
-                    NormalTexture:SetAlpha(0)
-                end
-
-                -- local count = button.Count or _G[button:GetName() .. "Count"]
-                -- if count then
-                --     count:Hide()
-                -- end
-
-                if button.IconBorder then
-                    button.IconBorder:SetAlpha(0)
-                end
-
-                if button.SetNormalTexture then
-                    button:SetNormalTexture("")
-                end
-
-                if button.SetPushedTexture then
-                    button:SetPushedTexture("")
-                end
-
-                if button.SetCheckedTexture then
-                    button:SetCheckedTexture("")
-                end
-
-                if button.SetHighlightTexture then
-                    button:SetHighlightTexture("")
-                end
-
-                previous = button
-            end
-        end
-
-        return element
-    end
-
-    function element_proto:CreateItemsContainer()
-        local size = C.bags.buttons.size or 32
-        local spacing = C.bags.buttons.spacing or 5
-
-        local parent = self
-        local top = parent.SlotsContainer or parent.SearchBox or parent
-
-        local element = CreateFrame("Frame", parent:GetName() .. "ItemsContainer", parent)
-        element:SetPoint("TOP", top, "BOTTOM", 0, -spacing)
-        element:SetPoint("LEFT", parent, "LEFT", spacing, 0)
-        element:SetPoint("RIGHT", parent, "RIGHT", -spacing, 0)
-        element:SetHeight(200)
-        -- element:CreateBackdrop()
-
-        return element
-    end
-
-    function element_proto:CreateKeyringContainer()
-        local size = C.bags.buttons.size or 32
-        local spacing = C.bags.buttons.spacing or 5
-
-        local parent = self
-        local top = parent.ItemsContainer or parent.SlotsContainer or parent.SearchBox or parent
-
-        local element = CreateFrame("Frame", parent:GetName() .. "KeyringContainer", parent)
-        element:SetPoint("TOP", top, "BOTTOM", 0, -spacing)
-        element:SetPoint("LEFT", parent, "LEFT", spacing, 0)
-        element:SetPoint("RIGHT", parent, "RIGHT", -spacing, 0)
-        element:SetHeight(size)
-        element:CreateBackdrop()
-
-        return element
-    end
-
-    function element_proto:Create()
-        local element = self
-
-        local size = C.bags.buttons.size or 32
-        local spacing = C.bags.buttons.spacing or 5
-
-        element.SearchBox = element:CreateSearchBox(element)
-        
-        element.SlotsContainer = element:CreateSlotsContainer(element.SearchBox)
-        
-        element.ItemsContainer = element:CreateItemsContainer(element.SlotsContainer)
-        
-        element.KeyringContainer = element:CreateKeyringContainer(element.ItemsContainer)
-
-        local width = math.max(
-            element.SearchBox:GetHeight(),
-            element.SlotsContainer:GetHeight(),
-            element.ItemsContainer:GetHeight(),
-            element.KeyringContainer:GetHeight(),
-            size
-        )
-        local height = element.SearchBox:GetHeight()
-            + spacing
-            + element.SlotsContainer:GetHeight()
-            + spacing
-            + element.ItemsContainer:GetHeight()
-            + spacing
-            + element.KeyringContainer:GetHeight()
-            + (2 * 5) -- margin
-        element:SetWidth(width)
-        element:SetHeight(height)
-    end
-
-    function element_proto:GetContainerNumSlots(containerIndex)
-        if (containerIndex == KEYRING_CONTAINER) then
-            return GetKeyRingSize()
-        end
-        return C_Container.GetContainerNumSlots(containerIndex)
-    end
-
-    function element_proto:Update()
-        -- local NumRows, LastRowButton, NumButtons, LastButton, NumRowReagent = 0, ContainerFrame1Item1, 1, ContainerFrame1Item1, 0
-        -- local FirstButton, FirstReagentButton
-    
-        -- local containers = E.iSRetail and 6 or 5
-        local size = C.bags.buttons.size or 32
-        local spacing = C.bags.buttons.spacing or 5
-        local columns = C.bags.buttons.columns or 10
-
-        local rows = 0
-        local first = nil
-        local previous = nil
-        local numButtons = 0
-        local lastRowButton = nil
-    
-        local max = NUM_BAG_SLOTS + 2
-        for index = 1, max do
-            local containerIndex = (index ~= max) and (index - 1) or KEYRING_CONTAINER
-            local slots = self:GetContainerNumSlots(containerIndex)
-            
-            for slot = slots, 1, -1 do
-                local buttonName = "ContainerFrame" .. index .. "Item" .. slot
-                local button = _G[buttonName]
-                if button then
-                    -- button:SetParent(self.ItemsContainer)
+                    local column = index % columns
+                    local row = math.floor(index / columns)
                     button:ClearAllPoints()
-                    button:SetSize(size, size)
-                    button.__containerIndex = containerIndex
-                    button.__slot = slot
-
-                    if not first then
-                        first = button
-                    end
-
-                    if button == first then
-                        local anchor = (containerIndex == KEYRING_CONTAINER) and self.KeyringContainer or self.ItemsContainer
-                        button:SetPoint("TOPLEFT", anchor, "TOPLEFT", 0, 0)
-                        lastRowButton = button
-                    elseif (numButtons == columns) then
-                        button:SetPoint("TOPLEFT", lastRowButton, "BOTTOMLEFT", 0, -spacing)
-                        lastRowButton = button
-                        numButtons = 0
-                        rows = rows + 1
-                    else
-                        button:SetPoint("LEFT", previous, "RIGHT", spacing, 0)
-                    end
-
-                    previous = button
-
-                    numButtons = numButtons + 1
-                else
-                    E:error(buttonName, "do not exists.")
-                end
-            end
-    
-        --     for Item = Slots, 1, -1 do
-        --         local Button = _G["ContainerFrame"..Bag.."Item"..Item]
-        --         local IconTexture = _G["ContainerFrame"..Bag.."Item"..Item.."IconTexture"]
-    
-        --         Button:ClearAllPoints()
-        --         Button:SetWidth(ButtonSize)
-        --         Button:SetHeight(ButtonSize)
-        --         Button:SetScale(1)
-    
-        --         Button.newitemglowAnim:Stop()
-        --         Button.newitemglowAnim.Play = Noop
-    
-        --         Button.flashAnim:Stop()
-        --         Button.flashAnim.Play = Noop
-    
-        --         if not C.Bags.ReagentInsideBag and Bag == 6 then
-        --             if not FirstReagentButton then
-        --                 FirstReagentButton = Button
-        --             end
-    
-        --             if (Button == FirstReagentButton) then
-        --                 NumButtons = 1
-    
-        --                 Button:SetPoint("TOPLEFT", Bags.BagReagent, "TOPLEFT", 10, -10)
-    
-        --                 LastRowButton = Button
-        --                 LastButton = Button
-        --             elseif (NumButtons == ItemsPerRow) then
-        --                 Button:SetPoint("TOPRIGHT", LastRowButton, "TOPRIGHT", 0, -(ButtonSpacing + ButtonSize))
-        --                 Button:SetPoint("BOTTOMLEFT", LastRowButton, "BOTTOMLEFT", 0, -(ButtonSpacing + ButtonSize))
-        --                 LastRowButton = Button
-        --                 NumRowReagent = NumRowReagent + 1
-        --                 NumButtons = 1
-        --             else
-        --                 Button:SetPoint("TOPRIGHT", LastButton, "TOPRIGHT", (ButtonSpacing + ButtonSize), 0)
-        --                 Button:SetPoint("BOTTOMLEFT", LastButton, "BOTTOMLEFT", (ButtonSpacing + ButtonSize), 0)
-    
-        --                 NumButtons = NumButtons + 1
-        --             end
-    
-        --             LastButton = Button
-        --         else
-        --             if not FirstButton then
-        --                 FirstButton = Button
-        --             end
-    
-        --             if (Button == FirstButton) then
-        --                 Button:SetPoint("TOPLEFT", Bags.Bag, "TOPLEFT", 10, -40)
-        --                 LastRowButton = Button
-        --                 LastButton = Button
-        --             elseif (NumButtons == ItemsPerRow) then
-        --                 Button:SetPoint("TOPRIGHT", LastRowButton, "TOPRIGHT", 0, -(ButtonSpacing + ButtonSize))
-        --                 Button:SetPoint("BOTTOMLEFT", LastRowButton, "BOTTOMLEFT", 0, -(ButtonSpacing + ButtonSize))
-        --                 LastRowButton = Button
-        --                 NumRows = NumRows + 1
-        --                 NumButtons = 1
-        --             else
-        --                 Button:SetPoint("TOPRIGHT", LastButton, "TOPRIGHT", (ButtonSpacing + ButtonSize), 0)
-        --                 Button:SetPoint("BOTTOMLEFT", LastButton, "BOTTOMLEFT", (ButtonSpacing + ButtonSize), 0)
-        --                 NumButtons = NumButtons + 1
-        --             end
-    
-        --             LastButton = Button
-        --         end
-    
-        --         if not Button.IsSkinned then
-        --             Bags.SkinBagButton(Button)
-        --         end
-        --     end
-    
-        --     Bags:BagUpdate(ID)
-    
-        --     if IsBagOpen(KEYRING_CONTAINER) then
-        --         break
-        --     end
-        end
-        E:print("rows", rows)
-        E:print("columns", columns)
-        -- self.Bag:SetHeight(((ButtonSize + ButtonSpacing) * (NumRows + 1) + 64 + (ButtonSpacing * 4)) - ButtonSpacing)
-        -- self.BagReagent:SetHeight(((ButtonSize + ButtonSpacing) * (NumRowReagent + 1) + ButtonSpacing + (ButtonSpacing * 4)) - ButtonSpacing)
-    end
-
-    function element_proto:UpdateContainer(containerIndex)
-        local isKeyring = (containerIndex == KEYRING_CONTAINER)
-        
-        local numSlots = self:GetContainerNumSlots(containerIndex)
-        local _, bagType = C_Container.GetContainerNumFreeSlots(containerIndex)
-
-        local containerName = isKeyring and 1 or (containerIndex + 1)
-        for slot = 1, numSlots do
-            local name = ("ContainerFrame%dItem%d"):format(containerName, slot)
-            local button = _G[name]
-            if button then
-                if not button:IsShown() then
+                    button:SetPoint("TOPLEFT", self, "TOPLEFT", spacing + column * (size + spacing), -(spacing + row * (size + spacing)))
                     button:Show()
-                end
 
-                button.__bagType = bagType
+                    index = index + 1
+                else
+                    button:Hide()
+                end
             end
         end
+
+        local rows = math.max(1, math.ceil(index / columns))
+        self:SetWidth(columns * (size + spacing) + spacing)
+        self:SetHeight(rows * (size + spacing) + spacing)
     end
 
-    -- function element_proto:PLAYER_ENTERING_WORLD(isLogin, isReload)
-        -- self:Update()
-        -- self:UnregisterAllEvents("PLAYER_ENTERING_WORLD")
-    -- end
+    -- slot counts are only known once bag data is loaded and change when a bag is swapped
+    function element_proto:OnShow()
+        local changed = false
+        for _, bag in ipairs(self.bags) do
+            local numSlots = GetContainerNumSlots(bag:GetID())
+            if numSlots ~= bag.numSlots then
+                bag.numSlots = numSlots
+                changed = true
+            end
+        end
 
-    function element_proto:BAG_CONTAINER_UPDATE()
-        -- self:Update()
-    end
-
-    function element_proto:BAG_UPDATE(containerIndex)
-        self:UpdateContainer(containerIndex)
-    end
-
-    function element_proto:OnEvent(event, ...)
-        if self[event] then
-            self[event](self, ...)
-        else
-            E:print(event, ...)
+        if changed then
+            self:Layout()
         end
     end
 end
 
-function MODULE:CreateBagContainer()
-    local element = self:CreateContainer("Bags", element_proto)
-    -- element:RegisterEvent("PLAYER_ENTERING_WORLD")
-    element:RegisterEvent("BAG_CONTAINER_UPDATE")
-    element:RegisterEvent("BAG_UPDATE")
-    element:RegisterEvent("BAG_CLOSED")
+function MODULE:CreateBags()
+    local element = Mixin(CreateFrame("Frame", "TaintedBags", UIParent), element_proto)
+    element:SetPoint("BOTTOMRIGHT", _G.TaintedChatRight, "TOPRIGHT", 0, C.chat.margin)
+    element:SetFrameStrata("MEDIUM")
+    element:CreateBackdrop("transparent")
+    element:EnableMouse(true)
+    element:Hide()
 
-	-- element:RegisterEvent("UNIT_INVENTORY_CHANGED")
-	-- element:RegisterEvent("ITEM_LOCK_CHANGED")
-	-- element:RegisterEvent("BAG_UPDATE_COOLDOWN")
-	-- element:RegisterEvent("DISPLAY_SIZE_CHANGED")
-	-- element:RegisterEvent("INVENTORY_SEARCH_UPDATE")
-	-- element:RegisterEvent("BAG_NEW_ITEMS_UPDATED")
-	-- element:RegisterEvent("BAG_SLOT_FLAGS_UPDATED")
-	-- element:RegisterEvent("ENGRAVING_MODE_CHANGED")
-	-- element:RegisterEvent("ENGRAVING_TARGETING_MODE_CHANGED")
-	-- element:RegisterEvent("RUNE_UPDATED")
+    element.bags = {}
+    for bagID = BACKPACK_CONTAINER, NUM_BAG_SLOTS do
+        local bag = CreateFrame("Frame", nil, element)
+        bag:SetAllPoints(element)
+        bag:SetID(bagID)
+        bag.slots = {}
+        bag.numSlots = 0
+        element.bags[#element.bags + 1] = bag
+    end
 
-    -- element:RegisterEvent("BAG_UPDATE")
-	-- element:RegisterEvent("BAG_CLOSED")
+    element:SetScript("OnShow", element.OnShow)
 
-	-- element:RegisterEvent("PLAYERBANKSLOTS_CHANGED")
-	-- element:RegisterEvent("BANKFRAME_CLOSED")
-	-- element:RegisterEvent("BANKFRAME_OPENED")
-	-- element:RegisterEvent("MERCHANT_CLOSED")
-	-- element:RegisterEvent("MAIL_CLOSED")
-
-    -- if E.isStandard then
-    --     element:RegisterEvent("PLAYERREAGENTBANKSLOTS_CHANGED")
-    --     element:RegisterEvent("SOULBIND_FORGE_INTERACTION_STARTED")
-    --     element:RegisterEvent("SOULBIND_FORGE_INTERACTION_ENDED")
-    -- end
-    -- element:RegisterEvent("CURRENCY_DISPLAY_UPDATE")
-
-    element:SetScript("OnEvent", element.OnEvent)
     return element
+end
+
+-- blizzard keeps its bag state: frames holding a player bag are only reparented to the hider,
+-- so IsBagOpen stays valid and blizzard still closes them (CloseAllBags, Escape). Classic reuses
+-- frames for bank bags and the keyring, which get their own parent back.
+function MODULE:DisableBlizzard(window)
+    local parents = {}
+
+    hooksecurefunc("ContainerFrame_GenerateFrame", function(frame, _, bagID)
+        parents[frame] = parents[frame] or frame:GetParent()
+
+        if IsPlayerBag(bagID) then
+            frame:SetParent(E.Hider)
+            window:Show()
+        else
+            frame:SetParent(parents[frame])
+        end
+    end)
+end
+
+function MODULE:Init()
+    if not C.bags.enabled then return end
+
+    local window = self:CreateBags()
+    self.Bags = window
+
+    self:DisableBlizzard(window)
+
+    -- the window mirrors blizzard's bag state after every toggle
+    local function Update()
+        window:SetShown(AnyPlayerBagOpen())
+    end
+
+    for _, name in next, { "ToggleAllBags", "OpenAllBags", "CloseAllBags", "ToggleBag", "ToggleBackpack" } do
+        hooksecurefunc(name, Update)
+    end
 end

@@ -64,14 +64,15 @@ core\development.lua
 modules\auras\classic\aura.lua [AllowLoadGameType classic]
 modules\auras\mainline\aura.lua [AllowLoadGameType mainline]
 
-## bags
-modules\bags\_init.xml [AllowLoadGameType classic]
-
 ## chat
 modules\chat\chatframe.lua
 modules\chat\history.lua
 modules\chat\copy_text.lua
 modules\chat\copy_url.lua
+
+## bags
+modules\bags\bags.lua
+modules\bags\containers.lua [AllowLoadGameType classic]
 
 ## maps
 modules\maps\init.xml [AllowLoadGameType mainline]

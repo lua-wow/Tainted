@@ -60,7 +60,7 @@ C["auras"] = {
 }
 
 C["bags"] = {
-    ["enabled"] = false,
+    ["enabled"] = true,
     ["buttons"] = {
         ["size"] = 32,
         ["spacing"] = 5,
