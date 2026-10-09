@@ -363,7 +363,59 @@ raid utility, widgets.
 
 ### 8. Bags
 
-**Status:** Stub · **Priority:** Low · **Depends on:** 3 · **Needs a scope decision first**
+**Status:** Planned · **Priority:** Low · **Depends on:** 3
+
+**Objective:** one Tainted bag window on all 6 clients, plus a unified bank on Classic.
+
+**Decided:**
+- One shared implementation. Clients differ only in data: bag IDs (reagent bag on mainline,
+  keyring when `GetKeyRingSize() > 0`), sort (only where `C_Container.SortBags` exists), bank and
+  bag-slot strip (classic family).
+- Slots are created from Blizzard's `ContainerFrameItemButtonTemplate` (`BankItemButtonGenericTemplate`
+  for bank container `-1`) under a per-bag parent with `SetID(bagID)`. Blizzard handles use, drag, sell
+  and tooltips. Nothing is secure, so the window can open and close in combat.
+- Blizzard toggles are hooked (`hooksecurefunc`), never replaced. Blizzard bag/bank frames are disabled,
+  not overwritten. The toggle follows Tainted's frame state.
+- Updates: `BAG_UPDATE` marks a bag dirty → `BAG_UPDATE_DELAYED` refreshes only dirty bags. A relayout
+  happens only when a bag's slot count changed. A hidden window updates nothing and refreshes dirty bags on show.
+- Replaces the commented-out stubs (`core.lua`, `bags.lua`, `bank.lua`). Their fixed
+  frame↔bag mapping and global overrides are wrong. `C.bags` stays as code constants.
+- Non-goals: mainline bank/warband/reagent bank, own sorter (Classic has no sort), item level, junk/new-item
+  markers, categories/filters, gold or currencies in the window, movers, options.
+
+**Steps:**
+1. **Bag window** · Depends on: —
+   - Change: unified frame for bags 0..`NUM_BAG_SLOTS` (bottom-right, `C.bags` columns). Hooks on
+     `ToggleAllBags/OpenAllBags/CloseAllBags/ToggleBag/ToggleBackpack`. Blizzard container frames
+     (and `ContainerFrameCombinedBags`) disabled. The `classic` TOC tag is removed. Stub files are deleted.
+   - Clients: all 6.
+   - Test: B, backpack button and Gold click open/close only the Tainted window. Use, drag and split items,
+     tooltips, sell at a vendor, use an item in combat without `ADDON_ACTION_BLOCKED`.
+2. **Slot presentation and updates** · Depends on: 1
+   - Change: icon, count, quality border, cooldown, lock, quest marker. Dirty-bag updates. Free/total slot
+     count in the window.
+   - Clients: all 6.
+   - Test: looting, moving and stacking items updates only the affected bag. Equipping a bigger bag
+     re-lays out the window. Cooldowns sweep. The free count matches the Gold tooltip.
+3. **Client extras** · Depends on: 2
+   - Change: search box on all clients (`C_Container.SetItemSearch` + `isFiltered`). Sort button and
+     sort direction on mainline (moves the `isStandard` setup out of `core/core.lua`). Reagent bag on
+     mainline. Keyring when present. On Classic the bag-slot strip (`containers.lua`) is attached to the
+     window; Gold shift-click still toggles it.
+   - Clients: all 6.
+   - Test: search dims non-matches and clears on close. Retail/Forever sort works. The reagent bag shows on
+     Retail/Forever. The keyring shows where it exists. Classic bag slots swap bags.
+4. **Classic bank** · Depends on: 2
+   - Change: a unified bank window on `BANKFRAME_OPENED/CLOSED` with the bank container and bank bags.
+     Blizzard `BankFrame` is hidden while the bank session stays open, and closing the window calls
+     `CloseBankFrame()`. Bank bag slots and a purchase button use `CONFIRM_BUY_BANK_SLOT`.
+     Mainline keeps Blizzard's bank.
+   - Clients: Era, TBC, Wrath, MoP.
+   - Test: the bank opens with the bags and shows every bank bag in one grid. Items move both ways. Buying a
+     slot works. Walking away closes both windows. On Retail/Forever the Blizzard bank is unchanged.
+
+**Done when:** every step passes `/reload` testing on Retail, Forever, Era, TBC, Wrath (Titan)
+and MoP, with no Lua errors or taint messages.
 
 ### 9. Miscellaneous
 
