@@ -441,12 +441,34 @@ Feasibility study: [actionbar-report.md](actionbar-report.md).
    - Clients: Classic.
    - Test: XP/rested, rep and pet XP (hunter) bars and tooltips; right-click switches bars and survives
      `/reload`; max level switches to rep; left-strip tooltip above the bar.
-6. **Experience on mainline** · Depends on: 5
-   - Change: untag `experience.lua`. Azerite, Artifact, Anima: created where their APIs exist
-     (`C_AzeriteItem` + `AzeriteUtil`, `C_ArtifactUI`, `C_CovenantSanctumUI`); show data only when
-     Blizzard would (artifact equipped, not maxed, not disabled; azerite equipped, enabled, not max;
-     anima with currency info); percentages set; their events registered only with the bar. The
-     right-click menu lists only bars with data.
+6. **Experience on mainline** · Done (verified on Retail) · Depends on: 5
+   - Change: untag `experience.lua`. Bars are created from feature flags instead of `E.isStandard`. Before,
+     `BarOrders[BarsEnum.X]` indexed an insertion-ordered array, so Artifact and Azerite read each other's row.
+     Flags: honor `UnitHonorMax`; artifact `ArtifactBarGetNumArtifactTraitsPurchasableFromXP` (Blizzard Lua,
+     mainline only; `C_ArtifactUI` is documented on every client); azerite `C_AzeriteItem` + `AzeriteUtil`;
+     anima `C_CovenantSanctumUI`. Rep's paragon/renown/friendship branch keys on `C_MajorFactions`, and max
+     level on `E.isMainline`, so Forever takes the mainline paths too. `HasData()` follows Blizzard's
+     `CanShowBar`: artifact equipped, not maxed, not disabled; azerite equipped, enabled, not max; anima has
+     currency info. Without data a bar resets to empty and skips the work (no artifact `Item` or closure).
+     The right-click menu lists only bars with data, and a saved bar without data falls back to Experience at
+     login. Fixes and cleanups:
+     - Azerite: the missing `AzeriteUtil.IsAzeriteItemLocationBankBag` is gone (an equipped item can't be in the
+       bank). The unlimited level is used when unlocked. `BAG_UPDATE` is dropped (`PLAYER_EQUIPMENT_CHANGED`
+       covers an equipped item).
+     - Events are registered only with their bar; `UNIT_INVENTORY_CHANGED` is a player unit event.
+     - Percentages are set.
+     - Renown: the paragon branch used `IsFactionParagon`, which is true for any faction with a paragon track,
+       so a renown faction below max showed its reaction (5) and the paragon threshold (0 / 7500). It now uses
+       `IsFactionParagonForCurrentPlayer` (paragon at max renown shows the renown level), and the renown
+       progress is `renownReputationEarned` / `renownLevelThreshold` (full bar at `HasMaximumRenown`), as
+       Blizzard's reputation frame shows it.
+     - Friendship (e.g. Chromie): the rank number indexed the standard reputation names, so rank 1 showed a red
+       "Hatred". The bar now shows the friendship rank name (`reaction`), plus `(current/max)` when the faction
+       has ranks, and is always green, as Blizzard's reputation frame does.
+     - Left-click on the reputation bar toggles the reputation tab (`ToggleCharacter("ReputationFrame")`,
+       all 6 clients) to pick a watched faction; right-click keeps the bar menu.
+     - Strings: `COVENANT_SANCTUM_TAB_RENOWN` gets a fallback. The honor prestige strings (unused by Blizzard,
+       unverified) are replaced by `HONOR`.
    - Clients: Retail, Forever.
    - Test: XP, renown, paragon, friendship, honor; artifact/azerite/anima where a character has them,
      absent otherwise; no errors in instances/PvP.
@@ -769,10 +791,10 @@ Unit frames continue in parallel as a leaf. Only item 0 touches them.
 - [ ] 7. Blizzard UI tweaks
   - [x] 1. TOC lines instead of XML
   - [x] 2. Isolated tweak init
-  - [ ] 3. Framerate + talking head on mainline
-  - [ ] 4. Mirror timers
-  - [ ] 5. Experience cleanup
-  - [ ] 6. Experience on mainline
+  - [x] 3. Framerate + talking head on mainline
+  - [x] 4. Mirror timers
+  - [x] 5. Experience cleanup
+  - [x] 6. Experience on mainline
   - [ ] 7. House favor bar
   - [ ] 8. Queue status
   - [ ] 9. Ghost

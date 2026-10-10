@@ -82,7 +82,7 @@ modules\maps\init_classic.xml [AllowLoadGameType classic]
 ## blizzard
 modules\blizzard\core.lua
 modules\blizzard\durability.lua [AllowLoadGameType classic]
-modules\blizzard\experience.lua [AllowLoadGameType classic]
+modules\blizzard\experience.lua
 modules\blizzard\framerate.lua
 modules\blizzard\mirror_timer.lua
 modules\blizzard\objective_tracker.lua [AllowLoadGameType classic]
