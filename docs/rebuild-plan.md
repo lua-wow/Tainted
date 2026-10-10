@@ -429,7 +429,7 @@ Feasibility study: [actionbar-report.md](actionbar-report.md).
    - Clients: Retail, Forever.
    - Test: Ctrl+R counter bottom-centre in Tainted font, also after Edit Mode exit; quest talking heads
      don't appear; Edit Mode open/close without errors.
-4. **Mirror timers** · Depends on: 2
+4. **Mirror timers** · Done · Depends on: 2
    - Change: branch on `MirrorTimerContainer` existing instead of `E.isStandard` (fixes Forever); untag.
    - Clients: all 6.
    - Test: breath, fatigue, feign death bars skinned and colored; Edit Mode Timer Bars still movable.

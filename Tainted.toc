@@ -84,7 +84,7 @@ modules\blizzard\core.lua
 modules\blizzard\durability.lua [AllowLoadGameType classic]
 modules\blizzard\experience.lua [AllowLoadGameType classic]
 modules\blizzard\framerate.lua
-modules\blizzard\mirror_timer.lua [AllowLoadGameType classic]
+modules\blizzard\mirror_timer.lua
 modules\blizzard\objective_tracker.lua [AllowLoadGameType classic]
 modules\blizzard\queue_status.lua [AllowLoadGameType classic]
 modules\blizzard\talkinghead.lua [AllowLoadGameType mainline]
