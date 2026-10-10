@@ -355,7 +355,7 @@ Feasibility study: [actionbar-report.md](actionbar-report.md).
 
 ### 7. Blizzard UI tweaks
 
-**Status:** In progress (steps 1–9 done, 10–14 pending) · **Priority:** Low · **Depends on:** 1, 2
+**Status:** In progress (steps 1–10 done, 11–14 pending) · **Priority:** Low · **Depends on:** 1, 2
 
 **Objective:** each tweak verified per client or dropped; mainline gets the ones that work there.
 
@@ -363,8 +363,8 @@ Feasibility study: [actionbar-report.md](actionbar-report.md).
 
 **Observed (code):**
 - Loading: one TOC line per file (step 1). Untagged: core, experience, framerate, mirror_timer,
-  queue_status. `mainline`: talkinghead. `mainline, mists`: ghost. `classic`: durability,
-  objective_tracker, ui_widgets. raid_utility has no line. `event_trace.lua` loads nowhere (item 10).
+  queue_status, ui_widgets. `mainline`: talkinghead. `mainline, mists`: ghost. `classic`: durability,
+  objective_tracker. raid_utility has no line. `event_trace.lua` loads nowhere (item 10).
 - Startup: `core.lua` creates the `Blizzard` registry module; its `Init` calls framerate and queue
   status, then each `self.X:Init()/Load()` the files set. One error stops the remaining tweaks.
   `experience.lua` is separate: own frame, `PLAYER_LOGIN`.
@@ -396,7 +396,7 @@ Feasibility study: [actionbar-report.md](actionbar-report.md).
 | Ghost | `GhostFrame` (`secureMixin` button); Retail re-anchors it on `Blizzard_UIWidgets` `ADDON_LOADED` | MoP only; none on Era/TBC/Wrath | ours `SetScript`s 4 handlers |
 | Talking head | `TalkingHeadFrame` | none | Edit Mode system |
 | Raid utility | `GetRaidTargetIndex` `SecretReturns` (compared → error); `Place/ClearRaidMarker` protected (our `ClearRaidMarker()` call is blocked); `SetRaidTarget`, `DoReadyCheck`, `DoCountdown`, `SetEveryoneIsAssistant`, `SetRestrictPings` `HasRestrictions` (meaning unverified) | `RestrictPings` missing | Blizzard covers it: secure `/wm` `/cwm` (macros, also in combat), `/tm`, `/readycheck`, `/countdown`, `RAIDTARGET1..8` keybinds on all 6 |
-| Widgets | power bar container lives in `EncounterBar` (Edit Mode, bottom-managed); reparenting breaks that layout; Torghast is legacy | container exists, `EncounterBar` doesn't | `C_UIWidgetManager` has no secret returns |
+| Widgets | power bar container lives in `EncounterBar` (Edit Mode, bottom-managed); reparenting breaks that layout; Torghast is legacy | no power bar container (`Blizzard_UIWidgetPowerBarFrame` is tagged `mainline` in every TOC), no `EncounterBar` | `UIWidgetTemplateStatusBarMixin:Setup` on all 6; `C_UIWidgetManager` has no secret returns |
 
 **Decided:**
 - Feature detection first (`if C_Housing and C_Housing.GetTrackedHouseGuid then`, `if _G.MirrorTimerContainer then`);
@@ -512,9 +512,17 @@ Feasibility study: [actionbar-report.md](actionbar-report.md).
    - Clients: Retail, Forever, MoP.
    - Test: die and release: button over the strip, skinned, returns to graveyard; no
      `ADDON_ACTION_BLOCKED` in an instance.
-10. **UI widgets** · Depends on: 2
-    - Change: keep the status-bar skin hook; reparent the power bar only where `EncounterBar` doesn't
-      exist; Torghast branch removed. Untag.
+10. **UI widgets** · Done, pending in-game verification · Depends on: 2
+    - Change: keep the status-bar skin hook (`UIWidgetTemplateStatusBarMixin:Setup`, all 6). Untag.
+      - Power bar reparent and holder removed: `UIWidgetPowerBarContainerFrame` is defined only by
+        `Blizzard_UIWidgetPowerBarFrame.xml`, tagged `mainline` on every client, with
+        `parent="EncounterBar"`. It never existed on Classic (the reparent was dead) and exists only
+        inside `EncounterBar` on mainline, so "only where `EncounterBar` doesn't exist" leaves nothing.
+      - Torghast branch removed (`IsInJailersTower`, container re-anchor, kept atlas).
+      - The flat texture is set on every `Setup`, not only the first: Blizzard's `UpdateBarFill` sets the
+        fill atlas when it changes (`lastFillAtlas`), so a pooled bar reused for another texture kit
+        showed Blizzard's fill.
+      - Global `TaintedUIWidgets` frame replaced by a plain table; unused locals removed.
     - Clients: all 6.
     - Test: widget bars skinned (BG capture, world events, encounter power); Retail Encounter Bar
       movable in Edit Mode.
@@ -816,7 +824,7 @@ Unit frames continue in parallel as a leaf. Only item 0 touches them.
   - [x] 7. House favor bar (tracked-house data unverified)
   - [x] 8. Queue status
   - [x] 9. Ghost
-  - [ ] 10. UI widgets
+  - [x] 10. UI widgets (pending in-game verification)
   - [ ] 11. Durability
   - [ ] 12. Objective tracker anchor on mainline (attempt)
   - [ ] 13. Raid utility

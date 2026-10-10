@@ -89,7 +89,7 @@ modules\blizzard\mirror_timer.lua
 modules\blizzard\objective_tracker.lua [AllowLoadGameType classic]
 modules\blizzard\queue_status.lua
 modules\blizzard\talkinghead.lua [AllowLoadGameType mainline]
-modules\blizzard\ui_widgets.lua [AllowLoadGameType classic]
+modules\blizzard\ui_widgets.lua
 
 ## miscellaneous
 # modules\miscellaneous\init.xml
