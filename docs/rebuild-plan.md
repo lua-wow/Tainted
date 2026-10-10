@@ -355,20 +355,20 @@ Feasibility study: [actionbar-report.md](actionbar-report.md).
 
 ### 7. Blizzard UI tweaks
 
-**Status:** In progress (steps 1–10 done, 11–14 pending) · **Priority:** Low · **Depends on:** 1, 2
+**Status:** In progress (steps 1–11 done, 12–14 pending) · **Priority:** Low · **Depends on:** 1, 2
 
 **Objective:** each tweak verified per client or dropped; mainline gets the ones that work there.
 
 **Done when:** each tweak is either verified per client or explicitly dropped.
 
 **Observed (code):**
-- Loading: one TOC line per file (step 1). Untagged: core, experience, framerate, mirror_timer,
-  queue_status, ui_widgets. `mainline`: talkinghead. `mainline, mists`: ghost. `classic`: durability,
+- Loading: one TOC line per file (step 1). Untagged: core, durability, experience, framerate,
+  mirror_timer, queue_status, ui_widgets. `mainline`: talkinghead. `mainline, mists`: ghost. `classic`:
   objective_tracker. raid_utility has no line. `event_trace.lua` loads nowhere (item 10).
 - Startup: `core.lua` creates the `Blizzard` registry module; its `Init` calls framerate and queue
   status, then each `self.X:Init()/Load()` the files set. One error stops the remaining tweaks.
   `experience.lua` is separate: own frame, `PLAYER_LOGIN`.
-- Settings: `C.blizzard.ghost/mirrortimers/talkinghead/uiwidgets/raid_utility` (file-level early
+- Settings: `C.blizzard.durability/ghost/mirrortimers/talkinghead/uiwidgets/raid_utility` (file-level early
   return). Experience keeps the selected bar in `TaintedDatabase` (`E:Get/SetExperienceBarIndex`).
 - Shared code: only `core.lua`. Outside users: chat anchors the BN toast above
   `TaintedExperienceBar`; datatexts shift the left-strip tooltip while `TaintedExperienceBar` is shown
@@ -526,10 +526,15 @@ Feasibility study: [actionbar-report.md](actionbar-report.md).
     - Clients: all 6.
     - Test: widget bars skinned (BG capture, world events, encounter power); Retail Encounter Bar
       movable in Edit Mode.
-11. **Durability** · Depends on: 2
+11. **Durability** · Done (verified on MoP) · Depends on: 2
     - Change: method override replaced by `hooksecurefunc(DurabilityFrame, "SetPoint")` re-anchoring via
-      `SetPointBase` (chat step 3 pattern) to `TOPRIGHT` of `TaintedMinimapDataText` `BOTTOMRIGHT`, 0, −5;
-      `C.blizzard.durability = true` disables it. Untag.
+      `ClearAllPointsBase`/`SetPointBase` (chat step 3 pattern) to `TOPRIGHT` of `TaintedMinimapDataText`
+      `BOTTOMRIGHT`, 0, −5; also applied once at init (gear damaged at login). `C.blizzard.durability`
+      (default `true`; `false` leaves Blizzard's place). Untag.
+      - Source (all 6): `DurabilityFrame` inherits `EditModeDurabilityFrameSystemTemplate`, so
+        `OnSystemLoad` keeps `SetPointBase`/`ClearAllPointsBase`. The right container's `Layout` and Edit
+        Mode's `ApplySystemAnchor` call the `SetPoint` override, so the hook fires on every placement; the
+        `*Base` calls don't re-enter it.
     - Risk: the hook runs inside Blizzard's `ManageFramePositions`; the frame keeps its slot in the right
       container (pushes vehicle seat/quest timer/arena frames down one slot); can't be moved in Edit Mode.
     - Clients: all 6.
@@ -825,7 +830,7 @@ Unit frames continue in parallel as a leaf. Only item 0 touches them.
   - [x] 8. Queue status
   - [x] 9. Ghost
   - [x] 10. UI widgets (pending in-game verification)
-  - [ ] 11. Durability
+  - [x] 11. Durability (verified on MoP)
   - [ ] 12. Objective tracker anchor on mainline (attempt)
   - [ ] 13. Raid utility
   - [ ] 14. Done

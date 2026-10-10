@@ -71,6 +71,7 @@ C["bags"] = {
 }
 
 C["blizzard"] = {
+    ["durability"] = true,
     ["ghost"] = true,
     ["mirrortimers"] = true,
     ["talkinghead"] = true,

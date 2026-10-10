@@ -81,7 +81,7 @@ modules\maps\init_classic.xml [AllowLoadGameType classic]
 
 ## blizzard
 modules\blizzard\core.lua
-modules\blizzard\durability.lua [AllowLoadGameType classic]
+modules\blizzard\durability.lua
 modules\blizzard\experience.lua
 modules\blizzard\framerate.lua
 modules\blizzard\ghost.lua [AllowLoadGameType mainline, mists]
