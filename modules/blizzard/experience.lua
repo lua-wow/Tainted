@@ -20,6 +20,7 @@ local UnitXPMax = _G.UnitXPMax
 local GetWatchedFactionInfo = _G.GetWatchedFactionInfo
 local GetPetExperience = _G.GetPetExperience
 local HasArtifactEquipped = _G.HasArtifactEquipped
+local C_Housing = _G.C_Housing
 
 -- Mine
 local bars = {}
@@ -32,6 +33,8 @@ local HAS_ARTIFACT = _G.ArtifactBarGetNumArtifactTraitsPurchasableFromXP ~= nil
 local HAS_AZERITE = _G.C_AzeriteItem ~= nil and _G.AzeriteUtil ~= nil
 local HAS_ANIMA = _G.C_CovenantSanctumUI ~= nil
 local HAS_MAJOR_FACTIONS = _G.C_MajorFactions ~= nil
+-- C_Housing is documented on every client, only Retail has houses
+local HAS_HOUSING = C_Housing ~= nil and C_Housing.GetTrackedHouseGuid ~= nil
 
 local EXP_PATTERN = "%d / %d (%.1f%%)"
 local RESTED_PATTERN = "+%d (%.1f%%)"
@@ -46,6 +49,10 @@ local ANIMA = _G.POWER_TYPE_ANIMA or "Anima"
 local RENOWN = _G.COVENANT_SANCTUM_TAB_RENOWN or "Renown"
 local RESTED = _G.TUTORIAL_TITLE26 or "Rested"
 local PET_EXPERIENCE = "Pet Experience"
+local HOUSE_FAVOR = _G.HOUSING_DASHBOARD_NEIGHBORHOOD_FAVOR_LABEL or "House Favor"
+local HOUSE_LEVEL = _G.HOUSING_DASHBOARD_HOUSE_LEVEL or "Level %d"
+local HOUSE_FAVOR_PATTERN = _G.HOUSING_DASHBOARD_NEIGHBORHOOD_FAVOR or "%d / %d"
+local HOUSE_FAVOR_MAX_PATTERN = _G.HOUSING_HOUSE_EXPERIENCE_FORMAT or "%d"
 
 local BarsEnum = {
     Experience = 1,
@@ -59,6 +66,7 @@ local BarsEnum = {
 	None = -1,
 	Rested = 0,
     Renown = 8,
+	HouseFavor = 9,
 }
 
 local BarPriorities = {
@@ -80,6 +88,8 @@ local BarColors = {
     [BarsEnum.Anima] = E:CreateColor(0.60, 0.80, 1.00),
     [BarsEnum.PetExperience] = E:CreateColor(1.00, 1.00, 0.41),
     [BarsEnum.Renown] = E:CreateColor(0.36, 0.68, 0.87),
+    -- Blizzard fills it with the artifact power atlas
+    [BarsEnum.HouseFavor] = E:CreateColor(0.90, 0.80, 0.50),
 }
 
 local FACTION_STANDING = {
@@ -123,6 +133,7 @@ table.insert(BarOrders, { label = AZERITE, value = BarsEnum.Azerite, enabled = H
 table.insert(BarOrders, { label = ARTIFACT, value = BarsEnum.Artifact, enabled = HAS_ARTIFACT })
 table.insert(BarOrders, { label = ANIMA, value = BarsEnum.Anima, enabled = HAS_ANIMA })
 table.insert(BarOrders, { label = PET_EXPERIENCE, value = BarsEnum.PetExperience, enabled = HAS_PET_XP })
+table.insert(BarOrders, { label = HOUSE_FAVOR, value = BarsEnum.HouseFavor, enabled = HAS_HOUSING })
 
 local element_proto = {
     min = 0
@@ -641,6 +652,68 @@ do
 end
 
 --------------------------------------------------
+-- House Favor
+--------------------------------------------------
+local house_favor_proto = Mixin({}, element_proto)
+
+do
+    function house_favor_proto:HasData()
+        return C_Housing.GetTrackedHouseGuid() ~= nil
+    end
+
+    -- the answer is HOUSE_LEVEL_FAVOR_UPDATED (Blizzard's HouseFavorBar requests it on show)
+    function house_favor_proto:OnShow()
+        local guid = C_Housing.GetTrackedHouseGuid()
+        if guid then
+            C_Housing.GetCurrentHouseLevelFavor(guid)
+        end
+    end
+
+    function house_favor_proto:SetFavor(info)
+        self.info = info
+        self:Update()
+    end
+
+    -- renders the last HOUSE_LEVEL_FAVOR_UPDATED payload only, requesting here would loop
+    function house_favor_proto:Update()
+        local info = self.info
+        if info then
+            self.level = info.houseLevel
+            self.value = info.houseFavor
+            self.minBar = C_Housing.GetHouseLevelFavorForLevel(self.level)
+            self.maxBar = C_Housing.GetHouseLevelFavorForLevel(self.level + 1)
+            self.isMaxLevel = self.level >= C_Housing.GetMaxHouseLevel() or self.maxBar == 0
+        else
+            self.level = 0
+            self.value = 0
+            self.minBar = 0
+            self.maxBar = 0
+            self.isMaxLevel = false
+        end
+
+        if self.isMaxLevel then
+            self:UpdateStatusBar(1, 0, 1)
+        else
+            self:UpdateStatusBar(self.value, self.minBar, self.maxBar)
+        end
+    end
+
+    function house_favor_proto:SetTooltip(tooltip)
+        if not self.info then
+            tooltip:AddLine(HOUSE_FAVOR)
+        else
+            local color = BarColors[BarsEnum.HouseFavor]
+            tooltip:AddLine(color:WrapTextInColorCode(HOUSE_LEVEL:format(self.level)))
+            if self.isMaxLevel then
+                tooltip:AddLine(HOUSE_FAVOR_MAX_PATTERN:format(self.value), 1, 1, 1)
+            else
+                tooltip:AddLine(HOUSE_FAVOR_PATTERN:format(self.value, self.maxBar), 1, 1, 1)
+            end
+        end
+    end
+end
+
+--------------------------------------------------
 -- Manager
 --------------------------------------------------
 local frame = CreateFrame("Frame", "TaintedExperienceBar", UIParent)
@@ -672,6 +745,10 @@ function frame:OnEvent(event, ...)
 
         if HAS_PET_XP then
             self:CreateBar("PetExperience", pet_experience_proto)
+        end
+
+        if HAS_HOUSING then
+            self:CreateBar("HouseFavor", house_favor_proto)
         end
 
         local index = E:GetExperienceBarIndex() or BarsEnum.Experience
@@ -726,10 +803,26 @@ function frame:OnEvent(event, ...)
             self:RegisterUnitEvent("UNIT_LEVEL", "player", "pet")
         end
 
+        if HAS_HOUSING then
+            self:RegisterEvent("HOUSE_LEVEL_FAVOR_UPDATED")
+            self:RegisterEvent("TRACKED_HOUSE_CHANGED")
+        end
+
         self:UnregisterEvent(event)
     elseif event == "PLAYER_ENTERING_WORLD" then
         for _, bar in next, bars do
             bar:Update()
+        end
+    elseif event == "HOUSE_LEVEL_FAVOR_UPDATED" then
+        local info = ...
+        if info.houseGUID == C_Housing.GetTrackedHouseGuid() then
+            bars[BarsEnum.HouseFavor]:SetFavor(info)
+        end
+    elseif event == "TRACKED_HOUSE_CHANGED" then
+        local bar = bars[BarsEnum.HouseFavor]
+        bar:SetFavor(nil)
+        if ... and bar:IsShown() then
+            bar:OnShow()
         end
     elseif event == "UNIT_LEVEL" and ... == "pet" then
         bars[BarsEnum.PetExperience]:Update()
@@ -760,6 +853,7 @@ function frame:CreateBar(name, proto)
     element:SetScript("OnEnter", element.OnEnter)
     element:SetScript("OnLeave", element.OnLeave)
     element:SetScript("OnMouseUp", element.OnMouseUp)
+    element:SetScript("OnShow", element.OnShow)
     element.index = index
 
     local bg = element:CreateTexture(nil, "BACKGROUND")

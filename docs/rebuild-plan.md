@@ -11,10 +11,11 @@ Legend: **Observed** = seen in the code · **Recommended** = proposal, not yet a
 
 - Revived after a long maintenance gap. TOC, references and settings have been cleaned up.
 - **Observed:** on Retail and Forever, only core, unit frames, maps (minimap/worldmap), chat and datatexts
-  load, plus tooltips, auras, action bars and bags. Blizzard and miscellaneous only load on
-  Classic and MoP.
-- **Observed:** working: unit frames (most mature), minimap, chat and datatexts on all clients; action bars on Classic (Retail/Forever pending verification). Classic-only,
-  not verified on Retail: Blizzard tweaks. Bags (window on all clients, bank and sort on
+  load, plus tooltips, auras, action bars, bags and part of the Blizzard tweaks (framerate, talking
+  head, mirror timers, experience with house favor). Miscellaneous only loads on Classic and MoP.
+- **Observed:** working: unit frames (most mature), minimap, chat and datatexts on all clients; action bars on Classic (Retail/Forever pending verification).
+  Blizzard tweaks: item 7 steps 1–7 done; queue status, ghost, UI widgets, durability, objective
+  tracker and raid utility pending. Bags (window on all clients, bank and sort on
   Classic/MoP) pending in-game verification.
 - Constraints: one TOC for 6 clients; Retail oUF is read-only; Midnight secret values
   (see compatibility.md).
@@ -354,16 +355,16 @@ Feasibility study: [actionbar-report.md](actionbar-report.md).
 
 ### 7. Blizzard UI tweaks
 
-**Status:** Classic/MoP only · **Priority:** Low · **Depends on:** 1, 2
+**Status:** In progress (steps 1–7 done, 8–14 pending) · **Priority:** Low · **Depends on:** 1, 2
 
 **Objective:** each tweak verified per client or dropped; mainline gets the ones that work there.
 
 **Done when:** each tweak is either verified per client or explicitly dropped.
 
 **Observed (code):**
-- Loading: one TOC line per file, tagged `[AllowLoadGameType classic]` (step 1): core, durability,
-  experience, framerate, mirror_timer, objective_tracker, queue_status, ui_widgets. ghost,
-  raid_utility and talkinghead have no line. `event_trace.lua` loads nowhere (item 10).
+- Loading: one TOC line per file (step 1). Untagged: core, experience, framerate, mirror_timer.
+  `mainline`: talkinghead. `classic`: durability, objective_tracker, queue_status, ui_widgets. ghost
+  and raid_utility have no line. `event_trace.lua` loads nowhere (item 10).
 - Startup: `core.lua` creates the `Blizzard` registry module; its `Init` calls framerate and queue
   status, then each `self.X:Init()/Load()` the files set. One error stops the remaining tweaks.
   `experience.lua` is separate: own frame, `PLAYER_LOGIN`.
@@ -472,15 +473,20 @@ Feasibility study: [actionbar-report.md](actionbar-report.md).
    - Clients: Retail, Forever.
    - Test: XP, renown, paragon, friendship, honor; artifact/azerite/anima where a character has them,
      absent otherwise; no errors in instances/PvP.
-7. **House favor bar** · Depends on: 6
-   - Change: new bar where `C_Housing` and `C_Housing.GetTrackedHouseGuid` exist, listed while a house is
-     tracked. Requests `GetCurrentHouseLevelFavor(guid)` on show; `HOUSE_LEVEL_FAVOR_UPDATED` for the
-     tracked GUID gives level and favor; bounds from `GetHouseLevelFavorForLevel(level/level + 1)`; full
-     at `GetMaxHouseLevel()`. Tooltip: level and favor (`HOUSING_DASHBOARD_NEIGHBORHOOD_FAVOR`, like
-     Blizzard). Color: new entry in `BarColors`.
-   - Clients: Retail (APIs are documented on every client; no tracked house → no bar).
-   - Test: with a house: bar fills and levels; tooltip values match the housing dashboard; without a
-     house it isn't in the menu; no errors on Classic.
+7. **House favor bar** · Done (drawing and tooltip verified on Retail; tracked-house data unverified, no Midnight) · Depends on: 6
+   - Change: new bar where `C_Housing.GetTrackedHouseGuid` exists (documented on all 6 clients), listed
+     while a house is tracked (`HasData`). On show it requests `GetCurrentHouseLevelFavor(guid)`
+     (`CreateBar` now sets `OnShow`); `HOUSE_LEVEL_FAVOR_UPDATED` for the tracked GUID stores level and
+     favor; `Update` renders only the stored payload (requesting there would loop): bounds
+     `GetHouseLevelFavorForLevel(level/level + 1)`, absolute like Blizzard; full at `GetMaxHouseLevel()` or a
+     0 next bound. `TRACKED_HOUSE_CHANGED` clears it and re-requests when shown. Tooltip:
+     `HOUSING_DASHBOARD_HOUSE_LEVEL` + `HOUSING_DASHBOARD_NEIGHBORHOOD_FAVOR` (at max
+     `HOUSING_HOUSE_EXPERIENCE_FORMAT`), as the housing dashboard; string contents unverified, so fallbacks.
+     Color: `BarColors` entry, artifact-power gold (Blizzard's fill). Unverified: whether
+     `GetTrackedHouseGuid` is ready at `PLAYER_LOGIN` (else a saved house bar falls back to Experience).
+   - Clients: Retail (no tracked house → not in the menu).
+   - Test: with a house: bar fills and levels; tooltip values match the housing dashboard; selected bar
+     survives `/reload`; without a house it isn't in the menu; no errors on Forever/Classic.
 8. **Queue status** · Depends on: 3
    - Change: holder and button move only where `QueueStatusButton` exists; Classic keeps only the
      `QueueStatusFrame` skin. Untag.
@@ -795,7 +801,7 @@ Unit frames continue in parallel as a leaf. Only item 0 touches them.
   - [x] 4. Mirror timers
   - [x] 5. Experience cleanup
   - [x] 6. Experience on mainline
-  - [ ] 7. House favor bar
+  - [x] 7. House favor bar (tracked-house data unverified)
   - [ ] 8. Queue status
   - [ ] 9. Ghost
   - [ ] 10. UI widgets
