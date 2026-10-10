@@ -12,10 +12,10 @@ Legend: **Observed** = seen in the code · **Recommended** = proposal, not yet a
 - Revived after a long maintenance gap. TOC, references and settings have been cleaned up.
 - **Observed:** on Retail and Forever, only core, unit frames, maps (minimap/worldmap), chat and datatexts
   load, plus tooltips, auras, action bars, bags and part of the Blizzard tweaks (framerate, talking
-  head, mirror timers, experience with house favor). Miscellaneous only loads on Classic and MoP.
+  head, mirror timers, experience with house favor, queue status, ghost). Miscellaneous only loads on Classic and MoP.
 - **Observed:** working: unit frames (most mature), minimap, chat and datatexts on all clients; action bars on Classic (Retail/Forever pending verification).
-  Blizzard tweaks: item 7 steps 1–7 done; queue status, ghost, UI widgets, durability, objective
-  tracker and raid utility pending. Bags (window on all clients, bank and sort on
+  Blizzard tweaks: item 7 steps 1–9 done; UI widgets, durability, objective tracker and raid
+  utility pending. Bags (window on all clients, bank and sort on
   Classic/MoP) pending in-game verification.
 - Constraints: one TOC for 6 clients; Retail oUF is read-only; Midnight secret values
   (see compatibility.md).
@@ -355,7 +355,7 @@ Feasibility study: [actionbar-report.md](actionbar-report.md).
 
 ### 7. Blizzard UI tweaks
 
-**Status:** In progress (steps 1–8 done, 9–14 pending) · **Priority:** Low · **Depends on:** 1, 2
+**Status:** In progress (steps 1–9 done, 10–14 pending) · **Priority:** Low · **Depends on:** 1, 2
 
 **Objective:** each tweak verified per client or dropped; mainline gets the ones that work there.
 
@@ -363,8 +363,8 @@ Feasibility study: [actionbar-report.md](actionbar-report.md).
 
 **Observed (code):**
 - Loading: one TOC line per file (step 1). Untagged: core, experience, framerate, mirror_timer,
-  queue_status. `mainline`: talkinghead. `classic`: durability, objective_tracker, ui_widgets. ghost
-  and raid_utility have no line. `event_trace.lua` loads nowhere (item 10).
+  queue_status. `mainline`: talkinghead. `mainline, mists`: ghost. `classic`: durability,
+  objective_tracker, ui_widgets. raid_utility has no line. `event_trace.lua` loads nowhere (item 10).
 - Startup: `core.lua` creates the `Blizzard` registry module; its `Init` calls framerate and queue
   status, then each `self.X:Init()/Load()` the files set. One error stops the remaining tweaks.
   `experience.lua` is separate: own frame, `PLAYER_LOGIN`.
@@ -500,10 +500,15 @@ Feasibility study: [actionbar-report.md](actionbar-report.md).
    - Clients: all 6.
    - Test: Retail/Forever eye bottom-left of the minimap, scaled, stays after Edit Mode/MicroMenu
      changes; tooltip skinned; Classic LFG eye unchanged, tooltip skinned.
-9. **Ghost** · Depends on: 2
+9. **Ghost** · Done (verified on Retail and MoP) · Depends on: 2
    - Change: add `ghost.lua` tagged `mainline, mists`, guarded `if GhostFrame`; the taxi button's anchor
-     (`Minimap` bottom, −3, 20 high, over the strip); handlers via `HookScript`; unused locals removed;
-     re-anchor if Blizzard's `Blizzard_UIWidgets` anchor runs after ours (load order unverified).
+     (`Minimap` bottom, −3, 20 high, MEDIUM, strip level + 3, over the strip); unused locals and the
+     global `TaintedGhost` frame removed.
+     - Textures killed (`StripTextures(true)`), not cleared: the template's `OnMouseDown/Up` set them again.
+       That makes the old mouse handlers unnecessary. `SkinButton` hooks `OnEnter/OnLeave`, as on the taxi
+       button. The 4 `SetScript`s are gone. Icon killed; text centred in the maps font.
+     - No re-anchor: Blizzard anchors it on `Blizzard_UIWidgets` `ADDON_LOADED` (Retail, Forever, MoP).
+       That addon isn't LoadOnDemand, so it loads before Tainted (source).
    - Clients: Retail, Forever, MoP.
    - Test: die and release: button over the strip, skinned, returns to graveyard; no
      `ADDON_ACTION_BLOCKED` in an instance.
@@ -810,7 +815,7 @@ Unit frames continue in parallel as a leaf. Only item 0 touches them.
   - [x] 6. Experience on mainline
   - [x] 7. House favor bar (tracked-house data unverified)
   - [x] 8. Queue status
-  - [ ] 9. Ghost
+  - [x] 9. Ghost
   - [ ] 10. UI widgets
   - [ ] 11. Durability
   - [ ] 12. Objective tracker anchor on mainline (attempt)
