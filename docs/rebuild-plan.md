@@ -355,15 +355,15 @@ Feasibility study: [actionbar-report.md](actionbar-report.md).
 
 ### 7. Blizzard UI tweaks
 
-**Status:** In progress (steps 1–7 done, 8–14 pending) · **Priority:** Low · **Depends on:** 1, 2
+**Status:** In progress (steps 1–8 done, 9–14 pending) · **Priority:** Low · **Depends on:** 1, 2
 
 **Objective:** each tweak verified per client or dropped; mainline gets the ones that work there.
 
 **Done when:** each tweak is either verified per client or explicitly dropped.
 
 **Observed (code):**
-- Loading: one TOC line per file (step 1). Untagged: core, experience, framerate, mirror_timer.
-  `mainline`: talkinghead. `classic`: durability, objective_tracker, queue_status, ui_widgets. ghost
+- Loading: one TOC line per file (step 1). Untagged: core, experience, framerate, mirror_timer,
+  queue_status. `mainline`: talkinghead. `classic`: durability, objective_tracker, ui_widgets. ghost
   and raid_utility have no line. `event_trace.lua` loads nowhere (item 10).
 - Startup: `core.lua` creates the `Blizzard` registry module; its `Init` calls framerate and queue
   status, then each `self.X:Init()/Load()` the files set. One error stops the remaining tweaks.
@@ -487,9 +487,16 @@ Feasibility study: [actionbar-report.md](actionbar-report.md).
    - Clients: Retail (no tracked house → not in the menu).
    - Test: with a house: bar fills and levels; tooltip values match the housing dashboard; selected bar
      survives `/reload`; without a house it isn't in the menu; no errors on Forever/Classic.
-8. **Queue status** · Depends on: 3
+8. **Queue status** · Done (verified on Era and Retail) · Depends on: 3
    - Change: holder and button move only where `QueueStatusButton` exists; Classic keeps only the
      `QueueStatusFrame` skin. Untag.
+     - The 0.65 scale moved from the button to the holder (45×45, ≈29px as before): Retail Edit Mode
+       MicroMenu "Eye Size" (`MicroMenu:SetQueueStatusScale`) and Forever's Group Finder size call
+       `SetScale` on the button and replaced ours; they now multiply on top of it.
+     - The `SetPoint` hook clears points before `SetAllPoints(holder)`: Blizzard's
+       `UpdatePosition`/`UpdateDefaultAnchor` point stayed and conflicted.
+     - Our `QueueStatusFrame` anchor is dropped: Blizzard re-anchors it to the eye on every client
+       (Retail `UpdatePosition`, Forever `OnEnter`, Classic `Update` to `LFGMinimapFrame`).
    - Clients: all 6.
    - Test: Retail/Forever eye bottom-left of the minimap, scaled, stays after Edit Mode/MicroMenu
      changes; tooltip skinned; Classic LFG eye unchanged, tooltip skinned.
@@ -802,7 +809,7 @@ Unit frames continue in parallel as a leaf. Only item 0 touches them.
   - [x] 5. Experience cleanup
   - [x] 6. Experience on mainline
   - [x] 7. House favor bar (tracked-house data unverified)
-  - [ ] 8. Queue status
+  - [x] 8. Queue status
   - [ ] 9. Ghost
   - [ ] 10. UI widgets
   - [ ] 11. Durability
