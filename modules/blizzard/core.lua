@@ -5,7 +5,9 @@ local BLIZZARD = E:CreateModule("Blizzard")
 
 -- one failing tweak reports through the error handler; the rest still load
 local function Load(tweak, method)
-    if (tweak and tweak[method]) then E:Call(tweak[method], tweak) end
+    if (tweak and tweak[method]) then
+        E:Call(tweak[method], tweak)
+    end
 end
 
 function BLIZZARD:Init()
