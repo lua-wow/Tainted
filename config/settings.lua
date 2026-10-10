@@ -62,6 +62,7 @@ C["auras"] = {
 C["bags"] = {
     ["enabled"] = true,
     ["font"] = "Tainted Outlined",
+    ["sort_bank"] = true, -- classic: the sort button also sorts the open bank
     ["buttons"] = {
         ["size"] = 32,
         ["spacing"] = 5,

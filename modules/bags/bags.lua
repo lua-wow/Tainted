@@ -417,7 +417,8 @@ function MODULE:CreateBags()
     element:SetPoint("BOTTOMRIGHT", _G.TaintedChatRight, "TOPRIGHT", 0, C.chat.margin)
 
     local searchAnchor = element.FreeSlots
-    if SortBags then
+    -- classic sorts with MODULE:Sort (sort.lua)
+    if SortBags or self.Sort then
         element.SortButton = self:CreateSortButton(element)
         searchAnchor = element.SortButton
     end
@@ -477,7 +478,11 @@ function MODULE:CreateSortButton(window)
 
     element:SetScript("OnClick", function()
         PlaySound(SOUNDKIT.UI_BAG_SORTING_01)
-        SortBags()
+        if SortBags then
+            SortBags()
+        else
+            MODULE:Sort()
+        end
     end)
     element:SetScript("OnEnter", function(self)
         GameTooltip:SetOwner(self, "ANCHOR_TOP")

@@ -73,6 +73,7 @@ modules\chat\copy_url.lua
 ## bags
 modules\bags\bags.lua
 modules\bags\bank.lua [AllowLoadGameType classic]
+modules\bags\sort.lua [AllowLoadGameType classic]
 
 ## maps
 modules\maps\init.xml [AllowLoadGameType mainline]

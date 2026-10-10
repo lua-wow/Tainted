@@ -449,15 +449,45 @@ raid utility, widgets.
    - Clients: Era, TBC, Wrath, MoP.
    - Test: the bank opens with the bags and shows every bank bag in one grid. Items move both ways. Buying a
      slot works. Walking away closes both windows. On Retail/Forever the Blizzard bank is unchanged.
-5. **Classic sort** · Depends on: 3
+5. **Classic sort** · Depends on: 3, 4 · **Status:** implemented, awaiting in-game test
    - Change: add sorting to the classic bags. These clients have no `C_Container.SortBags`, so Tainted
      moves the items itself (`C_Container.PickupContainerItem`), one move at a time, waiting for the
-     locks to clear between moves. The sort button sits in the same footer spot as on mainline. Not
-     planned yet: sort order, combat behavior, and whether the bank (step 4) is included.
+     locks to clear between moves. The sort button sits in the same footer spot as on mainline.
+     Background: [classic-bags-sorting.md](classic-bags-sorting.md) (SortBags analysis); same idea,
+     smaller and API-driven instead of item-ID lists and tooltip scans.
+   - Decided:
+     - Order (close to Blizzard's): hearthstone first, then `classID`, `subClassID`, `itemEquipLoc`,
+       quality (high first), name, itemID, then full stacks before the remainder. Items fill from bag 0
+       slot 1 (top-left); junk (`Poor`) fills backwards from the last slot, like mainline with
+       `SetSortBagsRightToLeft(true)`. Free slots end up between them.
+     - Data without `GetItemInfo`: `C_Container.GetContainerItemInfo` (`itemID`, `stackCount`,
+       `quality`, `itemName`, `isLocked`), `C_Item.GetItemInfoInstant` (class, subclass, equip loc),
+       `C_Item.GetItemMaxStackSizeByID`. A nil value (uncached item, unverified whether it happens)
+       waits a frame and retries.
+     - Special bags: `C_Container.GetContainerNumFreeSlots` → `bagFamily`, `C_Item.GetItemFamily`.
+       An item fits when `bagFamily == 0` or `bit.band(itemFamily, bagFamily) ~= 0`. Special bags are
+       filled first with the items that fit them, then normal bags take the rest. Bags (`Container`,
+       `Quiver` class) count as family 0: their own family is the one they hold.
+     - Combat aborts: no start under `InCombatLockdown()`, `PLAYER_REGEN_DISABLED` stops a running sort.
+     - One sort button, in the bags window. With the code constant `C.bags.sort_bank` (default `true`)
+       and the bank open, it also sorts bank container `-1` and the bank bags, after the bags and
+       separately (items never cross). `BANKFRAME_CLOSED` stops a running sort.
+     - Keyring is never sorted. A second click while a sort runs does nothing.
+   - Done: `modules/bags/sort.lua` (`classic`-tagged, after `bank.lua`) adds `MODULE:Sort()` and one
+     hidden driver frame. Each frame (`OnUpdate`): a leftover cursor item is cleared; all slots are re-read
+     (any locked slot or missing item data → wait); the target layout is rebuilt from the item totals, so
+     loot mid-sort is picked up; the first slot not matching its target gets one move: swap the target
+     item in (preferring a stack of the right size, only from a slot that accepts what is displaced),
+     top up from a misplaced stack, split off an excess (`SplitContainerItem`), or move the wrong item out
+     to an empty slot. No possible move → that group is done. Gives up after 300 frames of waiting or
+     3 moves per slot. `bags.lua` creates the sort button when `C_Container.SortBags` or `MODULE.Sort`
+     exists; the click calls the native sort or `MODULE:Sort()`.
    - Clients: Era, TBC, Wrath, MoP.
-   - Test: sorting a messy bag gives a stable order, and a second click moves nothing. Stacks are kept
-     whole and nothing is lost or left on the cursor. Clicking while a sort is running, or entering
-     combat during one, does no harm. Retail/Forever still use Blizzard's sort.
+   - Test: sorting a messy bag gives a stable order, and a second click moves nothing. Hearthstone is
+     top-left, junk at the end. Stacks are merged and nothing is lost or left on the cursor. Clicking while
+     a sort is running, or entering combat during one, does no harm. Retail/Forever still use Blizzard's
+     sort. Arrows go to the quiver (Era/TBC), shards to a soul bag, herbs to a herb bag. With the bank open
+     the button sorts the bank too; with `sort_bank = false` it sorts the bags only.
 
 **Done when:** every step passes `/reload` testing on Retail, Forever, Era, TBC, Wrath (Titan)
 and MoP, with no Lua errors or taint messages.
