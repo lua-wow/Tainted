@@ -23,6 +23,8 @@ local CooldownFrame_Set = _G.CooldownFrame_Set
 local GameTooltip = _G.GameTooltip
 local GameTooltip_Hide = _G.GameTooltip_Hide
 local BAG_CLEANUP_BAGS = _G.BAG_CLEANUP_BAGS
+local CloseBag = _G.CloseBag
+local OpenBag = _G.OpenBag
 local IsBagOpen = _G.IsBagOpen
 local OpenAllBags = _G.OpenAllBags
 local PlaySound = _G.PlaySound
@@ -517,6 +519,11 @@ function MODULE:CreateBagSlots(window, buttons)
             button.IconBorder:SetAlpha(0)
         end
 
+        -- bank bag slots glow while their (hidden) blizzard container frame is open (UpdateBagButtonHighlight)
+        if button.HighlightFrame then
+            button.HighlightFrame:Hide()
+        end
+
         button:SetNormalTexture(0)
         button:SetPushedTexture(0)
         button:SetHighlightTexture(0)
@@ -599,12 +606,62 @@ function MODULE:Init()
         C_Container.SetInsertItemsLeftToRight(true)
     end
 
-    -- the window mirrors blizzard's bag state after every toggle
-    local function Update()
-        window:SetShown(AnyBagOpen(window))
+    local bank = self.Bank
+    local function CloseBags(element)
+        for _, bag in ipairs(element.bags) do
+            local bagID = bag:GetID()
+            if IsBagOpen(bagID) then
+                CloseBag(bagID)
+            end
+        end
     end
 
-    for _, name in next, { "ToggleAllBags", "OpenAllBags", "CloseAllBags", "ToggleBag", "ToggleBackpack" } do
+    -- OpenAllBags does nothing while any bag is open
+    local function OpenBags(element)
+        for _, bag in ipairs(element.bags) do
+            local bagID = bag:GetID()
+            if not IsBagOpen(bagID) then
+                OpenBag(bagID)
+            end
+        end
+    end
+
+    -- the window is open while the backpack is. Blizzard's close functions (CloseAllBags on Escape,
+    -- ToggleAllBags) leave the keyring open, so the window's other bags close with the backpack.
+    local function Update()
+        local shown = IsBagOpen(BACKPACK_CONTAINER) and true or false
+        if not shown then
+            CloseBags(window)
+        end
+        window:SetShown(shown)
+    end
+
+    for _, name in next, { "OpenAllBags", "CloseAllBags", "ToggleBackpack" } do
         hooksecurefunc(name, Update)
     end
+
+    -- at the bank, ToggleAllBags with every bag open closes them, then reopens them with the bank bags
+    hooksecurefunc("ToggleAllBags", function()
+        if bank and AnyBagOpen(bank) then
+            CloseBags(window)
+            CloseBags(bank)
+        end
+        Update()
+    end)
+
+    -- the window shows every bag, so one bag toggles them all: a single closed bag would make
+    -- ToggleAllBags reopen the bags instead of closing them. A bank bag frame shows nothing, and an
+    -- open one would read as the bank case above.
+    hooksecurefunc("ToggleBag", function(bagID)
+        if window.bagsByID[bagID] then
+            if IsBagOpen(bagID) then
+                OpenBags(window)
+            else
+                CloseBags(window)
+            end
+        elseif bank and bank.bagsByID[bagID] then
+            CloseBag(bagID)
+        end
+        Update()
+    end)
 end
