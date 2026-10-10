@@ -4,6 +4,6 @@
 *.iml
 
 # files
-*.zip
 docs/analysis
 docs/issues
+*.zip

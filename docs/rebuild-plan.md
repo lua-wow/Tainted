@@ -12,10 +12,10 @@ Legend: **Observed** = seen in the code · **Recommended** = proposal, not yet a
 - Revived after a long maintenance gap. TOC, references and settings have been cleaned up.
 - **Observed:** on Retail and Forever, only core, unit frames, maps (minimap/worldmap), chat and datatexts
   load, plus tooltips, auras, action bars, bags and part of the Blizzard tweaks (framerate, talking
-  head, mirror timers, experience with house favor, queue status, ghost). Miscellaneous only loads on Classic and MoP.
+  head, mirror timers, experience with house favor, queue status, ghost, objective tracker). Miscellaneous only loads on Classic and MoP.
 - **Observed:** working: unit frames (most mature), minimap, chat and datatexts on all clients; action bars on Classic (Retail/Forever pending verification).
-  Blizzard tweaks: item 7 steps 1–9 done; UI widgets, durability, objective tracker and raid
-  utility pending. Bags (window on all clients, bank and sort on
+  Blizzard tweaks: item 7 steps 1–12 done (UI widgets pending in-game
+  verification); raid utility pending. Bags (window on all clients, bank and sort on
   Classic/MoP) pending in-game verification.
 - Constraints: one TOC for 6 clients; Retail oUF is read-only; Midnight secret values
   (see compatibility.md).
@@ -355,7 +355,7 @@ Feasibility study: [actionbar-report.md](actionbar-report.md).
 
 ### 7. Blizzard UI tweaks
 
-**Status:** In progress (steps 1–11 done, 12–14 pending) · **Priority:** Low · **Depends on:** 1, 2
+**Status:** In progress (steps 1–12 done, 13–14 pending) · **Priority:** Low · **Depends on:** 1, 2
 
 **Objective:** each tweak verified per client or dropped; mainline gets the ones that work there.
 
@@ -363,8 +363,8 @@ Feasibility study: [actionbar-report.md](actionbar-report.md).
 
 **Observed (code):**
 - Loading: one TOC line per file (step 1). Untagged: core, durability, experience, framerate,
-  mirror_timer, queue_status, ui_widgets. `mainline`: talkinghead. `mainline, mists`: ghost. `classic`:
-  objective_tracker. raid_utility has no line. `event_trace.lua` loads nowhere (item 10).
+  mirror_timer, objective_tracker, queue_status, ui_widgets. `mainline`: talkinghead. `mainline, mists`:
+  ghost. raid_utility has no line. `event_trace.lua` loads nowhere (item 10).
 - Startup: `core.lua` creates the `Blizzard` registry module; its `Init` calls framerate and queue
   status, then each `self.X:Init()/Load()` the files set. One error stops the remaining tweaks.
   `experience.lua` is separate: own frame, `PLAYER_LOGIN`.
@@ -540,11 +540,19 @@ Feasibility study: [actionbar-report.md](actionbar-report.md).
     - Clients: all 6.
     - Test: damaged gear: figure below the strip on Era and Retail, also after Edit Mode and combat;
       `false` leaves Blizzard's place; taint log clean.
-12. **Objective tracker anchor on mainline (attempt)** · Depends on: 2
-    - Change: Classic unchanged. Mainline: field write removed; `hooksecurefunc(ObjectiveTrackerFrame,
-      "SetPoint")` re-anchors via `SetPointBase`, TOP to `TaintedObjectiveTrackerContainer` and BOTTOM above
-      `TaintedChatRight`, so the height comes from the anchors, not `UpdateHeight` (unverified); re-applied
-      on `PLAYER_REGEN_ENABLED`. Untag.
+12. **Objective tracker anchor on mainline (attempt)** · Done (verified on MoP, Retail and Era) · Depends on: 2
+    - Change: Mainline: `ignoreFramePositionManager` write and override `SetPoint` calls removed;
+      `hooksecurefunc(ObjectiveTrackerFrame, "SetPoint")` re-anchors via `ClearAllPointsBase`/`SetPointBase`
+      (chat step 3 pattern): TOP/LEFT/RIGHT to `TaintedObjectiveTrackerContainer`, BOTTOM to
+      `TaintedChatRight` TOP + `C.chat.margin`, so the height comes from the anchors, not `UpdateHeight`
+      (unverified); also once at load. In combat the hook only registers `PLAYER_REGEN_ENABLED`, which
+      re-anchors once and unregisters. Untag.
+      - Classic: `WatchFrame` (Wrath/MoP) reparented to `UIParent` at load. It was a layout child of
+        `UIParentRightManagedFrameContainer` (`layoutIndex` 10), so every container `Layout()` moved it, also
+        in combat where our hook skips. Not the holder: `WatchFrame_Update` sizes it down to its parent's
+        bottom. `QuestWatchFrame` (Era/TBC) is a managed frame and would be reparented back; it holds only
+        font strings, so the hook's combat skip now applies only to protected frames (`IsProtected`) and
+        Era/TBC re-anchor in combat too.
     - Fails if: quest item click gives `ADDON_ACTION_BLOCKED`/taint (`UseQuestLogSpecialItem`), in or out
       of combat; Edit Mode enter/exit/reset errors or jumps; contents clipped or overlapping the right
       chat/bags; not back at our anchor after combat.
@@ -831,7 +839,7 @@ Unit frames continue in parallel as a leaf. Only item 0 touches them.
   - [x] 9. Ghost
   - [x] 10. UI widgets (pending in-game verification)
   - [x] 11. Durability (verified on MoP)
-  - [ ] 12. Objective tracker anchor on mainline (attempt)
+  - [x] 12. Objective tracker anchor on mainline (verified on MoP, Retail and Era)
   - [ ] 13. Raid utility
   - [ ] 14. Done
 - [x] 8. Bags (pending in-game verification)
