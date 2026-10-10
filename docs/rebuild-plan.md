@@ -11,11 +11,11 @@ Legend: **Observed** = seen in the code · **Recommended** = proposal, not yet a
 
 - Revived after a long maintenance gap. TOC, references and settings have been cleaned up.
 - **Observed:** on Retail and Forever, only core, unit frames, maps (minimap/worldmap), chat and datatexts
-  load, plus tooltips, auras and action bars. Bags are tagged `classic`. Blizzard and
-  miscellaneous only load on Classic and MoP.
+  load, plus tooltips, auras, action bars and bags. Blizzard and miscellaneous only load on
+  Classic and MoP.
 - **Observed:** working: unit frames (most mature), minimap, chat and datatexts on all clients; action bars on Classic (Retail/Forever pending verification). Classic-only,
-  not verified on Retail: Blizzard tweaks. Stub/WIP:
-  bags (only the bag-slot bar loads).
+  not verified on Retail: Blizzard tweaks. Bags (window on all clients, bank and sort on
+  Classic/MoP) pending in-game verification.
 - Constraints: one TOC for 6 clients; Retail oUF is read-only; Midnight secret values
   (see compatibility.md).
 
@@ -356,14 +356,161 @@ Feasibility study: [actionbar-report.md](actionbar-report.md).
 
 **Status:** Classic/MoP only · **Priority:** Low · **Depends on:** 1, 2
 
-Experience, mirror timers, objective tracker, queue status, durability, ghost, talking head,
-raid utility, widgets.
+**Objective:** each tweak verified per client or dropped; mainline gets the ones that work there.
 
 **Done when:** each tweak is either verified per client or explicitly dropped.
 
+**Observed (code):**
+- Loading: the TOC loads `init_classic.xml` (vanilla, tbc, wrath) and `init_mists.xml` (mists), which
+  are identical: core, durability, experience, framerate, mirror_timer, objective_tracker,
+  queue_status, ui_widgets. `init.xml` (mainline: + ghost, raid_utility, talkinghead, − durability) is
+  commented out. `event_trace.lua` loads nowhere (item 10). The XMLs hold only `<Script>` lines: no
+  templates or virtual frames.
+- Startup: `core.lua` creates the `Blizzard` registry module; its `Init` calls framerate and queue
+  status, then each `self.X:Init()/Load()` the files set. One error stops the remaining tweaks.
+  `experience.lua` is separate: own frame, `PLAYER_LOGIN`.
+- Settings: `C.blizzard.ghost/mirrortimers/talkinghead/uiwidgets/raid_utility` (file-level early
+  return). Experience keeps the selected bar in `TaintedDatabase` (`E:Get/SetExperienceBarIndex`).
+- Shared code: only `core.lua`. Outside users: chat anchors the BN toast above
+  `TaintedExperienceBar`; datatexts shift the left-strip tooltip only while `TaintedExperience` (XP
+  bar, not rep) is shown.
+- Action bars hide Blizzard's status tracking bars on all clients: Retail/Forever have no XP/rep bar today.
+- The taxi/vehicle exit button (`modules/maps/minimap.lua`) uses the strip's own anchor
+  (`Minimap` bottom, −3, 20 high) and covers the strip at a higher frame level.
+- Unit frames already hide `CompactRaidFrameManager` (`UnitFrames:DisableBlizzard`, reparent to
+  `E.Hider`), like ElvUI and Tukui. Its `UIParent:UnregisterEvent("GROUP_ROSTER_UPDATE")` is dead on
+  Retail (no handler in `Blizzard_UIParent`); unit frames' concern.
+- Objective tracker history: no recorded issue (`fc50f39`, `e52a320`; `docs/issues` empty).
+
+**Observed (Blizzard source / API docs: Retail 12.1, Forever 1.60, MoP 5.5.4, Titan 3.80, TBC 2.5.6, Era 1.15.9):**
+
+| Tweak | Retail · Forever | Era · TBC · Wrath · MoP | Edit Mode / secrets |
+|:--|:--|:--|:--|
+| Experience | XP/rep/honor APIs present; `GetPetExperience` not referenced in Retail UI source (unverified); Retail path calls `C_Reputation:GetWatchedFactionData()` with a colon | works today | no secret returns on XP/rep/honor; `UnitHonorLevel` `SecretWhenUnitIdentityRestricted` |
+| Azerite / Artifact / Anima | `C_ArtifactUI`, `C_CovenantSanctumUI`, `AzeriteUtil` only here; Retail can have data (Blizzard still ships Artifact and Azerite bars); Forever has APIs, no content | `C_AzeriteItem` documented but no item, `AzeriteUtil` missing; no artifact/anima APIs | our bars skip Blizzard's visibility rules (artifact disabled/maxed, azerite enabled/max); `Item` + closure per event |
+| House favor | Blizzard `HouseFavorBar`: shown while `C_Housing.GetTrackedHouseGuid()`; `C_Housing.GetCurrentHouseLevelFavor(guid)` → `HOUSE_LEVEL_FAVOR_UPDATED` (`houseGUID`, `houseLevel`, `houseFavor`); bounds `GetHouseLevelFavorForLevel(level)`/`(level + 1)`, max `GetMaxHouseLevel()` | `C_Housing` documented on every client (content Retail only) | no secret returns |
+| Mirror timers | `MirrorTimerContainer:SetupTimer`; our branch is `E.isStandard`, so Forever hooks the nil `MirrorTimer_Show` → error | `MirrorTimer1..3`, `MirrorTimer_Show` | Edit Mode `TimerBars`; we only skin |
+| Objective tracker | `ObjectiveTrackerFrame` (Edit Mode system, right-managed). Ours writes `ignoreFramePositionManager` (Edit Mode resets it); default-position height = right container height + anchor Y offset, so our offset-0 anchor makes it full height; hook skips combat; quest item clicks call protected `UseQuestLogSpecialItem` (taint symptom) | `QuestWatchFrame` (Era/TBC), `WatchFrame` (Wrath/MoP), right-managed; `SetPoint` hook re-anchors | ElvUI leaves Retail's to Edit Mode |
+| Queue status | `QueueStatusButton` (parent `MicroMenuContainer`, `UpdatePosition`); `QueueStatusFrame` anchored to the button on show | no button (eye is `LFGMinimapFrame`/`MiniMapLFGFrame`, minimap_classic); `QueueStatusFrame` re-anchored to the eye on show; our holder is empty | MicroMenu layout |
+| Durability | Edit Mode system + right-managed on all 6, `layoutIndex` 9 (top of the right container); container `TOPRIGHT` of UIParent, x = −(right bars width) − 5, y = −260 → ~29px below our strip (ends ~231) | same, y = −192 → overlaps our strip (ends ~213) by ~21px | our override never fires (nothing anchors to `MinimapCluster`) and replaces `SetPoint` on a Blizzard frame (taint). Offsets computed, unverified in game |
+| Framerate | `FramerateFrame` (`Label`, `FramerateText`, `UpdatePosition`) | `FramerateLabel/Text` | — |
+| Ghost | `GhostFrame` (`secureMixin` button); Retail re-anchors it on `Blizzard_UIWidgets` `ADDON_LOADED` | MoP only; none on Era/TBC/Wrath | ours `SetScript`s 4 handlers |
+| Talking head | `TalkingHeadFrame` | none | Edit Mode system |
+| Raid utility | `GetRaidTargetIndex` `SecretReturns` (compared → error); `Place/ClearRaidMarker` protected (our `ClearRaidMarker()` call is blocked); `SetRaidTarget`, `DoReadyCheck`, `DoCountdown`, `SetEveryoneIsAssistant`, `SetRestrictPings` `HasRestrictions` (meaning unverified) | `RestrictPings` missing | Blizzard covers it: secure `/wm` `/cwm` (macros, also in combat), `/tm`, `/readycheck`, `/countdown`, `RAIDTARGET1..8` keybinds on all 6 |
+| Widgets | power bar container lives in `EncounterBar` (Edit Mode, bottom-managed); reparenting breaks that layout; Torghast is legacy | container exists, `EncounterBar` doesn't | `C_UIWidgetManager` has no secret returns |
+
+**Decided:**
+- Feature detection first (`if C_Housing and C_Housing.GetTrackedHouseGuid then`, `if _G.MirrorTimerContainer then`);
+  a client flag (`E.isStandard`, `E.isMainline`, …) only where nothing can be tested.
+- Experience keeps every bar that can show data on some client: Azerite, Artifact and Anima stay on
+  Retail, fixed. A house favor bar is added (Retail).
+- Objective tracker: retry a Tainted anchor on mainline (step 12); Edit Mode is the fallback.
+- Durability: re-anchored below the minimap strip on all clients, `C.blizzard.durability` (code
+  constant, default `true`) turns it off.
+- Raid utility dropped, no replacement (Blizzard slash commands and keybinds). The raid manager stays
+  hidden by unit frames.
+- Ghost: on every client that has it (Retail, Forever, MoP), on the taxi button's anchor (covers the strip).
+
+**Recommended steps** (`make check` after each; Classic regressions checked on Era first):
+
+1. **TOC lines instead of XML** · Depends on: —
+   - Change: one TOC line per file, current order, `core.lua` first, tagged
+     `[AllowLoadGameType classic]` (= the union of the two identical XMLs). ghost, talkinghead and
+     raid_utility get no line yet. Delete `init.xml`, `init_classic.xml`, `init_mists.xml`. Later steps
+     change the tag per file; `core.lua` is untagged by the first step that enables a tweak on mainline.
+   - Clients: Era, TBC, Wrath, MoP (no behavior change).
+   - Test: `/reload`; every tweak unchanged; no errors.
+2. **Isolated tweak init** · Depends on: 1
+   - Change: `core.lua` calls each tweak through `E:Call` (`core/core.lua`), framerate and queue status
+     included, so one failing tweak doesn't stop the rest.
+   - Clients: Classic.
+   - Test: same as step 1.
+3. **Framerate + talking head on mainline** · Depends on: 2
+   - Change: untag `framerate.lua` and `core.lua`; add `talkinghead.lua` (`if TalkingHeadFrame`). No
+     code change expected.
+   - Clients: Retail, Forever.
+   - Test: Ctrl+R counter bottom-centre in Tainted font, also after Edit Mode exit; quest talking heads
+     don't appear; Edit Mode open/close without errors.
+4. **Mirror timers** · Depends on: 2
+   - Change: branch on `MirrorTimerContainer` existing instead of `E.isStandard` (fixes Forever); untag.
+   - Clients: all 6.
+   - Test: breath, fatigue, feign death bars skinned and colored; Edit Mode Timer Bars still movable.
+5. **Experience cleanup** · Depends on: 1
+   - Change: rep call `C_Reputation.GetWatchedFactionData()`; pet bar only where `GetPetExperience`
+     exists; each event updates only the bars it affects; base `SetTooltip` debug `E:print` removed;
+     datatext tooltip offset checks `TaintedExperienceBar` (any bar), not `TaintedExperience`.
+   - Clients: Classic.
+   - Test: XP/rested, rep and pet XP (hunter) bars and tooltips; right-click switches bars and survives
+     `/reload`; max level switches to rep; left-strip tooltip above the bar.
+6. **Experience on mainline** · Depends on: 5
+   - Change: untag `experience.lua`. Azerite, Artifact, Anima: created where their APIs exist
+     (`C_AzeriteItem` + `AzeriteUtil`, `C_ArtifactUI`, `C_CovenantSanctumUI`); show data only when
+     Blizzard would (artifact equipped, not maxed, not disabled; azerite equipped, enabled, not max;
+     anima with currency info); percentages set; their events registered only with the bar. The
+     right-click menu lists only bars with data.
+   - Clients: Retail, Forever.
+   - Test: XP, renown, paragon, friendship, honor; artifact/azerite/anima where a character has them,
+     absent otherwise; no errors in instances/PvP.
+7. **House favor bar** · Depends on: 6
+   - Change: new bar where `C_Housing` and `C_Housing.GetTrackedHouseGuid` exist, listed while a house is
+     tracked. Requests `GetCurrentHouseLevelFavor(guid)` on show; `HOUSE_LEVEL_FAVOR_UPDATED` for the
+     tracked GUID gives level and favor; bounds from `GetHouseLevelFavorForLevel(level/level + 1)`; full
+     at `GetMaxHouseLevel()`. Tooltip: level and favor (`HOUSING_DASHBOARD_NEIGHBORHOOD_FAVOR`, like
+     Blizzard). Color: new entry in `BarColors`.
+   - Clients: Retail (APIs are documented on every client; no tracked house → no bar).
+   - Test: with a house: bar fills and levels; tooltip values match the housing dashboard; without a
+     house it isn't in the menu; no errors on Classic.
+8. **Queue status** · Depends on: 3
+   - Change: holder and button move only where `QueueStatusButton` exists; Classic keeps only the
+     `QueueStatusFrame` skin. Untag.
+   - Clients: all 6.
+   - Test: Retail/Forever eye bottom-left of the minimap, scaled, stays after Edit Mode/MicroMenu
+     changes; tooltip skinned; Classic LFG eye unchanged, tooltip skinned.
+9. **Ghost** · Depends on: 2
+   - Change: add `ghost.lua` tagged `mainline, mists`, guarded `if GhostFrame`; the taxi button's anchor
+     (`Minimap` bottom, −3, 20 high, over the strip); handlers via `HookScript`; unused locals removed;
+     re-anchor if Blizzard's `Blizzard_UIWidgets` anchor runs after ours (load order unverified).
+   - Clients: Retail, Forever, MoP.
+   - Test: die and release: button over the strip, skinned, returns to graveyard; no
+     `ADDON_ACTION_BLOCKED` in an instance.
+10. **UI widgets** · Depends on: 2
+    - Change: keep the status-bar skin hook; reparent the power bar only where `EncounterBar` doesn't
+      exist; Torghast branch removed. Untag.
+    - Clients: all 6.
+    - Test: widget bars skinned (BG capture, world events, encounter power); Retail Encounter Bar
+      movable in Edit Mode.
+11. **Durability** · Depends on: 2
+    - Change: method override replaced by `hooksecurefunc(DurabilityFrame, "SetPoint")` re-anchoring via
+      `SetPointBase` (chat step 3 pattern) to `TOPRIGHT` of `TaintedMinimapDataText` `BOTTOMRIGHT`, 0, −5;
+      `C.blizzard.durability = true` disables it. Untag.
+    - Risk: the hook runs inside Blizzard's `ManageFramePositions`; the frame keeps its slot in the right
+      container (pushes vehicle seat/quest timer/arena frames down one slot); can't be moved in Edit Mode.
+    - Clients: all 6.
+    - Test: damaged gear: figure below the strip on Era and Retail, also after Edit Mode and combat;
+      `false` leaves Blizzard's place; taint log clean.
+12. **Objective tracker anchor on mainline (attempt)** · Depends on: 2
+    - Change: Classic unchanged. Mainline: field write removed; `hooksecurefunc(ObjectiveTrackerFrame,
+      "SetPoint")` re-anchors via `SetPointBase`, TOP to `TaintedObjectiveTrackerContainer` and BOTTOM above
+      `TaintedChatRight`, so the height comes from the anchors, not `UpdateHeight` (unverified); re-applied
+      on `PLAYER_REGEN_ENABLED`. Untag.
+    - Fails if: quest item click gives `ADDON_ACTION_BLOCKED`/taint (`UseQuestLogSpecialItem`), in or out
+      of combat; Edit Mode enter/exit/reset errors or jumps; contents clipped or overlapping the right
+      chat/bags; not back at our anchor after combat.
+    - Fallback: remove the mainline branch (hook, mainline holder), tag the file `classic`; Edit Mode
+      places it.
+    - Clients: all 6.
+    - Test: the failure list, on Retail and Forever; Classic tracker unchanged (with Questie too).
+13. **Raid utility** · Depends on: 1
+    - Change: remove `raid_utility.lua`, `C.blizzard.raid_utility`, `/tainted raid` and its README line.
+    - Clients: all 6 (not loaded today).
+    - Test: `/tainted` no longer lists `raid`; no errors.
+14. **Done** · Depends on: 3–13
+    - Change: compatibility.md current status; §1 and §5 of this plan (`C.blizzard` settings).
+    - Test: `/reload` on all 6 clients; taint log clean after combat and Edit Mode.
+
 ### 8. Bags
 
-**Status:** Planned · **Priority:** Low · **Depends on:** 3
+**Status:** Done, pending in-game verification · **Priority:** Low · **Depends on:** 3
 
 **Objective:** one Tainted bag window on all 6 clients, plus a unified bank on Classic.
 
@@ -390,9 +537,11 @@ raid utility, widgets.
      (and `ContainerFrameCombinedBags`) disabled. The `classic` TOC tag is removed. Stub files are deleted.
    - Done: `modules/bags/bags.lua` (loads after chat, anchors above `TaintedChatRight`). A
      `ContainerFrame_GenerateFrame` hook reparents Blizzard frames that hold a player bag to `E.Hider`.
-     Their shown state is kept, and the window mirrors it after each toggle (`IsBagOpen(0..NUM_BAG_SLOTS)`),
-     because on mainline with individual bags, `ToggleBackpack` calls `CloseAllBags` from inside the
-     same call. The reagent bag, keyring and Classic bank bags stay in Blizzard frames until Steps 3/4.
+     Their shown state is kept, and after each toggle the window follows the backpack
+     (`IsBagOpen(BACKPACK_CONTAINER)`), because on mainline with individual bags, `ToggleBackpack` calls
+     `CloseAllBags` from inside the same call. Closing the backpack closes the window's other bags
+     (Blizzard's close leaves the keyring open), and `ToggleBag` on one window bag opens or closes all of
+     them (one closed bag made B reopen the bags). The reagent bag, keyring and Classic bank bags stay in Blizzard frames until Steps 3/4.
      `containers.lua` stays `classic`-tagged until Step 3. Slots are empty until Step 2 (icons come from
      Blizzard's own frame updates); tooltips and clicks work.
    - Clients: all 6.
@@ -429,7 +578,8 @@ raid utility, widgets.
      `containers.lua` is removed.
    - Clients: all 6.
    - Test: search dims non-matches and clears on close. Retail/Forever sort works. The reagent bag shows on
-     Retail/Forever. The keyring shows where it exists. Classic bag slots swap bags.
+     Retail/Forever. The keyring shows where it exists. Classic bag slots swap bags. Escape and B close the
+     keyring and reagent bag with the window.
 4. **Classic bank** · Depends on: 2 · **Status:** implemented, awaiting in-game test
    - Change: a unified bank window on `BANKFRAME_OPENED/CLOSED` with the bank container and bank bags.
      Blizzard `BankFrame` is hidden while the bank session stays open, and closing the window calls
@@ -444,7 +594,9 @@ raid utility, widgets.
      still opens and closes it as a UIPanel and the session stays open. The window shows on
      `BANKFRAME_OPENED` with `OpenAllBags(window)`, and its `OnHide` (Escape via `UISpecialFrames`,
      `BANKFRAME_CLOSED`) calls `CloseAllBags(window)` and `CloseBankFrame()`. Bank-bag container frames go
-     to the hider too. Free/total skips extra sections (reagent bag, keyring) instead of checking bag IDs.
+     to the hider too. At the bank, B (`ToggleAllBags`) closes the bank bags Blizzard would reopen with the
+     bags; a bank bag slot click closes the hidden Blizzard frame it opens, and its open-bag highlight is
+     hidden. Free/total skips extra sections (reagent bag, keyring) instead of checking bag IDs.
      The bags window's search also dims bank slots.
    - Clients: Era, TBC, Wrath, MoP.
    - Test: the bank opens with the bags and shows every bank bag in one grid. Items move both ways. Buying a
@@ -529,7 +681,7 @@ Unit frames continue in parallel as a leaf. Only item 0 touches them.
 - Unit-frame raid-holder healer repositioning: currently dead machinery. Revisit with unit frames.
 - Dead stubs (party unit, `development.lua`, `event_trace.lua`): remove during
   item 10.
-- Settings with no effect (`C.blizzard.ghost/talkinghead/raid_utility`, `C.bags.*`): resolve
+- Settings with no effect (`C.blizzard.ghost/talkinghead/raid_utility`): resolve
   with their items.
 - Mainline-only Blizzard/misc files are kept but unverified on 12.x. Leave them until items 7/9.
 - Combat-log based dispels/interrupts on Retail. Check the API docs before reviving (item 9).
@@ -546,11 +698,11 @@ Unit frames continue in parallel as a leaf. Only item 0 touches them.
   hiding the strip.
 - Item 1: minimap size stays per family: 198 on mainline (Blizzard default), 180 on classic.
 - Item 1: Maps and Minimap stay two registry modules; `UpdateModules` is kept.
+- Item 8: real bag frames on all clients, plus a bank window and sort on Classic/MoP (see item 8 → Decided).
 
 **Needs confirmation:**
 - Item 0: one startup model for all modules, or keep both and document them?
 - Item 2 vs 4: which comes first on Retail, chat or action bars?
-- Item 8: bags scope. Bag-slot bar only, or real bag/bank frames (new code)?
 - Item 9: keep or drop each misc feature on Midnight.
 
 ## Completed
@@ -585,6 +737,25 @@ Unit frames continue in parallel as a leaf. Only item 0 touches them.
   - [x] 3. Mainline aura containers (pending in-game verification)
 - [x] 6. Tooltips (pending in-game verification)
 - [ ] 7. Blizzard UI tweaks
-- [ ] 8. Bags
+  - [ ] 1. TOC lines instead of XML
+  - [ ] 2. Isolated tweak init
+  - [ ] 3. Framerate + talking head on mainline
+  - [ ] 4. Mirror timers
+  - [ ] 5. Experience cleanup
+  - [ ] 6. Experience on mainline
+  - [ ] 7. House favor bar
+  - [ ] 8. Queue status
+  - [ ] 9. Ghost
+  - [ ] 10. UI widgets
+  - [ ] 11. Durability
+  - [ ] 12. Objective tracker anchor on mainline (attempt)
+  - [ ] 13. Raid utility
+  - [ ] 14. Done
+- [x] 8. Bags (pending in-game verification)
+  - [x] 1. Bag window
+  - [x] 2. Slot presentation and updates
+  - [x] 3. Client extras
+  - [x] 4. Classic bank
+  - [x] 5. Classic sort
 - [ ] 9. Miscellaneous
 - [ ] 10. Final compatibility audit
