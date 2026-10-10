@@ -80,13 +80,14 @@ modules\maps\init.xml [AllowLoadGameType mainline]
 modules\maps\init_classic.xml [AllowLoadGameType classic]
 
 ## blizzard
-modules\blizzard\core.lua [AllowLoadGameType classic]
+modules\blizzard\core.lua
 modules\blizzard\durability.lua [AllowLoadGameType classic]
 modules\blizzard\experience.lua [AllowLoadGameType classic]
-modules\blizzard\framerate.lua [AllowLoadGameType classic]
+modules\blizzard\framerate.lua
 modules\blizzard\mirror_timer.lua [AllowLoadGameType classic]
 modules\blizzard\objective_tracker.lua [AllowLoadGameType classic]
 modules\blizzard\queue_status.lua [AllowLoadGameType classic]
+modules\blizzard\talkinghead.lua [AllowLoadGameType mainline]
 modules\blizzard\ui_widgets.lua [AllowLoadGameType classic]
 
 ## miscellaneous

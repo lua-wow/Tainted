@@ -423,7 +423,7 @@ Feasibility study: [actionbar-report.md](actionbar-report.md).
      included, so one failing tweak doesn't stop the rest.
    - Clients: Classic.
    - Test: same as step 1.
-3. **Framerate + talking head on mainline** · Depends on: 2
+3. **Framerate + talking head on mainline** · Done (verified on Retail) · Depends on: 2
    - Change: untag `framerate.lua` and `core.lua`; add `talkinghead.lua` (`if TalkingHeadFrame`). No
      code change expected.
    - Clients: Retail, Forever.
