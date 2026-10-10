@@ -19,6 +19,7 @@ local GetContainerNumSlots = _G.C_Container.GetContainerNumSlots
 local SortBags = _G.C_Container.SortBags
 local GetKeyRingSize = _G.GetKeyRingSize
 local GetItemQualityColor = _G.C_Item.GetItemQualityColor
+local GetAtlasInfo = _G.C_Texture.GetAtlasInfo
 local CooldownFrame_Set = _G.CooldownFrame_Set
 local GameTooltip = _G.GameTooltip
 local GameTooltip_Hide = _G.GameTooltip_Hide
@@ -35,6 +36,7 @@ local QUEST_COLOR = { r = 1, g = 0.82, b = 0 }
 local FOOTER_HEIGHT = 20
 local MARGIN = 10
 local SECTION_SPACING = 10
+local SORT_ICON_CROP = 0.18 -- per side; the sort atlas has a rounded frame of its own
 
 -- shared with bank.lua
 MODULE.FOOTER_HEIGHT = FOOTER_HEIGHT
@@ -475,8 +477,15 @@ function MODULE:CreateSortButton(window)
     local element = CreateFrame("Button", nil, window)
     element:SetSize(FOOTER_HEIGHT, FOOTER_HEIGHT)
     element:SetPoint("RIGHT", window.FreeSlots, "LEFT", -C.bags.buttons.spacing, 0)
-    element:SetNormalAtlas("bags-button-autosort-up")
-    element:SetPushedAtlas("bags-button-autosort-down")
+
+    -- blizzard's sort art inside the square border, cropped past its own rounded frame
+    local atlas = GetAtlasInfo("bags-button-autosort-up")
+    local left, top = atlas.leftTexCoord, atlas.topTexCoord
+    local width, height = atlas.rightTexCoord - left, atlas.bottomTexCoord - top
+    element.icon = element:CreateTexture(nil, "ARTWORK")
+    element.icon:SetAllPoints(element)
+    element.icon:SetTexture(atlas.file)
+    element.icon:SetTexCoord(left + width * SORT_ICON_CROP, left + width * (1 - SORT_ICON_CROP), top + height * SORT_ICON_CROP, top + height * (1 - SORT_ICON_CROP))
 
     element:SetScript("OnClick", function()
         PlaySound(SOUNDKIT.UI_BAG_SORTING_01)
@@ -492,6 +501,8 @@ function MODULE:CreateSortButton(window)
         GameTooltip:Show()
     end)
     element:SetScript("OnLeave", GameTooltip_Hide)
+    -- after SetScript: the hover border is hooked onto OnEnter/OnLeave
+    element:SkinButton()
 
     return element
 end
