@@ -80,7 +80,8 @@ local function Compare(a, b)
     end
     local da, db = a.data, b.data
     if da.classID ~= db.classID then return da.classID < db.classID end
-    if da.subClassID ~= db.subClassID then return da.subClassID < db.subClassID end
+    -- descending, like retail's sort: food before flasks before potions
+    if da.subClassID ~= db.subClassID then return da.subClassID > db.subClassID end
     if da.equipLoc ~= db.equipLoc then return da.equipLoc < db.equipLoc end
     if a.quality ~= b.quality then return a.quality > b.quality end
     if a.name ~= b.name then return a.name < b.name end

@@ -456,7 +456,8 @@ raid utility, widgets.
      Background: [classic-bags-sorting.md](classic-bags-sorting.md) (SortBags analysis); same idea,
      smaller and API-driven instead of item-ID lists and tooltip scans.
    - Decided:
-     - Order (close to Blizzard's): hearthstone first, then `classID`, `subClassID`, `itemEquipLoc`,
+     - Order (close to Blizzard's): hearthstone first, then `classID`, `subClassID` (descending, as retail
+       sorts food > flask > potion), `itemEquipLoc`,
        quality (high first), name, itemID, then full stacks before the remainder. Items fill from bag 0
        slot 1 (top-left); junk (`Poor`) fills backwards from the last slot, like mainline with
        `SetSortBagsRightToLeft(true)`. Free slots end up between them.
