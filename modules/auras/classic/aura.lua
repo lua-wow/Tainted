@@ -194,7 +194,6 @@ do
         button:HookScript("OnAttributeChanged", button.OnAttributeChanged)
         button:SetScript("OnEnter", button.OnEnter)
         button:SetScript("OnLeave", button.OnLeave)
-        button:RegisterForClicks("RightButtonDown", "RightButtonUp")
         button:CreateBackdrop()
 
         local icon = button:CreateTexture(nil, "BORDER")
@@ -256,7 +255,7 @@ local function CreateHeader(filter)
     header:HookScript("OnAttributeChanged", header.OnAttributeChanged)
     header:SetAttribute("unit", "player")
     header:SetAttribute("filter", filter)
-    header:SetAttribute("template", "SecureActionButtonTemplate")
+    header:SetAttribute("template", "TaintedAuraTemplate")
     header:SetAttribute("maxWraps", rows)
     header:SetAttribute("minHeight", rows * size + (rows - 1) * spacing)
     header:SetAttribute("minWidth", cols * size + (cols - 1) * spacing)
@@ -277,7 +276,7 @@ local function CreateHeader(filter)
     
     if (filter == "HELPFUL") then
         header:SetAttribute("includeWeapons", 1)
-        header:SetAttribute("weaponTemplate", "SecureActionButtonTemplate")
+        header:SetAttribute("weaponTemplate", "TaintedAuraTemplate")
     end
     
     -- register the header with the attribute driver

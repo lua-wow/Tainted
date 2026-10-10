@@ -27,9 +27,18 @@ function MODULE:CreateExtraActionButton(holder)
         MODULE.StyleActionButton(button)
     end
 
-    -- ExtraAbilityContainer:AddFrame parents the frame back to the container
+    -- ExtraAbilityContainer:AddFrame parents the frame back to the container;
+    -- SetParent is blocked in combat, so that one waits for combat to end
+    holder:SetScript("OnEvent", function(self, event)
+        self:UnregisterEvent(event)
+        frame:SetParent(self)
+    end)
+
     hooksecurefunc(frame, "SetParent", function(self, parent)
-        if parent ~= holder then
+        if parent == holder then return end
+        if InCombatLockdown() then
+            holder:RegisterEvent("PLAYER_REGEN_ENABLED")
+        else
             self:SetParent(holder)
         end
     end)

@@ -61,6 +61,7 @@ core\keystone.lua [AllowLoadGameType mainline]
 core\development.lua
 
 ## auras
+modules\auras\classic\aura.xml [AllowLoadGameType classic]
 modules\auras\classic\aura.lua [AllowLoadGameType classic]
 modules\auras\mainline\aura.lua [AllowLoadGameType mainline]
 
