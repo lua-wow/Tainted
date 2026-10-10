@@ -361,11 +361,9 @@ Feasibility study: [actionbar-report.md](actionbar-report.md).
 **Done when:** each tweak is either verified per client or explicitly dropped.
 
 **Observed (code):**
-- Loading: the TOC loads `init_classic.xml` (vanilla, tbc, wrath) and `init_mists.xml` (mists), which
-  are identical: core, durability, experience, framerate, mirror_timer, objective_tracker,
-  queue_status, ui_widgets. `init.xml` (mainline: + ghost, raid_utility, talkinghead, − durability) is
-  commented out. `event_trace.lua` loads nowhere (item 10). The XMLs hold only `<Script>` lines: no
-  templates or virtual frames.
+- Loading: one TOC line per file, tagged `[AllowLoadGameType classic]` (step 1): core, durability,
+  experience, framerate, mirror_timer, objective_tracker, queue_status, ui_widgets. ghost,
+  raid_utility and talkinghead have no line. `event_trace.lua` loads nowhere (item 10).
 - Startup: `core.lua` creates the `Blizzard` registry module; its `Init` calls framerate and queue
   status, then each `self.X:Init()/Load()` the files set. One error stops the remaining tweaks.
   `experience.lua` is separate: own frame, `PLAYER_LOGIN`.
@@ -413,7 +411,7 @@ Feasibility study: [actionbar-report.md](actionbar-report.md).
 
 **Recommended steps** (`make check` after each; Classic regressions checked on Era first):
 
-1. **TOC lines instead of XML** · Depends on: —
+1. **TOC lines instead of XML** · Done (verified on MoP) · Depends on: —
    - Change: one TOC line per file, current order, `core.lua` first, tagged
      `[AllowLoadGameType classic]` (= the union of the two identical XMLs). ghost, talkinghead and
      raid_utility get no line yet. Delete `init.xml`, `init_classic.xml`, `init_mists.xml`. Later steps
@@ -737,7 +735,7 @@ Unit frames continue in parallel as a leaf. Only item 0 touches them.
   - [x] 3. Mainline aura containers (pending in-game verification)
 - [x] 6. Tooltips (pending in-game verification)
 - [ ] 7. Blizzard UI tweaks
-  - [ ] 1. TOC lines instead of XML
+  - [x] 1. TOC lines instead of XML
   - [ ] 2. Isolated tweak init
   - [ ] 3. Framerate + talking head on mainline
   - [ ] 4. Mirror timers
