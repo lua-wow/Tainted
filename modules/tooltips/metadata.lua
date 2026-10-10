@@ -4,9 +4,6 @@ local MODULE = E:GetModule("Tooltips")
 
 -- Blizzard
 local GetActionInfo = _G.GetActionInfo
-local UnitDebuff = _G.UnitDebuff
-local UnitBuff = _G.UnitBuff
-local UnitAura = _G.UnitAura
 
 -- Mine
 local METADATA = E.colors.yellow:WrapTextInColorCode("%s") .. " %s"
@@ -85,19 +82,26 @@ local function OnSetHyperlink(tooltip, link)
     end
 end
 
+-- UnitAura/UnitBuff/UnitDebuff are deprecation fallbacks on Classic (loadDeprecationFallbacks)
 local function Gametooltip_SetUnitAura(tooltip, ...)
-    local id = select(10, UnitAura(...))
-    AddLine(tooltip, id)
+    local data = C_UnitAuras.GetAuraDataByIndex(...)
+    AddLine(tooltip, data and data.spellId)
 end
 
 local function Gametooltip_SetUnitBuff(tooltip, ...)
-    local id = select(10, UnitBuff(...))
-    AddLine(tooltip, id)
+    local data = C_UnitAuras.GetBuffDataByIndex(...)
+    AddLine(tooltip, data and data.spellId)
 end
 
 local function Gametooltip_SetUnitDebuff(tooltip, ...)
-    local id = select(10, UnitDebuff(...))
-    AddLine(tooltip, id)
+    local data = C_UnitAuras.GetDebuffDataByIndex(...)
+    AddLine(tooltip, data and data.spellId)
+end
+
+-- oUF and Blizzard's buff frame set auras by instance ID
+local function Gametooltip_SetUnitAuraByAuraInstanceID(tooltip, unit, auraInstanceID)
+    local data = C_UnitAuras.GetAuraDataByAuraInstanceID(unit, auraInstanceID)
+    AddLine(tooltip, data and data.spellId)
 end
 
 local function Gametooltip_SetAction(tooltip, slot)
@@ -116,7 +120,7 @@ local OnTooltipSetItem = function(self)
     if self.GetItem then
         local _, itemLink = self:GetItem()
         if itemLink then
-            local _, _, _, _, _, _, _, _, _, _, vendorPrice = GetItemInfo(itemLink)
+            local _, _, _, _, _, _, _, _, _, _, vendorPrice = C_Item.GetItemInfo(itemLink)
             if vendorPrice and vendorPrice > 0 then
                 -- Format the price into gold, silver, and copper
                 local gold = math.floor(vendorPrice / 10000)
@@ -210,17 +214,12 @@ function MODULE:AddMetadata()
     hookfunction(ItemRefTooltip, "SetHyperlink", OnSetHyperlink)
 
     -- Buffs/Debuffs/Auras
-    if UnitAura then
-        hookfunction(GameTooltip, "SetUnitAura", Gametooltip_SetUnitAura)
-    end
-
-    if UnitBuff then
-        hookfunction(GameTooltip, "SetUnitBuff", Gametooltip_SetUnitBuff)
-    end
-
-    if UnitDebuff then
-        hookfunction(GameTooltip, "SetUnitDebuff", Gametooltip_SetUnitDebuff)
-    end
+    hookfunction(GameTooltip, "SetUnitAura", Gametooltip_SetUnitAura)
+    hookfunction(GameTooltip, "SetUnitBuff", Gametooltip_SetUnitBuff)
+    hookfunction(GameTooltip, "SetUnitDebuff", Gametooltip_SetUnitDebuff)
+    hookfunction(GameTooltip, "SetUnitAuraByAuraInstanceID", Gametooltip_SetUnitAuraByAuraInstanceID)
+    hookfunction(GameTooltip, "SetUnitBuffByAuraInstanceID", Gametooltip_SetUnitAuraByAuraInstanceID)
+    hookfunction(GameTooltip, "SetUnitDebuffByAuraInstanceID", Gametooltip_SetUnitAuraByAuraInstanceID)
 
     -- Action Bar: Action buttons
     if GetActionInfo then

@@ -51,6 +51,7 @@ architecture win when they conflict.
   API docs before using a result in logic. If unsure, say so.
 - Never invent an API. Mark anything you can't verify as "unverified".
 - Supported clients, TOC rules, oUF variants, secret values: [docs/compatibility.md](docs/compatibility.md).
+- Addon must work independent of `loadDeprecatedFallbacks` is enabled or disabled.
 
 ## References
 
