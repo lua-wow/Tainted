@@ -369,8 +369,8 @@ raid utility, widgets.
 
 **Decided:**
 - One shared implementation. Clients differ only in data: bag IDs (reagent bag on mainline,
-  keyring when `GetKeyRingSize() > 0`), sort (only where `C_Container.SortBags` exists), bank and
-  bag-slot strip (classic family).
+  keyring when `GetKeyRingSize() > 0`), sort (Blizzard's `C_Container.SortBags` where it exists, Tainted's
+  own on classic, step 5), bank and bag-slot strip (classic family).
 - Slots are created from Blizzard's `ContainerFrameItemButtonTemplate` (`BankItemButtonGenericTemplate`
   for bank container `-1`) under a per-bag parent with `SetID(bagID)`. Blizzard handles use, drag, sell
   and tooltips. Nothing is secure, so the window can open and close in combat.
@@ -380,7 +380,7 @@ raid utility, widgets.
   happens only when a bag's slot count changed. A hidden window updates nothing and refreshes dirty bags on show.
 - Replaces the commented-out stubs (`core.lua`, `bags.lua`, `bank.lua`). Their fixed
   frame↔bag mapping and global overrides are wrong. `C.bags` stays as code constants.
-- Non-goals: mainline bank/warband/reagent bank, own sorter (Classic has no sort), item level, junk/new-item
+- Non-goals: mainline bank/warband/reagent bank, item level, junk/new-item
   markers, categories/filters, gold or currencies in the window, movers, options.
 
 **Steps:**
@@ -430,14 +430,34 @@ raid utility, widgets.
    - Clients: all 6.
    - Test: search dims non-matches and clears on close. Retail/Forever sort works. The reagent bag shows on
      Retail/Forever. The keyring shows where it exists. Classic bag slots swap bags.
-4. **Classic bank** · Depends on: 2
+4. **Classic bank** · Depends on: 2 · **Status:** implemented, awaiting in-game test
    - Change: a unified bank window on `BANKFRAME_OPENED/CLOSED` with the bank container and bank bags.
      Blizzard `BankFrame` is hidden while the bank session stays open, and closing the window calls
      `CloseBankFrame()`. Bank bag slots and a purchase button use `CONFIRM_BUY_BANK_SLOT`.
      Mainline keeps Blizzard's bank.
+   - Done: `modules/bags/bank.lua` (`classic`-tagged) builds `TaintedBank` with the bags window's code
+     (`CreateWindow`, `AddSection/AddBag`, `CreateBagSlots`), anchored above `TaintedChatLeft`. One grid
+     holds the bank container (`BankItemButtonGenericTemplate`, updated from `PLAYERBANKSLOTS_CHANGED`)
+     and every bank bag. Blizzard's `BankSlotsFrame.Bag1..N` form the last section, updated with
+     Blizzard's `BankFrameItemButton_Update`/`UpdateBagSlotStatus` (red when not bought). A footer button
+     opens `CONFIRM_BUY_BANK_SLOT` while slots remain. `BankFrame` is reparented to `E.Hider`, so Blizzard
+     still opens and closes it as a UIPanel and the session stays open. The window shows on
+     `BANKFRAME_OPENED` with `OpenAllBags(window)`, and its `OnHide` (Escape via `UISpecialFrames`,
+     `BANKFRAME_CLOSED`) calls `CloseAllBags(window)` and `CloseBankFrame()`. Bank-bag container frames go
+     to the hider too. Free/total skips extra sections (reagent bag, keyring) instead of checking bag IDs.
+     The bags window's search also dims bank slots.
    - Clients: Era, TBC, Wrath, MoP.
    - Test: the bank opens with the bags and shows every bank bag in one grid. Items move both ways. Buying a
      slot works. Walking away closes both windows. On Retail/Forever the Blizzard bank is unchanged.
+5. **Classic sort** · Depends on: 3
+   - Change: add sorting to the classic bags. These clients have no `C_Container.SortBags`, so Tainted
+     moves the items itself (`C_Container.PickupContainerItem`), one move at a time, waiting for the
+     locks to clear between moves. The sort button sits in the same footer spot as on mainline. Not
+     planned yet: sort order, combat behavior, and whether the bank (step 4) is included.
+   - Clients: Era, TBC, Wrath, MoP.
+   - Test: sorting a messy bag gives a stable order, and a second click moves nothing. Stacks are kept
+     whole and nothing is lost or left on the cursor. Clicking while a sort is running, or entering
+     combat during one, does no harm. Retail/Forever still use Blizzard's sort.
 
 **Done when:** every step passes `/reload` testing on Retail, Forever, Era, TBC, Wrath (Titan)
 and MoP, with no Lua errors or taint messages.
