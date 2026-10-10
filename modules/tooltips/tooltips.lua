@@ -303,6 +303,14 @@ local UpdateUnitTooltip = function(tooltip, data)
     local name, unit, guid = tooltip:GetUnit()
     if not unit then return end
 
+    -- classic: Blizzard only colors the "mouseover" unit; unit frames set others (e.g. "target")
+    if not data and not tooltip:IsUnit("mouseover") then
+        GameTooltip_UnitColor(unit)
+    end
+
+    -- SetUnit cleared the tooltip (hiding the text); an unchanged health value won't fire OnValueChanged
+    _G.GameTooltipStatusBar:OnValueChanged()
+
     if IsSecret(unit) and data then
         -- the plain mouseover token stays readable while the tooltip's token is secret (checked in a
         -- Retail dungeon), so world tooltips get our own colors; else fall back to Blizzard's
