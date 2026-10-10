@@ -450,7 +450,9 @@ function MODULE:CreateBags()
         end
     end
 
-    if KEYRING_CONTAINER and GetKeyRingSize then
+    -- mists has no keyring but keeps the classic keyring code, whose ContainerFrame_GenerateFrame
+    -- errors when it opens one (portrait looked up without _G)
+    if KEYRING_CONTAINER and GetKeyRingSize and not E.isMists then
         element:AddBag(element:AddSection(true), KEYRING_CONTAINER)
     end
 

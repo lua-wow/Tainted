@@ -420,7 +420,7 @@ raid utility, widgets.
    - Done: footer row with `BagSearchBoxTemplate` (left; clears on hide), sort button where
      `C_Container.SortBags` exists, free/total (right; bags 0..`NUM_BAG_SLOTS` only). Filtered slots show
      the template's `searchOverlay` (`INVENTORY_SEARCH_UPDATE`, caught up on show). Sort direction is set in
-     the bags module on every load. Reagent bag and keyring (`GetKeyRingSize`) are window bags, and their Blizzard
+     the bags module on every load. Reagent bag and keyring (`GetKeyRingSize`; not on MoP, where Blizzard's keyring frame errors) are window bags, and their Blizzard
      frames are hidden too. The window stacks sections (bags, reagent bag, keyring, bag slots), 10px apart
      inside a 10px margin; sections shorter than a row sit on the right. Classic `CharacterBag0..3Slot` form
      the last section, shown by default and toggled by Gold shift-click (opens the window if closed); the
