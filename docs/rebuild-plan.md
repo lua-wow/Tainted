@@ -418,7 +418,7 @@ Feasibility study: [actionbar-report.md](actionbar-report.md).
      change the tag per file; `core.lua` is untagged by the first step that enables a tweak on mainline.
    - Clients: Era, TBC, Wrath, MoP (no behavior change).
    - Test: `/reload`; every tweak unchanged; no errors.
-2. **Isolated tweak init** · Depends on: 1
+2. **Isolated tweak init** · Done · Depends on: 1
    - Change: `core.lua` calls each tweak through `E:Call` (`core/core.lua`), framerate and queue status
      included, so one failing tweak doesn't stop the rest.
    - Clients: Classic.
@@ -656,6 +656,36 @@ and MoP, with no Lua errors or taint messages.
 - `make check` is clean of real bugs.
 - This plan is up to date.
 
+### 11. Extension by other addons
+
+**Status:** Not started · **Priority:** Low · **Depends on:** 10
+
+**Objective:** a separate addon with `## Dependencies: Tainted` can customize Tainted in code (like a
+Tukui edit addon) and could later provide an in-game configuration. Tainted itself stays
+configuration-free; any options UI or SavedVariables would live in that other addon.
+
+**Done when:** an edit addon can change `C` settings and restyle or move Tainted frames without
+editing Tainted's files, and this contract is documented.
+
+**Observed (code):**
+- Only the engine is global: `core/init.lua` sets `_G[addon] = frame` (`Tainted` = `E`). `C`, `A`, `L`
+  and `P` exist only in the private `ns`, so an outside addon can't read or change settings.
+  Tukui exports its whole namespace (`Tukui = Engine`, `Tukui:unpack()` → T, C, L, …,
+  `Core/Init.lua`).
+- A dependent addon's files run after all of Tainted's files and before `PLAYER_LOGIN`
+  (`E:InitModules`). A `C` change made then reaches code that reads `C` in `Init` or later, but not
+  file-level reads: the early returns (`if not C.x then return end`) in tooltips, maps, chat history,
+  Blizzard tweaks and miscellaneous modules, plus any `C` values copied into file locals.
+- `E:CreateModule`/`E:GetModule`/`E:Call` already work through `_G.Tainted`; a dependent module is
+  initialized and isolated by `E:InitModules`.
+
+**Needs confirmation:**
+- Export `C`/`A`/`L` (and `P`?) through `_G.Tainted`, Tukui-style, or only `C`?
+- Which `C` reads move from file load to `Init` so an edit addon can change them; every one, or only
+  the documented ones?
+- Is an in-game configuration addon compatible with §6 "No in-game configuration" when it's a
+  separate, optional addon?
+
 Unit frames continue in parallel as a leaf. Only item 0 touches them.
 
 ## 4. Known architectural risks (observed)
@@ -702,6 +732,7 @@ Unit frames continue in parallel as a leaf. Only item 0 touches them.
 - Item 0: one startup model for all modules, or keep both and document them?
 - Item 2 vs 4: which comes first on Retail, chat or action bars?
 - Item 9: keep or drop each misc feature on Midnight.
+- Item 11: what to export, when `C` is read, and whether a separate in-game configuration addon is allowed (see item 11).
 
 ## Completed
 
@@ -736,7 +767,7 @@ Unit frames continue in parallel as a leaf. Only item 0 touches them.
 - [x] 6. Tooltips (pending in-game verification)
 - [ ] 7. Blizzard UI tweaks
   - [x] 1. TOC lines instead of XML
-  - [ ] 2. Isolated tweak init
+  - [x] 2. Isolated tweak init
   - [ ] 3. Framerate + talking head on mainline
   - [ ] 4. Mirror timers
   - [ ] 5. Experience cleanup
@@ -757,3 +788,4 @@ Unit frames continue in parallel as a leaf. Only item 0 touches them.
   - [x] 5. Classic sort
 - [ ] 9. Miscellaneous
 - [ ] 10. Final compatibility audit
+- [ ] 11. Extension by other addons
