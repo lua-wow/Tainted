@@ -18,9 +18,13 @@ local UnitTrialBankedLevels = _G.UnitTrialBankedLevels
 local UnitTrialXP = _G.UnitTrialXP
 local UnitXPMax = _G.UnitXPMax
 local GetWatchedFactionInfo = _G.GetWatchedFactionInfo
+local GetPetExperience = _G.GetPetExperience
 
 -- Mine
 local bars = {}
+
+-- only hunter pets gain experience
+local HAS_PET_XP = GetPetExperience ~= nil and E.class == "HUNTER"
 
 local EXP_PATTERN = "%d / %d (%.1f%%)"
 local RESTED_PATTERN = "+%d (%.1f%%)"
@@ -82,6 +86,28 @@ local FACTION_STANDING = {
     [8] = _G.FACTION_STANDING_LABEL8
 }
 
+-- bar each event updates
+local BarEvents = {
+    ENABLE_XP_GAIN = BarsEnum.Experience,
+    DISABLE_XP_GAIN = BarsEnum.Experience,
+    UPDATE_EXPANSION_LEVEL = BarsEnum.Experience,
+    PLAYER_XP_UPDATE = BarsEnum.Experience,
+    UNIT_LEVEL = BarsEnum.Experience,
+    UPDATE_FACTION = BarsEnum.Reputation,
+    MAJOR_FACTION_RENOWN_LEVEL_CHANGED = BarsEnum.Reputation,
+    HONOR_XP_UPDATE = BarsEnum.Honor,
+    ZONE_CHANGED = BarsEnum.Honor,
+    ZONE_CHANGED_NEW_AREA = BarsEnum.Honor,
+    ARTIFACT_XP_UPDATE = BarsEnum.Artifact,
+    UNIT_INVENTORY_CHANGED = BarsEnum.Artifact,
+    UPDATE_EXTRA_ACTIONBAR = BarsEnum.Artifact,
+    AZERITE_ITEM_EXPERIENCE_CHANGED = BarsEnum.Azerite,
+    PLAYER_EQUIPMENT_CHANGED = BarsEnum.Azerite,
+    BAG_UPDATE = BarsEnum.Azerite,
+    UNIT_PET = BarsEnum.PetExperience,
+    UNIT_PET_EXPERIENCE = BarsEnum.PetExperience,
+}
+
 local BarOrders = {}
 table.insert(BarOrders, { label = EXPERIENCE, value = BarsEnum.Experience, enabled = true })
 table.insert(BarOrders, { label = REPUTATION, value = BarsEnum.Reputation, enabled = true })
@@ -89,15 +115,11 @@ table.insert(BarOrders, { label = HONOR, value = BarsEnum.Honor, enabled = E.isS
 table.insert(BarOrders, { label = AZERITE, value = BarsEnum.Azerite, enabled = E.isStandard })
 table.insert(BarOrders, { label = ARTIFACT, value = BarsEnum.Artifact, enabled = E.isStandard })
 table.insert(BarOrders, { label = ANIMA, value = BarsEnum.Anima, enabled = E.isStandard })
-table.insert(BarOrders, { label = PET_EXPERIENCE, value = BarsEnum.PetExperience, enabled = true })
+table.insert(BarOrders, { label = PET_EXPERIENCE, value = BarsEnum.PetExperience, enabled = HAS_PET_XP })
 
 local element_proto = {
     min = 0
 }
-
-function element_proto:SetTooltip(tooltip)
-    E:print("SetTooltip", self:GetName(), tooltip)
-end
 
 function element_proto:OnEnter()
     local tooltip = GameTooltip
@@ -265,7 +287,7 @@ local reputation_proto = Mixin({}, element_proto)
 do
     if E.isStandard then
         function reputation_proto:Update()
-            local watchedFactionData = C_Reputation:GetWatchedFactionData()
+            local watchedFactionData = C_Reputation.GetWatchedFactionData()
             if watchedFactionData and watchedFactionData.factionID ~= 0 then
                 self.factionID = watchedFactionData.factionID
                 self.name = watchedFactionData.name
@@ -541,8 +563,6 @@ end
 --------------------------------------------------
 -- Pet Experience
 --------------------------------------------------
-local GetPetExperience = _G.GetPetExperience
-
 local pet_experience_proto = Mixin({ unit = "pet" }, element_proto)
 
 do
@@ -595,9 +615,14 @@ function frame:OnEvent(event, ...)
             self:CreateBar("Anima", anima_proto)
         end
 
-        self:CreateBar("PetExperience", pet_experience_proto)
+        if HAS_PET_XP then
+            self:CreateBar("PetExperience", pet_experience_proto)
+        end
 
         local index = E:GetExperienceBarIndex() or BarsEnum.Experience
+        if not bars[index] then
+            index = BarsEnum.Experience
+        end
         local bar = bars[index]
         if index == BarsEnum.Experience and bar and bar:IsMaxLevel() then
             EnableBar(BarsEnum.Reputation)
@@ -605,7 +630,6 @@ function frame:OnEvent(event, ...)
             EnableBar(index)
         end
 
-        self:RegisterEvent("CVAR_UPDATE")
         self:RegisterEvent("PLAYER_ENTERING_WORLD")
 
         -- Experience
@@ -639,10 +663,20 @@ function frame:OnEvent(event, ...)
         end
 
         -- Pet Experience
-        self:RegisterEvent("UNIT_PET")
-        self:RegisterEvent("UNIT_PET_EXPERIENCE")
+        if HAS_PET_XP then
+            self:RegisterUnitEvent("UNIT_PET", "player")
+            self:RegisterEvent("UNIT_PET_EXPERIENCE")
+            -- the pet's max XP changes on its level up (MoP: when the player levels)
+            self:RegisterUnitEvent("UNIT_LEVEL", "player", "pet")
+        end
 
         self:UnregisterEvent(event)
+    elseif event == "PLAYER_ENTERING_WORLD" then
+        for _, bar in next, bars do
+            bar:Update()
+        end
+    elseif event == "UNIT_LEVEL" and ... == "pet" then
+        bars[BarsEnum.PetExperience]:Update()
     else
         if (event == "UNIT_LEVEL") then
             local bar = bars[BarsEnum.Experience]
@@ -651,11 +685,9 @@ function frame:OnEvent(event, ...)
             end
         end
 
-        for k, v in next, BarsEnum do
-            local bar = bars[v]
-            if bar then
-                bar:Update()
-            end
+        local bar = bars[BarEvents[event]]
+        if bar then
+            bar:Update()
         end
     end
 end

@@ -23,7 +23,7 @@ function element_proto:GetTooltipAnchor()
 
 	local owner, y = _G[holder.owner] or parent, 5
 	if holder.experience then
-		local exp = _G["TaintedExperience"]
+		local exp = _G["TaintedExperienceBar"]
 		if exp and exp:IsShown() then
 			y = y + 12
 		end

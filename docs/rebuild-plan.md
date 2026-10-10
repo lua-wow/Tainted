@@ -370,8 +370,8 @@ Feasibility study: [actionbar-report.md](actionbar-report.md).
 - Settings: `C.blizzard.ghost/mirrortimers/talkinghead/uiwidgets/raid_utility` (file-level early
   return). Experience keeps the selected bar in `TaintedDatabase` (`E:Get/SetExperienceBarIndex`).
 - Shared code: only `core.lua`. Outside users: chat anchors the BN toast above
-  `TaintedExperienceBar`; datatexts shift the left-strip tooltip only while `TaintedExperience` (XP
-  bar, not rep) is shown.
+  `TaintedExperienceBar`; datatexts shift the left-strip tooltip while `TaintedExperienceBar` is shown
+  (step 5).
 - Action bars hide Blizzard's status tracking bars on all clients: Retail/Forever have no XP/rep bar today.
 - The taxi/vehicle exit button (`modules/maps/minimap.lua`) uses the strip's own anchor
   (`Minimap` bottom, −3, 20 high) and covers the strip at a higher frame level.
@@ -433,10 +433,11 @@ Feasibility study: [actionbar-report.md](actionbar-report.md).
    - Change: branch on `MirrorTimerContainer` existing instead of `E.isStandard` (fixes Forever); untag.
    - Clients: all 6.
    - Test: breath, fatigue, feign death bars skinned and colored; Edit Mode Timer Bars still movable.
-5. **Experience cleanup** · Depends on: 1
-   - Change: rep call `C_Reputation.GetWatchedFactionData()`; pet bar only where `GetPetExperience`
-     exists; each event updates only the bars it affects; base `SetTooltip` debug `E:print` removed;
-     datatext tooltip offset checks `TaintedExperienceBar` (any bar), not `TaintedExperience`.
+5. **Experience cleanup** · Done · Depends on: 1
+   - Change: rep call `C_Reputation.GetWatchedFactionData()`; pet bar only for hunters where
+     `GetPetExperience` exists, updated on `UNIT_PET_EXPERIENCE` (unfiltered) and pet `UNIT_LEVEL` (MoP:
+     pet levels with the player); `CVAR_UPDATE` dropped; each event updates only the bars it affects;
+     base `SetTooltip` debug `E:print` removed; datatext tooltip offset checks `TaintedExperienceBar` (any bar), not `TaintedExperience`.
    - Clients: Classic.
    - Test: XP/rested, rep and pet XP (hunter) bars and tooltips; right-click switches bars and survives
      `/reload`; max level switches to rep; left-strip tooltip above the bar.
