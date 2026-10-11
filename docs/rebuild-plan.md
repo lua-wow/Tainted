@@ -722,7 +722,8 @@ one classic oUF.
 **Observed (code):**
 - Loading: `modules/unitframes` (core, tags, 15 elements, 13 classes, 11 units) is untagged. Plugins:
   `oUF_Atonement`, `oUF_Tempest` (`mainline`); `oUF_AuraTrack`, `oUF_RaidDebuffs`,
-  `oUF_TargetIndicator` (`classic`).
+  `oUF_TargetIndicator` (`classic`). Retail oUF has its own `TargetIndicator` element;
+  oUF_TargetIndicator calls `PostUpdate(isTarget)` like it.
 - oUF per client (TOC tags; every client knows every game-type token, so only one copy loads;
   runtime unverified): Retail and Forever `libs\oUF`; Era, TBC, WotLK `libs\oUF_Classic`; MoP
   `libs\oUF_Mists`.
@@ -757,8 +758,8 @@ one classic oUF.
 - ClassPower `PostUpdate` gained `hasCurChanged` (`cur, max, hasCurChanged, hasMaxChanged,
   powerType, ...`); Tainted uses the Classic order, so Retail resizes on the wrong flag and skips
   Maelstrom.
-- `frame.unit` is no longer set (only `__unit`): oUF_Atonement, oUF_AuraTrack, oUF_RaidDebuffs and
-  oUF_TargetIndicator return early. `colors.roles` removed (`[rolecolor]` errors, unused);
+- `frame.unit` is no longer set (only `__unit`): oUF_Atonement, oUF_AuraTrack and oUF_RaidDebuffs
+  return early. `colors.roles` removed (`[rolecolor]` errors, unused);
   `colors.debuff` is `colors.dispel`.
 - Health `Over*Indicator` sub-widgets are Textures (Tainted creates StatusBars, never drawn). Totems
   icon mode passes a duration object to `SetCooldown`. `CustomTimeText`, `AlternativePower.__barID`,
@@ -828,7 +829,7 @@ hidden Blizzard frame.
 
 **Recommended steps** (`make check` after each; Classic regressions checked on Era first):
 
-1. **Nameplate artwork (classic family)** · Done, pending in-game verification · Depends on: —
+1. **Nameplate artwork (classic family)** · Done · Depends on: —
    - Change: oUF_Classic and oUF_Mists drop the `AcquireUnitFrame` post-hook and call
      `DisableNamePlate(nameplate)` on `NAME_PLATE_UNIT_ADDED` (skips forbidden plates); its
      one-time `OnShow` hide is keyed by the unit frame (Blizzard pools them across plates). Edits
@@ -853,8 +854,7 @@ hidden Blizzard frame.
    - Change: mainline raid frames get the Decided buff and debuff groups (debuffs: dispellable first
      with `UnitFrameDebuff` sort; boss via `candidateFilters.isBossAura = true`; crowd control and
      important with `!RAID_PLAYER_DISPELLABLE` and `isBossAura = false`), small per-group counts.
-     `C.unitframes.raid.auratrack/debuffs` keep their meaning. oUF_TargetIndicator loads on mainline
-     (untagged after step 5).
+     `C.unitframes.raid.auratrack/debuffs` keep their meaning.
    - Clients: Retail, Forever.
    - Test: dispellable debuff first, boss debuff, crowd control; defensives, externals and own HoTs
      on raid members; in combat, raid boss, M+, arena.
@@ -868,10 +868,10 @@ hidden Blizzard frame.
    - Test: combo points, holy power, Maelstrom; enemy channel colors; PvP nameplate class colors;
      names in M+; boss alt power; taint log clean.
 5. **Plugins** · Depends on: —
-   - Change: oUF_Atonement, oUF_AuraTrack, oUF_RaidDebuffs, oUF_TargetIndicator use
+   - Change: oUF_Atonement, oUF_AuraTrack, oUF_RaidDebuffs use
      `self.__unit or self.unit`; Atonement skips a secret `spellId`; RaidDebuffs reads
      `colors.debuff or colors.dispel`. Edits stay uncommitted in the submodules.
-   - Clients: Retail (Atonement, TargetIndicator); Classic regression (AuraTrack, RaidDebuffs).
+   - Clients: Retail (Atonement); Classic regression (AuraTrack, RaidDebuffs).
    - Test: Discipline Atonement bar; Classic raid HoT tracking and raid debuffs unchanged.
 6. **Healer raid position** · Depends on: —
    - Change: `core/talents.lua` untagged; mainline and MoP read the role from
@@ -1066,7 +1066,7 @@ editing Tainted's files, and this contract is documented.
   - [x] 4. Classic bank
   - [x] 5. Classic sort
 - [ ] 9. Unit frames
-  - [x] 1. Nameplate artwork (classic family) (pending in-game verification)
+  - [x] 1. Nameplate artwork (classic family)
   - [ ] 2. Retail unit-frame auras
   - [ ] 3. Retail raid auras
   - [ ] 4. Retail drift fixes

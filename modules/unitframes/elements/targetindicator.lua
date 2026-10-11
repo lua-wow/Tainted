@@ -5,14 +5,20 @@ local UnitFrames = E:GetModule("UnitFrames")
 --------------------------------------------------
 -- Target Indicator
 --------------------------------------------------
+local issecretvalue = _G.issecretvalue
+
 local element_proto = {}
 
-function element_proto:PostUpdate(parent, isTarget)
+-- isTargeted is secret on Retail while unit comparison is restricted
+function element_proto:PostUpdate(isTargeted)
 	local element = self
 	element:Show()
 
+	if issecretvalue and issecretvalue(isTargeted) then return end
+
+	local parent = element.__owner
 	if parent.Backdrop then
-		if isTarget then
+		if isTargeted then
 			local color = C.general.highlight.color
 			parent.Backdrop:SetBackdropBorderColor(color.r, color.g, color.b)
 		else
