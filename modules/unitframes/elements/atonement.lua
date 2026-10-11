@@ -14,6 +14,9 @@ local element_proto = {
 }
 
 function UnitFrames:CreateAtonement(frame)
+    -- Retail: Atonement aura data is secret in combat, so the bar would miss every in-combat application
+    if E.isStandard then return nil end
+
     local parent = frame.Health
     local texture = C.unitframes.texture
 

@@ -817,7 +817,7 @@ hidden Blizzard frame.
   oUF_Merge mirrors Retail oUF callback signatures, aligned per element as steps need them;
   Tainted adapts to oUF_Mists on MoP until step 10.
 - oUF_Atonement, oUF_AuraTrack, oUF_RaidDebuffs and oUF_TargetIndicator may be edited. oUF_Tempest is
-  out of scope (possibly dropped).
+  out of scope (possibly dropped). The Atonement bar is dropped on Retail (step 5).
 - Retail raid frames: oUF `Auras` groups with Blizzard filters replace oUF_AuraTrack and
   oUF_RaidDebuffs. Classic keeps both plugins and has no oUF `Auras` on raid frames.
   - Buffs, in order: `HELPFUL|BIG_DEFENSIVE`; `HELPFUL|EXTERNAL_DEFENSIVE|!BIG_DEFENSIVE`;
@@ -904,12 +904,24 @@ hidden Blizzard frame.
    - Clients: Retail, Forever (Era/TBC/WotLK: oUF_Merge load and class power; MoP: class power).
    - Test: combo points, holy power, Maelstrom; enemy channel colors; PvP nameplate class colors;
      names in M+; boss alt power; taint log clean.
-5. **Plugins** · Depends on: —
-   - Change: oUF_Atonement, oUF_AuraTrack, oUF_RaidDebuffs use
-     `self.__unit or self.unit`; Atonement skips a secret `spellId`; RaidDebuffs reads
+5. **Plugins** · Done, pending in-game verification · Depends on: —
+   - Change: oUF_AuraTrack, oUF_RaidDebuffs use `self.__unit or self.unit`; RaidDebuffs reads
      `colors.debuff or colors.dispel`. Edits stay uncommitted in the submodules.
-   - Clients: Retail (Atonement); Classic regression (AuraTrack, RaidDebuffs).
-   - Test: Discipline Atonement bar; Classic raid HoT tracking and raid debuffs unchanged.
+   - AuraTrack and RaidDebuffs only load on Classic, where oUF still sets `unit` and `colors.debuff`.
+     Their edits prepare for oUF_Merge following the Retail API.
+   - oUF_Atonement: `self.__unit or self.unit`; skips a secret `spellId`; incremental updates use
+     `updatedAuraInstanceIDs`/`removedAuraInstanceIDs` + `GetAuraDataByAuraInstanceID` (the
+     misspelled keys and missing API left only a per-event `GetPlayerAuraBySpellID` fallback,
+     removed).
+   - Atonement dropped on Retail: `CreateAtonement` returns nil when `E.isStandard`. Its aura data
+     is secret in combat unless the spell is `NeverSecret` (unverified), and the spell-ID lookups
+     (`GetPlayerAuraBySpellID`, `GetUnitAuraBySpellID`: `RequiresNonSecretAura`) return nothing
+     then, so the bar would miss every in-combat application and refresh. The priest hook still
+     creates it only on `E.isStandard`, so it reaches no client until step 7 moves that flag
+     (Forever).
+   - Clients: Retail (no Atonement bar); Classic regression (AuraTrack, RaidDebuffs).
+   - Test: Retail Discipline priest frame loads without the bar and without errors; Classic raid
+     HoT tracking and raid debuffs unchanged.
 6. **Healer raid position** · Depends on: —
    - Change: `core/talents.lua` untagged; mainline and MoP read the role from
      `C_SpecializationInfo.GetSpecialization` + `GetSpecializationInfo`; Era/TBC/WotLK keep the
@@ -1107,7 +1119,7 @@ editing Tainted's files, and this contract is documented.
   - [x] 2. Retail unit-frame auras (verified on Retail)
   - [x] 3. Retail raid auras (verified on Retail)
   - [x] 4. Retail drift fixes (verified on Retail)
-  - [ ] 5. Plugins
+  - [x] 5. Plugins (pending in-game verification)
   - [ ] 6. Healer raid position
   - [ ] 7. Forever and family flags
   - [ ] 8. Cleanup
