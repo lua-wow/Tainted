@@ -11,7 +11,7 @@ do
     }
 
     function UnitFrames:CreateRaidDebuffs(frame)
-        if (not C.unitframes.raid.debuffs) then return end
+        if (not C.unitframes.raid.debuffs.enabled) then return end
 
         local height = (frame:GetHeight() or frame.__config.height or 70) - (C.unitframes.power.height or 5)
         local size = math.ceil(0.67 * height)
@@ -69,12 +69,17 @@ end
 --------------------------------------------------
 function UnitFrames:CreateRaidFrame(frame)
     self:CreateUnitFrame(frame)
-    if (frame.__config.auratrack.enabled) then
-        frame.AuraTrack = self:CreateAuraTrack(frame)
+    if (E.isMainline) then
+        -- oUF_AuraTrack and oUF_RaidDebuffs are classic only
+        frame.Buffs, frame.Debuffs = self:CreateRaidAuras(frame)
     else
-        frame.Buffs = self:CreateBuffs(frame)
+        if (frame.__config.auratrack.enabled) then
+            frame.AuraTrack = self:CreateAuraTrack(frame)
+        else
+            frame.Buffs = self:CreateBuffs(frame)
+        end
+        frame.RaidDebuffs = self:CreateRaidDebuffs(frame)
     end
-    frame.RaidDebuffs = self:CreateRaidDebuffs(frame)
     frame.GroupRoleIndicator = self:CreateGroupRoleIndicator(frame)
     frame.ReadyCheckIndicator = self:CreateReadyCheckIndicator(frame)
     frame.ResurrectIndicator = self:CreateResurrectIndicator(frame)

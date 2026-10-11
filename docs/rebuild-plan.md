@@ -753,7 +753,7 @@ one classic oUF.
   order and are not exclusive (each checks every aura), so later groups need negations.
   `candidateFilters.isBossAura` selects or excludes boss auras. Spell-ID candidate filters are ignored
   for debuffs on friendly units (`AuraContainerUtil.lua`), so spell-list raid debuffs can't work on
-  Retail. Whether the flow layout draws groups in the order added and whether `IMPORTANT` applies to
+  Retail. The flow layout draws groups in the order added; whether `IMPORTANT` applies to
   debuffs is unverified.
 - ClassPower `PostUpdate` gained `hasCurChanged` (`cur, max, hasCurChanged, hasMaxChanged,
   powerType, ...`); Tainted uses the Classic order, so Retail resizes on the wrong flag and skips
@@ -859,14 +859,24 @@ hidden Blizzard frame.
    - Clients: Retail, Forever.
    - Test: target, focus, pet, boss, arena and nameplate auras placed as on Classic; timers, stacks,
      borders, tooltips; no errors in combat, dungeon, M+, PvP.
-3. **Retail raid auras** · Depends on: 2
-   - Change: mainline raid frames get the Decided buff and debuff groups (debuffs: dispellable first
-     with `UnitFrameDebuff` sort; boss via `candidateFilters.isBossAura = true`; crowd control and
-     important with `!RAID_PLAYER_DISPELLABLE` and `isBossAura = false`), small per-group counts.
-     `C.unitframes.raid.auratrack/debuffs` keep their meaning.
-   - Clients: Retail, Forever.
+3. **Retail raid auras** · Done (verified on Retail) · Depends on: 2
+   - Change: `raid.lua` calls `CreateRaidAuras` (`auras_mainline.lua`) on mainline instead of the
+     classic plugins. Buffs (with `auratrack.enabled`): AuraTrack-style top row (same size and
+     place), groups `HELPFUL|BIG_DEFENSIVE` (1), `HELPFUL|EXTERNAL_DEFENSIVE|!BIG_DEFENSIVE` (1),
+     own HoTs `HELPFUL|PLAYER|RAID_IN_COMBAT|!BIG_DEFENSIVE|!EXTERNAL_DEFENSIVE` (4). Debuffs: a
+     row centred on the health bar, one icon per group in order: `HARMFUL|RAID_PLAYER_DISPELLABLE`
+     (`UnitFrameDebuff` sort, `ProcessAura` policy so `debuffType` is set);
+     `HARMFUL|!RAID_PLAYER_DISPELLABLE` + `isBossAura = true`; `CROWD_CONTROL` and `IMPORTANT`
+     (negating the earlier filters) + `isBossAura = false`. `C.unitframes.raid.debuffs` is now
+     `{ enabled, num = 3, size = 27 }`: `num` = how many groups (icons) are shown. One large icon is
+     `num = 1, size = 36`, dispellable only (groups can't pick the best across categories).
+   - Group options are built per frame: oUF's `AddGroup` stores an element-bound closure in them.
+     Icons are left-aligned inside the centred row. The flow layout draws groups in the order
+     added (`AnchorUtil.ApplyFlowLayout`, `ipairs`). `RAID_PLAYER_DISPELLABLE` means dispellable by
+     the group: a Magic debuff on a warrior with only Brann (delve) is not shown.
+   - Clients: Retail, Forever (Classic: only `debuffs.enabled` check).
    - Test: dispellable debuff first, boss debuff, crowd control; defensives, externals and own HoTs
-     on raid members; in combat, raid boss, M+, arena.
+     on raid members; in combat, raid boss, M+, arena. Era: RaidDebuffs/AuraTrack unchanged.
 4. **Retail drift fixes** · Depends on: —
    - Change: ClassPower `PostUpdate` takes the Retail argument order under `isRetailOUF`; nameplate
      `UpdateColor` uses `C_ClassColor.GetClassColor` for a secret class; castbar channel check via
@@ -934,7 +944,7 @@ hidden Blizzard frame.
 
 **Unverified (needs in-game checks):** which oUF loads at runtime on Forever and WotLK; every
 secret-value row; Blizzard's event order for step 1; the Classic `GetSpecializationInfo` role return;
-WotLK runes and spec behavior in oUF_Merge; `IMPORTANT` on debuffs; group draw order.
+WotLK runes and spec behavior in oUF_Merge; `IMPORTANT` on debuffs.
 
 ### 10. Miscellaneous
 
@@ -1077,7 +1087,7 @@ editing Tainted's files, and this contract is documented.
 - [ ] 9. Unit frames
   - [x] 1. Nameplate artwork (classic family)
   - [x] 2. Retail unit-frame auras (verified on Retail)
-  - [ ] 3. Retail raid auras
+  - [x] 3. Retail raid auras (verified on Retail)
   - [ ] 4. Retail drift fixes
   - [ ] 5. Plugins
   - [ ] 6. Healer raid position

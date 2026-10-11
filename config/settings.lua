@@ -363,7 +363,14 @@ C["unitframes"] = {
         ["tags"] = {
             ["name"] = "[raidcolor][nameshort]|r"
         },
-        ["debuffs"] = true,
+        -- num, size: Retail only, a centred row of one debuff per priority group
+        -- (dispellable, boss, crowd control, important). One large icon: num = 1, size = 36
+        -- (dispellable only; the groups can't pick the best debuff across categories)
+        ["debuffs"] = {
+            ["enabled"] = true,
+            ["num"] = 3,
+            ["size"] = 27
+        },
         ["auratrack"] = {
             ["enabled"] = true
         },
