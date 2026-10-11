@@ -14,8 +14,8 @@ Legend: **Observed** = seen in the code · **Recommended** = proposal, not yet a
   load, plus tooltips, auras, action bars, bags and part of the Blizzard tweaks (framerate, talking
   head, mirror timers, experience with house favor, queue status, ghost, objective tracker). Miscellaneous only loads on Classic and MoP.
 - **Observed:** working: unit frames (most mature), minimap, chat and datatexts on all clients; action bars on Classic (Retail/Forever pending verification).
-  Blizzard tweaks: item 7 steps 1–12 done (UI widgets pending in-game
-  verification); raid utility pending. Bags (window on all clients, bank and sort on
+  Blizzard tweaks: item 7 steps 1–13 done (UI widgets pending in-game
+  verification). Bags (window on all clients, bank and sort on
   Classic/MoP) pending in-game verification.
 - Constraints: one TOC for 6 clients; Retail oUF is read-only; Midnight secret values
   (see compatibility.md).
@@ -355,7 +355,7 @@ Feasibility study: [actionbar-report.md](actionbar-report.md).
 
 ### 7. Blizzard UI tweaks
 
-**Status:** In progress (steps 1–12 done, 13–14 pending) · **Priority:** Low · **Depends on:** 1, 2
+**Status:** In progress (steps 1–13 done, 14 pending) · **Priority:** Low · **Depends on:** 1, 2
 
 **Objective:** each tweak verified per client or dropped; mainline gets the ones that work there.
 
@@ -560,7 +560,7 @@ Feasibility study: [actionbar-report.md](actionbar-report.md).
       places it.
     - Clients: all 6.
     - Test: the failure list, on Retail and Forever; Classic tracker unchanged (with Questie too).
-13. **Raid utility** · Depends on: 1
+13. **Raid utility** · Done · Depends on: 1
     - Change: remove `raid_utility.lua`, `C.blizzard.raid_utility`, `/tainted raid` and its README line.
     - Clients: all 6 (not loaded today).
     - Test: `/tainted` no longer lists `raid`; no errors.
@@ -840,7 +840,7 @@ Unit frames continue in parallel as a leaf. Only item 0 touches them.
   - [x] 10. UI widgets (pending in-game verification)
   - [x] 11. Durability (verified on MoP)
   - [x] 12. Objective tracker anchor on mainline (verified on MoP, Retail and Era)
-  - [ ] 13. Raid utility
+  - [x] 13. Raid utility
   - [ ] 14. Done
 - [x] 8. Bags (pending in-game verification)
   - [x] 1. Bag window

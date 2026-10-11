@@ -75,8 +75,7 @@ C["blizzard"] = {
     ["ghost"] = true,
     ["mirrortimers"] = true,
     ["talkinghead"] = true,
-    ["uiwidgets"] = true,
-    ["raid_utility"] = true
+    ["uiwidgets"] = true
 }
 
 C["chat"] = {

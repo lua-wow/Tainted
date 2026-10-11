@@ -11,7 +11,6 @@
 ### Commands
 
 -   `/tainted` - List all available commands.
--   `/tainted raid` - Display the raid utility frame.
 
 ### Minimap
 -   `Left-Click`: open tracking frame.

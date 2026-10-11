@@ -18,6 +18,5 @@ function BLIZZARD:Init()
     Load(self.MirrorTimer, "Init")
     Load(self.TalkingHead, "Init")
     Load(self.UIWidgets, "Init")
-    Load(self.RaidUtility, "Load")
     Load(self.ObjectiveTracker, "Load")
 end
