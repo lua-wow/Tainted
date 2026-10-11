@@ -3,7 +3,6 @@ local E, C = ns.E, ns.C
 local UnitFrames = E:GetModule("UnitFrames")
 
 -- Blizzard
-local GetRuneType = _G.GetRuneType
 local GetRuneCooldown = _G.GetRuneCooldown
 
 --------------------------------------------------
@@ -27,18 +26,6 @@ local element_proto = {
 --         end
 --     end
 -- end
-
-if (E.isCata) then
-    function element_proto:UpdateColor(...)
-        local element = self.Runes
-        for i = 1, #element do
-            local type = GetRuneType(i)
-            local color = E.colors.runes[type]
-            local bar = element[i]
-            bar:SetStatusBarColor(color.r, color.g, color.b)
-        end
-    end
-end
 
 function UnitFrames:CreateRunes(frame)
     local texture = C.unitframes.texture

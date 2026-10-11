@@ -77,6 +77,8 @@ function element_proto:Override(event, slot)
 end
 
 function UnitFrames:CreateTotems(frame)
+    if not E.isMainline then return nil end
+
     local texture = C.unitframes.texture
     local fontObject = E.GetFont(C.unitframes.font)
     local width = C.unitframes.classpower.width or 200

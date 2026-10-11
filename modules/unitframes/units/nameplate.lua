@@ -194,7 +194,7 @@ function health_proto:UnitSelectionType(unit, considerHostile)
     return selectionTypes[selection]
 end
 
-if E.isStandard then
+if E.isMainline then
     function health_proto:UpdateColor(event, unit)
         if (not unit or self.__unit ~= unit) then return end
         

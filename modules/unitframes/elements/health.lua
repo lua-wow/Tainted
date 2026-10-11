@@ -2,16 +2,13 @@ local _, ns = ...
 local E, C = ns.E, ns.C
 local UnitFrames = E:GetModule("UnitFrames")
 
--- Forever loads Retail oUF too
-local isRetailOUF = E.isStandard or E.isCamelot
-
 --------------------------------------------------
 -- Health
 --------------------------------------------------
 do
     local element_proto = {
         colorDisconnected = true,
-        colorTapping = E.isVanilla,
+        colorTapping = true,
         colorClass = true,
         colorReaction = true
     }
@@ -161,11 +158,7 @@ do
         }
     end
 
-    function UnitFrames:CreateHealthPrediction(parent, width)
-        if not isRetailOUF then
-            return CreateClassicHealthPrediction(parent, width)
-        end
-
+    local function CreateMainlineHealthPrediction(parent, width)
         local level = parent:GetFrameLevel()
         local texture = C.unitframes.texture
 
@@ -253,5 +246,12 @@ do
         parent.OverDamageAbsorbIndicator = OverDamageAbsorbIndicator
         parent.HealAbsorb = HealAbsorb               
         parent.OverHealAbsorbIndicator = OverHealAbsorbIndicator
+    end
+
+    function UnitFrames:CreateHealthPrediction(parent, width)
+        if E.isMainline then
+            return CreateMainlineHealthPrediction(parent, width)
+        end
+        return CreateClassicHealthPrediction(parent, width)
     end
 end

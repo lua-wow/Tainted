@@ -727,8 +727,9 @@ one classic oUF.
 - oUF per client (TOC tags; every client knows every game-type token, so only one copy loads;
   runtime unverified): Retail and Forever `libs\oUF`; Era, TBC, WotLK `libs\oUF_Merge` (since
   step 4; `libs\oUF_Classic` before); MoP `libs\oUF_Mists`.
-- Per-oUF branching uses `isRetailOUF = E.isStandard or E.isCamelot` (`core.lua`, `health.lua`):
-  header visibility, nameplate spawn and callbacks, health prediction.
+- Per-oUF branching used `isRetailOUF = E.isStandard or E.isCamelot` (`core.lua`, `health.lua`):
+  header visibility, nameplate spawn and callbacks, health prediction. Since step 7: `E.isMainline`
+  (Retail oUF loads on the `mainline` family).
 - Game flags where a family or the oUF variant is meant: AdditionalPower, PowerPrediction, Phase,
   PvPClassification, Quest and Summon indicators, Totems, Atonement, nameplate health `UpdateColor`
   and max distance, raid spec event, `CompactRaidFrameManager_SetSetting` (`E.isStandard`, so Forever
@@ -813,7 +814,7 @@ hidden Blizzard frame.
   oUF_Mists stays untouched (except step 1's nameplate fix) until the merge is verified on MoP; oUF_Mists and oUF_Merge are removed
   last (by the maintainer).
 - Era, TBC and WotLK load `libs\oUF_Merge` from step 4 (it was identical to oUF_Classic then);
-  classic-family oUF edits go to oUF_Merge only, oUF_Classic stays untouched until step 11.
+  classic-family oUF edits go to oUF_Merge only, oUF_Classic stays untouched until step 12.
   oUF_Merge mirrors Retail oUF callback signatures, aligned per element as steps need them;
   Tainted adapts to oUF_Mists on MoP until step 10.
 - oUF_Atonement, oUF_AuraTrack, oUF_RaidDebuffs and oUF_TargetIndicator may be edited. oUF_Tempest is
@@ -943,11 +944,24 @@ hidden Blizzard frame.
    - Test: spec change moves the frames (after combat if in combat); `/tainted healer|tank|dps`
      on every client, `auto` clears; position kept after `/reload`; `healer.position = false`
      never moves; a group above `healer.threshold` uses the default position.
-7. **Forever and family flags** · Depends on: 2, 4
-   - Change: each flag in Observed moves to `isRetailOUF` (oUF variant) or family/feature detection;
-     Phase, Quest, Summon and PvPClassification only where their APIs exist on Forever; dead
-     `E.isCata` rune color removed.
-   - Clients: Forever (+ Retail regression).
+7. **Forever and family flags** · Done · Depends on: 2, 4
+   - Change: the `isRetailOUF` locals are gone; oUF-variant and family branches use `E.isMainline`
+     (Retail + Forever): AdditionalPower, AlternativePower (`or E.isMists`), PowerPrediction (not
+     created), Phase, PvPClassification, Quest and Summon indicators, Totems (guard moved into
+     `CreateTotems`; Classic is step 11), nameplate health `UpdateColor`,
+     `CompactRaidFrameManager_SetSetting`, the `CreateAtonement` drop. The priest hook always calls
+     `CreateAtonement`, so Classic priests get the bar without the `mainline`-only oUF_Atonement
+     plugin (no updates; unverified in-game). Unit-frame health `colorTapping` is on for every
+     client (was `E.isVanilla`; nameplates already were). Dead `E.isCata` rune color removed.
+   - Forever API docs/source have every API these use (`UnitPhaseReason`, `UnitPvpClassification`,
+     `UnitIsQuestBoss`, `C_IncomingSummon`, `GetUnitPowerBarInfo`, `GetTotemDuration`,
+     `ALT_POWER_BAR_PAIR_DISPLAY_INFO`, `UnitInPartyIsAI`, `C_ClassColor`, raid manager `IsShown`).
+   - Atonement is dropped on Forever too: `GetPlayerAuraBySpellID` has the same
+     `RequiresNonSecretAura` flag there, and Forever's UI source has no Atonement. The bar is now
+     created on no client.
+   - Unchanged (game content): `nameplateMaxDistance` 61 only on Retail (Classic caps at 41;
+     Forever's cap unverified), `showPet` on Era, the MoP `E.isMists` adapters, Tempest.
+   - Clients: Forever (+ Retail regression; tapped color on all 6).
    - Test: Forever player frame (indicators, totems, alt power), nameplate colors, raid.
 8. **Cleanup** · Depends on: 1–7
    - Change: `Heatlth` typo; dead `power_proto`, `PostUpdateNameplatePower`/`isHidden`,
@@ -976,7 +990,17 @@ hidden Blizzard frame.
       boss frames, nameplates, castbar.
     - Rollback: restore the oUF_Mists line, oUF_Merge back to `vanilla, tbc, wrath`. The two lines
       must never load on the same client (shared `oUF` namespace).
-11. **Done** · Depends on: 1–10
+11. **Classic totems** · Depends on: 10
+    - Change: `CreateTotems` also builds the bar on Classic (drop its `E.isMainline` guard).
+      oUF_Merge has a Totems element that calls `Totems.Override(self, event, slot)` like Retail
+      oUF; Classic API docs (Era, TBC, Titan, MoP) have `GetTotemInfo`, `GetTotemDuration`,
+      `SetTimerDuration`, `C_StringUtil.TruncateWhenZero` and the duration-object methods;
+      `MAX_TOTEMS` is 4 with both priority tables. `shaman.lua` then anchors Maelstrom below the
+      totem bar on Classic too.
+    - Clients: Era, TBC, WotLK, MoP.
+    - Test: shaman totem bar (bars and icon mode, timers, tooltips, right-click), other MoP classes
+      with totem slots, totems after `/reload` and zoning.
+12. **Done** · Depends on: 1–11
     - Change: compatibility.md (one classic oUF; unit frames per client); §1 and §4 of this plan.
       Then the maintainer merges `classic-unified` into `classic`, points the TOC at
       `libs\oUF_Classic` (`classic`), and removes the oUF_Mists and oUF_Merge submodules.
@@ -1131,11 +1155,12 @@ editing Tainted's files, and this contract is documented.
   - [x] 4. Retail drift fixes (verified on Retail)
   - [x] 5. Plugins (pending in-game verification)
   - [x] 6. Healer raid position
-  - [ ] 7. Forever and family flags
+  - [x] 7. Forever and family flags
   - [ ] 8. Cleanup
   - [ ] 9. oUF_Merge: Era, TBC, WotLK
   - [ ] 10. oUF_Merge: MoP
-  - [ ] 11. Done
+  - [ ] 11. Classic totems
+  - [ ] 12. Done
 - [ ] 10. Miscellaneous
 - [ ] 11. Final compatibility audit
 - [ ] 12. Extension by other addons

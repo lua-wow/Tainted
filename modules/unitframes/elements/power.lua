@@ -71,7 +71,7 @@ do
     }
         
     function UnitFrames:CreateAdditionalPower(frame)
-        if not E.isStandard then
+        if not E.isMainline then
             return nil
         end
         
@@ -143,7 +143,7 @@ do
         
     function UnitFrames:CreateAlternativePower(frame)
         -- only retail oUF and oUF_Mists have the AlternativePower element
-        if not (E.isStandard or E.isMists) then
+        if not (E.isMainline or E.isMists) then
             return nil
         end
 
@@ -189,7 +189,7 @@ do
 
     function UnitFrames:CreatePowerPrediction(frame)
         -- retail oUF has no PowerPrediction element; it uses Power.CostPrediction instead
-        if (E.isStandard) then return end
+        if (E.isMainline) then return end
 
         local parent = frame.Power
         local width = frame.__config.width or 200

@@ -10,9 +10,6 @@ local Talents = E:GetModule("Talents")
 local NUM_BOSS_FRAMES = _G.NUM_BOSS_FRAMES or 8
 local NUM_ARENA_FRAMES = _G.NUM_ARENA_FRAMES or 5
 
--- Forever loads Retail oUF too
-local isRetailOUF = E.isStandard or E.isCamelot
-
 local CompactRaidFrameManager = _G.CompactRaidFrameManager
 local CompactRaidFrameContainer = _G.CompactRaidFrameContainer
 local GetNumGroupMembers = _G.GetNumGroupMembers
@@ -109,7 +106,7 @@ function UnitFrames:DisableBlizzard()
             CompactRaidFrameContainer:Hide()
         end
 		
-		if (E.isStandard) then
+		if (E.isMainline) then
 			UIParent:UnregisterEvent("GROUP_ROSTER_UPDATE")
 			CompactRaidFrameManager_SetSetting("IsShown", "0")
 		end
@@ -207,7 +204,7 @@ end
 
 -- Retail oUF sets visibility through a header method, Classic/Mists oUF takes it as the 3rd argument
 local function SpawnHeader(self, visibility, name, template, ...)
-    if isRetailOUF then
+    if E.isMainline then
         local header = self:SpawnHeader(name, template, ...)
         header:SetVisibility(visibility)
         return header
@@ -415,7 +412,7 @@ function UnitFrames:Init()
                 end
             end
 
-            if not isRetailOUF then
+            if not E.isMainline then
                 self:SpawnNamePlates(addon, NameplateCallback, UnitFrames.Nameplates.cvars)
                 return
             end
