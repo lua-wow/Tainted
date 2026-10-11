@@ -11,6 +11,17 @@
 ### Commands
 
 -   `/tainted` - List all available commands.
+-   `/tainted healer` - Set the healer role: raid frames move to the centre (groups of up to 20).
+-   `/tainted tank` - Set the tank role: raid frames stay above the chat.
+-   `/tainted dps` - Set the damage role: raid frames stay above the chat.
+-   `/tainted auto` - Clear the manual role and use the detected one.
+-   `/tainted keybindings` - Reconfigure the action bar keybindings.
+-   `/tainted spell <spellID|name>` - Print a spell's name, ID and whether it is known.
+-   `/tainted test` - Show the unit frames with the player as unit.
+-   `/tainted reset` - Reset Tainted's saved data for this character and reload the UI.
+-   `/rl` - Reload the UI.
+
+> The role is detected from your specialization (talent points on Era, TBC and WotLK); the role commands override it per character.
 
 ### Minimap
 -   `Left-Click`: open tracking frame.

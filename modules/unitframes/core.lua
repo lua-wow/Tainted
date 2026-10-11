@@ -13,15 +13,9 @@ local NUM_ARENA_FRAMES = _G.NUM_ARENA_FRAMES or 5
 -- Forever loads Retail oUF too
 local isRetailOUF = E.isStandard or E.isCamelot
 
-local SPEC_DRUID_RESTORATION = E.isStandard and 4 or 3
-local SPEC_PALADIN_HOLY = 1
-local SPEC_PRIEST_SHADOW = _G.SPEC_PRIEST_SHADOW or 3
-local SPEC_SHAMAN_RESTORATION = _G.SPEC_SHAMAN_RESTORATION or 3
-
 local CompactRaidFrameManager = _G.CompactRaidFrameManager
 local CompactRaidFrameContainer = _G.CompactRaidFrameContainer
-local GetSpecialization = _G.GetSpecialization
-local GetSpecializationRole = _G.GetSpecializationRole
+local GetNumGroupMembers = _G.GetNumGroupMembers
 local InCombatLockdown =_G.InCombatLockdown
 
 --------------------------------------------------
@@ -34,8 +28,6 @@ do
     local DEFAULT = "DEFAULT"
 
     local element_proto = {
-        unit = "player",
-        groupThreshold = 40,
         position = DEFAULT,
         positions = {
             [HEALER] = { "BOTTOM", UIParent, "BOTTOM", 0, 225 },
@@ -44,20 +36,19 @@ do
     }
 
     function element_proto:GetPosition()
-        -- local isHealer = Talents:IsHealer()
-        local isHealer = false
-        local groupSize = GetNumGroupMembers()
-        if isHealer and groupSize <= self.groupThreshold then
+        if Talents:IsHealer() and GetNumGroupMembers() <= C.unitframes.raid.healer.threshold then
             return HEALER
         end
         return DEFAULT
     end
 
     function element_proto:UpdatePosition()
-        -- you are not suppose to move stuff while in combat
-        if InCombatLockdown() then return end
+        -- the holder parents the secure raid headers: move it after combat
+        if InCombatLockdown() then
+            self:RegisterEvent("PLAYER_REGEN_ENABLED")
+            return
+        end
 
-        -- prevent event spam updates
         local position = self:GetPosition()
         if position ~= self.position then
             self:ClearAllPoints()
@@ -66,38 +57,10 @@ do
         end
     end
 
-    function element_proto:OnEvent(event, ...)
-        if event == "PLAYER_ENTERING_WORLD" then
-            local isLogin, isReload = ...
-            if not isLogin and not isReload then return end
-        
-        -- fires when player enter combat
-        -- so we need to disable events to prevent moving stuff while in combat
-        elseif event == "PLAYER_REGEN_DISABLED" then
-            self:UnregisterEvent("GROUP_ROSTER_UPDATE")
-            self:UnregisterEvent("PLAYER_TALENT_UPDATE")
-            self:UnregisterEvent("CHARACTER_POINTS_CHANGED")
-            self:UnregisterEvent("PLAYER_SPECIALIZATION_CHANGED")
-            return
-
-        -- fires when player leave combat
-        -- we can move stuff now
-        elseif event == "PLAYER_REGEN_ENABLED" then
-            self:RegisterEvent("GROUP_ROSTER_UPDATE")
-
-            if E.isStandard then
-                self:RegisterUnitEvent("PLAYER_SPECIALIZATION_CHANGED", self.unit)
-            else
-                self:RegisterEvent("CHARACTER_POINTS_CHANGED")
-                self:RegisterEvent("PLAYER_TALENT_UPDATE")
-            end
-            return
-        elseif event == "CHARACTER_POINTS_CHANGED" then
-            local changes = ...
-            if changes ~= -1 then return end
+    function element_proto:OnEvent(event)
+        if event == "PLAYER_REGEN_ENABLED" then
+            self:UnregisterEvent(event)
         end
-
-        -- Talents:Update()
         self:UpdatePosition()
     end
 
@@ -114,11 +77,13 @@ do
         element:SetWidth(cols * width + (cols - 1) * colsSpacing)
         element:SetHeight(rows * height + (rows - 1) * rowsSpacing)
         element:SetPoint(unpack(element.positions[DEFAULT]))
-        element:RegisterEvent("PLAYER_ENTERING_WORLD")
-        element:RegisterEvent("PLAYER_REGEN_ENABLED")
-        element:RegisterEvent("PLAYER_REGEN_DISABLED")
-        element:RegisterUnitEvent("PLAYER_SPECIALIZATION_CHANGED")
-        element:SetScript("OnEvent", element.OnEvent)
+
+        if C.unitframes.raid.healer.position then
+            element:RegisterEvent("GROUP_ROSTER_UPDATE")
+            element:SetScript("OnEvent", element.OnEvent)
+            -- the first role (at PLAYER_ENTERING_WORLD) also sets the initial position
+            Talents.OnRoleChanged = function() element:UpdatePosition() end
+        end
         return element
     end
 end

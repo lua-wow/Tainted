@@ -374,6 +374,11 @@ C["unitframes"] = {
         ["auratrack"] = {
             ["enabled"] = true
         },
+        -- healer role and at most `threshold` group members: raid frames move to the centre
+        ["healer"] = {
+            ["position"] = true,
+            ["threshold"] = 20
+        },
         ["solo"] = false,
         ["xOffset"] = 5,
         ["unitsPerColumn"] = 5,

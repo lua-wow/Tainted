@@ -828,8 +828,9 @@ hidden Blizzard frame.
 - `C_Ping` and other client-specific functions: feature detection per function.
 - Healer raid position: `C.unitframes.raid.healer = { position = true, threshold = 20 }` (code
   constants). With a healer role and a group of at most `threshold` members, the raid frames move to
-  the centre. `/tainted healer` toggles a per-character override (`E.db.healer`, like `E.db.tank`; a
-  second call clears it) for clients where a healer spec can't be detected (Era, TBC).
+  the centre. `/tainted healer`, `/tainted tank` and `/tainted dps` set a per-character role
+  override (`E.db.role`; `/tainted auto` clears it), e.g. where a healer spec can't be
+  detected (Era, TBC).
 
 **Recommended steps** (`make check` after each; Classic regressions checked on Era first):
 
@@ -922,17 +923,26 @@ hidden Blizzard frame.
    - Clients: Retail (no Atonement bar); Classic regression (AuraTrack, RaidDebuffs).
    - Test: Retail Discipline priest frame loads without the bar and without errors; Classic raid
      HoT tracking and raid debuffs unchanged.
-6. **Healer raid position** · Depends on: —
-   - Change: `core/talents.lua` untagged; mainline and MoP read the role from
-     `C_SpecializationInfo.GetSpecialization` + `GetSpecializationInfo`; Era/TBC/WotLK keep the
-     talent-point heuristic; `/tainted healer` override; Talents tells unit frames when the role
-     changes (one callback field). The raid holder applies the Decided rule, re-checks on
-     `GROUP_ROSTER_UPDATE`, and in combat waits for `PLAYER_REGEN_ENABLED` once. Commented code and
-     the per-combat event (un)registering are removed.
+6. **Healer raid position** · Done · Depends on: —
+   - Change: `core/talents.lua` untagged; Retail, Forever and MoP read the role from
+     `C_SpecializationInfo.GetSpecialization` + `GetSpecializationInfo` (`PLAYER_SPECIALIZATION_CHANGED`);
+     Era/TBC/WotLK keep the talent-point heuristic (`PLAYER_TALENT_UPDATE`,
+     `CHARACTER_POINTS_CHANGED`; druid Restoration is tab 3 there, was 4). The deprecated global
+     `GetSpecialization`/`GetSpecializationRole` and the dead Cata branch are gone. Talents calls
+     `OnRoleChanged(role)` (one callback field) only when the role changes. The raid holder applies
+     the Decided rule (`C.unitframes.raid.healer`), re-checks on `GROUP_ROSTER_UPDATE`, and in combat
+     waits for `PLAYER_REGEN_ENABLED` once; with `healer.position = false` it registers nothing.
+     Commented code and the per-combat event (un)registering are removed.
+   - Role override (replaces the Decided `/tainted healer` toggle and `E.db.tank`):
+     `/tainted healer`, `/tainted tank`, `/tainted dps` store `E.db.role` per character; `/tainted auto`
+     clears it. Old `E.db.tank` values are no longer read. Commands listed in
+     README.md.
+   - Unverified: the spec role return on Forever; whether the heuristic events fire on talent
+     changes on Era/TBC/WotLK.
    - Clients: all 6.
-   - Test: spec change moves the frames (after combat if in combat); `/tainted healer` on Era/TBC;
-     position kept after `/reload`; `healer.position = false` never moves; a group above
-     `healer.threshold` uses the default position.
+   - Test: spec change moves the frames (after combat if in combat); `/tainted healer|tank|dps`
+     on every client, `auto` clears; position kept after `/reload`; `healer.position = false`
+     never moves; a group above `healer.threshold` uses the default position.
 7. **Forever and family flags** · Depends on: 2, 4
    - Change: each flag in Observed moves to `isRetailOUF` (oUF variant) or family/feature detection;
      Phase, Quest, Summon and PvPClassification only where their APIs exist on Forever; dead
@@ -1120,7 +1130,7 @@ editing Tainted's files, and this contract is documented.
   - [x] 3. Retail raid auras (verified on Retail)
   - [x] 4. Retail drift fixes (verified on Retail)
   - [x] 5. Plugins (pending in-game verification)
-  - [ ] 6. Healer raid position
+  - [x] 6. Healer raid position
   - [ ] 7. Forever and family flags
   - [ ] 8. Cleanup
   - [ ] 9. oUF_Merge: Era, TBC, WotLK
