@@ -892,6 +892,9 @@ hidden Blizzard frame.
      secret; `[nameshort]` wraps a secret name with `C_StringUtil.WrapString` (no truncation;
      `E.UTF8Sub` already skips secrets); `[rolecolor]` removed (unused); LibMobs `UnitRole`
      checks `issecretvalue` before testing the GUID (submodule edit, uncommitted).
+   - Maelstrom timers need `C_UnitAuras.GetAuraDuration`, which errors for tainted code while
+     auras are secret: skipped when `C_Secrets.ShouldAurasBeSecret()`, segments then show the
+     stacks without a timer (fix pending in-game verification).
    - Unverified: whether `castBarID` is set for every channel; secret `C_ClassColor` colors in
      `SetStatusBarColor`; `OverHealAbsorbIndicator` sits left of the health bar (oUF's anchor).
    - Clients: Retail, Forever (Era/TBC/WotLK: oUF_Merge load and class power; MoP: class power).

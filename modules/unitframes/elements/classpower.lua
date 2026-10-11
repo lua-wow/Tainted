@@ -50,7 +50,8 @@ function element_proto:PostUpdate(cur, max, _, hasMaxChanged, powerType)
     end
 
     if powerType == POWER_TYPE_MAELSTROM then
-        local data = C_UnitAuras.GetPlayerAuraBySpellID(SPELL_MAELSTROM_WEAPON)
+        -- GetAuraDuration errors for tainted code while auras are secret (combat, encounters)
+        local data = not C_Secrets.ShouldAurasBeSecret() and C_UnitAuras.GetPlayerAuraBySpellID(SPELL_MAELSTROM_WEAPON)
         local duration = data and C_UnitAuras.GetAuraDuration("player", data.auraInstanceID)
         if duration then
             for i = 1, #element do
@@ -62,9 +63,10 @@ function element_proto:PostUpdate(cur, max, _, hasMaxChanged, powerType)
                 end
             end
         else
+            -- no timer: show the stacks as full segments
             for i = 1, #element do
                 element[i]:SetMinMaxValues(0, 1)
-                element[i]:SetValue(0)
+                element[i]:SetValue(i <= cur and 1 or 0)
             end
         end
     end
