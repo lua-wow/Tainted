@@ -128,6 +128,28 @@ E.API.CreateBackdrop = function(self, template)
 	end
 end
 
+-- Same look as CreateBackdrop, drawn with the frame's own textures. For AuraContainer buttons:
+-- Blizzard's backdrop mixin errors on buttons created while auras are secret.
+-- Returns the border texture.
+E.API.CreateTextureBackdrop = function(self)
+	local inset = E.Scale(C.general.border.size or 1)
+	local backdropColor = C.general.backdrop.color
+	local borderColor = C.general.border.color
+
+	local border = self:CreateTexture(nil, "BACKGROUND", nil, -8)
+	border:SetPoint("TOPLEFT", -inset, inset)
+	border:SetPoint("BOTTOMRIGHT", inset, -inset)
+	border:SetTexture(A.textures.blank)
+	border:SetVertexColor(borderColor.r, borderColor.g, borderColor.b)
+
+	local background = self:CreateTexture(nil, "BACKGROUND", nil, -7)
+	background:SetAllPoints()
+	background:SetTexture(C.general.backdrop.texture or A.textures.blank)
+	background:SetVertexColor(backdropColor.r, backdropColor.g, backdropColor.b)
+
+	return border
+end
+
 E.API.SkinButton = function(button)
 	if button.__skinned then return end
 	button:CreateBackdrop()

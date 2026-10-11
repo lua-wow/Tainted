@@ -32,10 +32,10 @@ local function InitButton(button)
     button:SetSize(size, size)
     button:SetTooltipAnchorPoint("ANCHOR_BOTTOMLEFT", -5, -5)
     button:SetCancelAuraButtons("RightButtonUp")
-    button:CreateBackdrop()
+    button.Border = button:CreateTextureBackdrop()
 
     local color = C.general.backdrop.color
-    button.Backdrop:SetBackdropBorderColor(color.r, color.g, color.b)
+    button.Border:SetVertexColor(color.r, color.g, color.b)
 
     local icon = button:CreateTexture(nil, "BORDER")
     icon:SetAllPoints()
@@ -71,7 +71,7 @@ local function InitEnchant(button)
     InitButton(button)
 
     local color = E.colors.dispel.Curse
-    button.Backdrop:SetBackdropBorderColor(color.r, color.g, color.b)
+    button.Border:SetVertexColor(color.r, color.g, color.b)
 end
 
 local function CreateContainer(name, filter)

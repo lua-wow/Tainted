@@ -27,7 +27,7 @@ end
 local function PostCreateButton(element, button)
     local font = A.fonts.normal
 
-    button:CreateBackdrop()
+    button:CreateTextureBackdrop()
     button.Icon:SetTexCoord(unpack(E.IconCoord))
 
     button.Cooldown:SetReverse(true)

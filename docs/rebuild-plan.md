@@ -857,6 +857,10 @@ hidden Blizzard frame.
      type border (Classic: only on friendly units); no desaturated foreign debuffs; no dispellable
      flash. Raid frames are step 3. Whether the flow layout resizes the container is unverified
      (the element keeps a fixed one-row size).
+   - Aura buttons (here and the player auras, item 5) draw the Tainted backdrop with textures
+     (`CreateTextureBackdrop`): Blizzard's backdrop mixin errors in the button initializer when a
+     button batch is created while auras are secret (frost mage, many buffs). Fix pending in-game
+     verification.
    - Nothing may anchor to an AuraContainer (`SetPoint` errors: "dependent object would inherit
      forbidden aspects: UntrustedLayoutScriptExecution"), so Debuffs are offset from the unit frame
      by one buff row instead of anchoring to Buffs.
