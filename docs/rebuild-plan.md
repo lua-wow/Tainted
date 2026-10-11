@@ -364,7 +364,7 @@ Feasibility study: [actionbar-report.md](actionbar-report.md).
 **Observed (code):**
 - Loading: one TOC line per file (step 1). Untagged: core, durability, experience, framerate,
   mirror_timer, objective_tracker, queue_status, ui_widgets. `mainline`: talkinghead. `mainline, mists`:
-  ghost. raid_utility has no line. `event_trace.lua` loads nowhere (item 10).
+  ghost. raid_utility has no line. `event_trace.lua` loads nowhere (item 11).
 - Startup: `core.lua` creates the `Blizzard` registry module; its `Init` calls framerate and queue
   status, then each `self.X:Init()/Load()` the files set. One error stops the remaining tweaks.
   `experience.lua` is separate: own frame, `PLAYER_LOGIN`.
@@ -705,22 +705,241 @@ Feasibility study: [actionbar-report.md](actionbar-report.md).
 **Done when:** every step passes `/reload` testing on Retail, Forever, Era, TBC, Wrath (Titan)
 and MoP, with no Lua errors or taint messages.
 
-### 9. Miscellaneous
+### 9. Unit frames
+
+**Status:** Not started · **Priority:** High · **Depends on:** 0, 5 (AuraContainer, curves, duration
+objects), 6 (unit tooltip)
+
+**Objective:** unit frames, raid frames and nameplates on every client, secret-safe on Retail, with
+one classic oUF.
+
+**Done when:**
+- Unit frames, raid frames and nameplates work on all 6 clients; no secret-value errors on
+  Retail/Forever in combat, encounters, M+ and PvP.
+- One classic oUF serves Era, TBC, WotLK and MoP.
+- The healer raid position works on every client.
+
+**Observed (code):**
+- Loading: `modules/unitframes` (core, tags, 15 elements, 13 classes, 11 units) is untagged. Plugins:
+  `oUF_Atonement`, `oUF_Tempest` (`mainline`); `oUF_AuraTrack`, `oUF_RaidDebuffs`,
+  `oUF_TargetIndicator` (`classic`).
+- oUF per client (TOC tags; every client knows every game-type token, so only one copy loads;
+  runtime unverified): Retail and Forever `libs\oUF`; Era, TBC, WotLK `libs\oUF_Classic`; MoP
+  `libs\oUF_Mists`.
+- Per-oUF branching uses `isRetailOUF = E.isStandard or E.isCamelot` (`core.lua`, `health.lua`):
+  header visibility, nameplate spawn and callbacks, health prediction.
+- Game flags where a family or the oUF variant is meant: AdditionalPower, PowerPrediction, Phase,
+  PvPClassification, Quest and Summon indicators, Totems, Atonement, nameplate health `UpdateColor`
+  and max distance, raid spec event, `CompactRaidFrameManager_SetSetting` (`E.isStandard`, so Forever
+  gets nothing or a dead element); AlternativePower (`isStandard or isMists`, misses Forever);
+  health `colorTapping` (`E.isVanilla`); rune colors (`E.isCata`, dead).
+- Raid holder: healer repositioning is dead (`isHealer = false`, hard-coded `groupThreshold = 40`,
+  talent events only registered after the first combat). `core/talents.lua` is `classic`-tagged, so
+  `Talents` is nil on mainline. Global `GetSpecialization` is a deprecation fallback on every client;
+  `C_SpecializationInfo.GetSpecialization`/`GetSpecializationInfo` (→ `role`) are documented (role
+  return on Classic unverified). Era/TBC/WotLK infer the role from talent points; `/tainted tank`
+  stores `E.db.tank` per character.
+- 42 of the repo's luacheck warnings are in `modules/unitframes` (unused locals, dead code). Also a
+  `frame.Heatlth` typo (`indicators.lua`), a debug `print` in `shaman.lua` (Tempest).
+
+**Observed (Retail oUF, `libs/oUF` 8f37c36):**
+- Auras is a meta element: `frame:CreateAuras()` + `:AddGroup(filter, options)` on a Blizzard aura
+  container. There is no `Buffs`/`Debuffs` element, so Tainted's unit-frame auras are empty on
+  Retail/Forever.
+- `AddGroup` passes the filter string to Blizzard (`AuraUtil.AuraFilters`; filtering runs in secure
+  code, secret-safe): `RAID`, `RAID_PLAYER_DISPELLABLE`, `DISPELLABLE`, `IMPORTANT`, `CROWD_CONTROL`,
+  `BIG_DEFENSIVE`, `EXTERNAL_DEFENSIVE`, `RAID_IN_COMBAT`, `PLAYER`, `!` negation. Groups are added in
+  order and are not exclusive (each checks every aura), so later groups need negations.
+  `candidateFilters.isBossAura` selects or excludes boss auras. Spell-ID candidate filters are ignored
+  for debuffs on friendly units (`AuraContainerUtil.lua`), so spell-list raid debuffs can't work on
+  Retail. Whether the flow layout draws groups in the order added and whether `IMPORTANT` applies to
+  debuffs is unverified.
+- ClassPower `PostUpdate` gained `hasCurChanged` (`cur, max, hasCurChanged, hasMaxChanged,
+  powerType, ...`); Tainted uses the Classic order, so Retail resizes on the wrong flag and skips
+  Maelstrom.
+- `frame.unit` is no longer set (only `__unit`): oUF_Atonement, oUF_AuraTrack, oUF_RaidDebuffs and
+  oUF_TargetIndicator return early. `colors.roles` removed (`[rolecolor]` errors, unused);
+  `colors.debuff` is `colors.dispel`.
+- Health `Over*Indicator` sub-widgets are Textures (Tainted creates StatusBars, never drawn). Totems
+  icon mode passes a duration object to `SetCooldown`. `CustomTimeText`, `AlternativePower.__barID`,
+  PvP `Banner` (now `Badge`), `HealthPrediction`/`PowerPrediction` are gone (inert in Tainted).
+- Blizzard's nameplate cast bar is `UnitFrame.CastBarsContainer.castBar` on all 6 clients; Tainted's
+  target callback anchors to the nil `UnitFrame.castBar`.
+
+**Observed (secret values, Retail = Forever flags):**
+
+| Element / tag | API (flag) | Tainted risk |
+|:--|:--|:--|
+| Unit-frame auras | AuraData (`SecretWhenUnitAuraRestricted`: combat, encounter, M+, PvP) | none once on aura containers |
+| `nameshort`, `namemedium`, `namelong` | `UnitName` (`SecretWhenUnitNameIdentityRestricted`) | concatenation, `E.UTF8Sub` |
+| `curhp`, `curpp` | `UnitHealth` (`SecretReturns`), `UnitPower` | oUF formats them; no abbreviation |
+| Castbar color | `UnitChannelInfo` (`SecretWhenUnitSpellCastRestricted`; `castBarID` `NeverSecret`) | truth test on `name` |
+| Nameplate health color | `UnitClass` (identity) | `colors.class[class]` unguarded |
+| Nameplate creature role | `UnitGUID` (identity) via LibMobs | truth test before `issecretvalue` |
+| AlternativePower | `UnitPower` (`SecretWhenUnitPowerRestricted`) | percent arithmetic |
+| Atonement | AuraData `spellId` | table index |
+
+`perhp`, `raidcolor`, `level` are guarded by oUF; `namecolor`, `hostility`, `difficulty`,
+`classification`, `dead`, `healthcolor` use APIs without secret flags. Which Lua operations error
+on secrets, and which contexts enable the unit-based predicates, is unverified.
+
+**Observed (nameplate artwork on Era, TBC, MoP; `docs/issues/mop-nameplates.png`):** oUF_Classic and
+oUF_Mists hide Blizzard's plate from a post-hook on `NamePlateDriverFrame.AcquireUnitFrame`. The hook
+runs before `NamePlateBaseMixin:AcquireUnitFrame` assigns `self.UnitFrame` (and `ReleaseUnitFrame`
+clears it), so `frame.UnitFrame` is always nil and nothing is hidden. Retail oUF hides it on
+`NAME_PLATE_UNIT_ADDED`. Tainted's target callback also moves the widget container back into the
+hidden Blizzard frame.
+
+**Observed (oUF_Classic vs oUF_Mists):**
+- Identical: colors, combatevents, events, factory, finalize, init, health, portrait, all indicators.
+- Mists only: additionalpower, alternativepower, runes, stagger; chi/holy power/shards/arcane class
+  power and tags, arena preparation, boss container, alt-power table, absorb and range events.
+- Classic only: combo points on the target (`COMBO_TARGET_CHANGED`), castbar
+  `CastingBarFrame_SetUnit` fallback, nameplate `UNIT_FACTION`, `GetAddOnMetadata` fallback, ping
+  attribute; 5 totem slots (Mists 4).
+- Mists `power.lua` reads the missing `Private.unitSelectionType` (only with `colorSelection`).
+- Classic API docs (Era, TBC, Titan, MoP) are nearly identical: client differences are game content
+  and undocumented globals (`GetArenaOpponentSpec`, `GetInspectSpecialization`,
+  `PlayerVehicleHasComboPoints`, `GetRuneType`). `C_Ping` only has `IsPingSystemEnabled`;
+  `PingableUnitFrameTemplate` is an empty stub.
+- WotLK DKs: Tainted creates `frame.Runes`, but oUF_Classic has no Runes element.
+
+**Decided:**
+- Retail and Forever use `libs\oUF`, read-only; work around it in Tainted.
+- One classic oUF for Era, TBC, WotLK and MoP. Mists changes are ported by editing `libs/oUF_Merge`
+  (branch `classic-unified`, starts equal to `classic`); it is merged into `classic` afterwards.
+  oUF_Mists stays untouched until the merge is verified on MoP; oUF_Mists and oUF_Merge are removed
+  last (by the maintainer).
+- oUF_Atonement, oUF_AuraTrack, oUF_RaidDebuffs and oUF_TargetIndicator may be edited. oUF_Tempest is
+  out of scope (possibly dropped).
+- Retail raid frames: oUF `Auras` groups with Blizzard filters replace oUF_AuraTrack and
+  oUF_RaidDebuffs. Classic keeps both plugins and has no oUF `Auras` on raid frames.
+  - Buffs, in order: `HELPFUL|BIG_DEFENSIVE`; `HELPFUL|EXTERNAL_DEFENSIVE|!BIG_DEFENSIVE`;
+    `HELPFUL|PLAYER|RAID_IN_COMBAT|!BIG_DEFENSIVE|!EXTERNAL_DEFENSIVE` (own HoTs).
+  - Debuffs, in order: `HARMFUL|RAID_PLAYER_DISPELLABLE`; boss debuffs; crowd control; important.
+- Classic-family nameplate artwork is hidden from Tainted code until the merged oUF fixes it.
+- `C_Ping` and other client-specific functions: feature detection per function.
+- Healer raid position: `C.unitframes.raid.healer = { position = true, threshold = 20 }` (code
+  constants). With a healer role and a group of at most `threshold` members, the raid frames move to
+  the centre. `/tainted healer` toggles a per-character override (`E.db.healer`, like `E.db.tank`; a
+  second call clears it) for clients where a healer spec can't be detected (Era, TBC).
+
+**Recommended steps** (`make check` after each; Classic regressions checked on Era first):
+
+1. **Nameplate artwork (classic family)** · Depends on: —
+   - Change: the nameplate callback hides `frame:GetParent().UnitFrame` on `NAME_PLATE_UNIT_ADDED`
+     when it isn't forbidden, with a one-time `OnShow` hide keyed by the unit frame (Blizzard pools
+     them across plates). The target callback anchors to `CastBarsContainer.castBar` and leaves
+     `WidgetContainer` on oUF's frame; the duplicate re-parent and ×2 scale are removed. Temporary:
+     step 10 removes it. Relies on Blizzard's driver handling the event first (unverified).
+   - Clients: Era, TBC, WotLK, MoP.
+   - Test: no Blizzard health bar, level, name or border under Tainted plates; target switching;
+     widget plates; friendly forbidden plates in instances unaffected.
+2. **Retail unit-frame auras** · Depends on: —
+   - Change: `elements/auras.lua` tagged `classic` (unchanged); new `elements/auras_mainline.lua`
+     (`mainline`): `CreateBuffs`/`CreateDebuffs` build `frame:CreateAuras{...}` with
+     `AddGroup("HELPFUL")`/`AddGroup("HARMFUL")` (`HARMFUL|PLAYER` on nameplates), size, spacing and
+     count from `C.unitframes.auras`; `PostCreateButton` adds the Tainted backdrop; duration colored
+     by `E.curves.auras.timer`, count, debuff border with `colors.dispel`, stealable border (as
+     `modules/auras/mainline`).
+   - Clients: Retail, Forever.
+   - Test: target, focus, pet, boss, arena and nameplate auras placed as on Classic; timers, stacks,
+     borders, tooltips; no errors in combat, dungeon, M+, PvP.
+3. **Retail raid auras** · Depends on: 2
+   - Change: mainline raid frames get the Decided buff and debuff groups (debuffs: dispellable first
+     with `UnitFrameDebuff` sort; boss via `candidateFilters.isBossAura = true`; crowd control and
+     important with `!RAID_PLAYER_DISPELLABLE` and `isBossAura = false`), small per-group counts.
+     `C.unitframes.raid.auratrack/debuffs` keep their meaning. oUF_TargetIndicator loads on mainline
+     (untagged after step 5).
+   - Clients: Retail, Forever.
+   - Test: dispellable debuff first, boss debuff, crowd control; defensives, externals and own HoTs
+     on raid members; in combat, raid boss, M+, arena.
+4. **Retail drift fixes** · Depends on: —
+   - Change: ClassPower `PostUpdate` takes the Retail argument order under `isRetailOUF`; nameplate
+     `UpdateColor` uses `C_ClassColor.GetClassColor` for a secret class; castbar channel check via
+     `castBarID`; `Over*Indicator` as Textures; totem icons via `SetCooldownFromDurationObject`;
+     AlternativePower percent skipped when secret; name truncation skipped for secret names;
+     `[rolecolor]` fixed or removed; LibMobs checks `issecretvalue` before testing the GUID.
+   - Clients: Retail, Forever.
+   - Test: combo points, holy power, Maelstrom; enemy channel colors; PvP nameplate class colors;
+     names in M+; boss alt power; taint log clean.
+5. **Plugins** · Depends on: —
+   - Change: oUF_Atonement, oUF_AuraTrack, oUF_RaidDebuffs, oUF_TargetIndicator use
+     `self.__unit or self.unit`; Atonement skips a secret `spellId`; RaidDebuffs reads
+     `colors.debuff or colors.dispel`. Edits stay uncommitted in the submodules.
+   - Clients: Retail (Atonement, TargetIndicator); Classic regression (AuraTrack, RaidDebuffs).
+   - Test: Discipline Atonement bar; Classic raid HoT tracking and raid debuffs unchanged.
+6. **Healer raid position** · Depends on: —
+   - Change: `core/talents.lua` untagged; mainline and MoP read the role from
+     `C_SpecializationInfo.GetSpecialization` + `GetSpecializationInfo`; Era/TBC/WotLK keep the
+     talent-point heuristic; `/tainted healer` override; Talents tells unit frames when the role
+     changes (one callback field). The raid holder applies the Decided rule, re-checks on
+     `GROUP_ROSTER_UPDATE`, and in combat waits for `PLAYER_REGEN_ENABLED` once. Commented code and
+     the per-combat event (un)registering are removed.
+   - Clients: all 6.
+   - Test: spec change moves the frames (after combat if in combat); `/tainted healer` on Era/TBC;
+     position kept after `/reload`; `healer.position = false` never moves; a group above
+     `healer.threshold` uses the default position.
+7. **Forever and family flags** · Depends on: 2, 4
+   - Change: each flag in Observed moves to `isRetailOUF` (oUF variant) or family/feature detection;
+     Phase, Quest, Summon and PvPClassification only where their APIs exist on Forever; dead
+     `E.isCata` rune color removed.
+   - Clients: Forever (+ Retail regression).
+   - Test: Forever player frame (indicators, totems, alt power), nameplate colors, raid.
+8. **Cleanup** · Depends on: 1–7
+   - Change: `Heatlth` typo; dead `power_proto`, `PostUpdateNameplatePower`/`isHidden`,
+     `CustomTimeText`/`CustomDelayText`, unused `CreateThreatIndicator`, `party.lua` stub; unused
+     locals. Tempest (`shaman.lua`) untouched.
+   - Clients: all 6.
+   - Test: `/reload` on each; frames unchanged.
+9. **oUF_Merge: Era, TBC, WotLK** · Depends on: 8
+   - Change: port oUF_Mists into `libs/oUF_Merge` (Mists-only elements, class powers, tags, arena
+     preparation, boss container, alt-power table, absorb and range events), keeping the Classic-only
+     behavior listed in Observed. Feature detection for `GetArenaOpponentSpec`,
+     `GetInspectSpecialization`, `PlayerVehicleHasComboPoints`, `GetRuneType`,
+     `BossTargetFrameContainer`, `showArenaEnemyFrames`, `C_SpecializationInfo` at file load and each
+     `C_Ping` function; totem slots from `MAX_TOTEMS`. Nameplates hidden via `DisableBlizzard(unit)`
+     on `NAME_PLATE_UNIT_ADDED` (hook keyed by unit frame, `HealthBarsContainer.healthBar`); Mists
+     `Private.unitSelectionType` fixed. TOC: the `vanilla, tbc, wrath` line loads `libs\oUF_Merge`;
+     MoP keeps oUF_Mists.
+   - Clients: Era, TBC, WotLK.
+   - Test: combo points on target (Era/TBC), totems, aura tooltips, WotLK DK runes, arena (TBC/WotLK)
+     without errors, nameplates.
+   - Rollback: TOC line back to `libs\oUF_Classic`.
+10. **oUF_Merge: MoP** · Depends on: 9
+    - Change: oUF_Merge TOC line tagged `classic`; oUF_Mists line removed (submodule kept); step 1's
+      workaround removed. `E.isMists` branches keep the oUF_Mists callback signatures.
+    - Clients: MoP.
+    - Test: chi, holy power, shards, arcane charges, stagger, runes, alt power, arena preparation,
+      boss frames, nameplates, castbar.
+    - Rollback: restore the oUF_Mists line, oUF_Merge back to `vanilla, tbc, wrath`. The two lines
+      must never load on the same client (shared `oUF` namespace).
+11. **Done** · Depends on: 1–10
+    - Change: compatibility.md (one classic oUF; unit frames per client); §1 and §4 of this plan.
+      Then the maintainer merges `classic-unified` into `classic`, points the TOC at
+      `libs\oUF_Classic` (`classic`), and removes the oUF_Mists and oUF_Merge submodules.
+    - Test: `/reload` on all 6; taint log clean after combat.
+
+**Unverified (needs in-game checks):** which oUF loads at runtime on Forever and WotLK; every
+secret-value row; Blizzard's event order for step 1; the Classic `GetSpecializationInfo` role return;
+WotLK runes and spec behavior in oUF_Merge; `IMPORTANT` on debuffs; group draw order.
+
+### 10. Miscellaneous
 
 **Status:** Classic/MoP only · **Priority:** Low · **Depends on:** 0
 
 **Done when:** each feature has a keep/drop decision and a verified status per client.
 
-### 10. Final compatibility audit
+### 11. Final compatibility audit
 
 **Done when:**
 - Every module loads on every client it's meant for.
 - `make check` is clean of real bugs.
 - This plan is up to date.
 
-### 11. Extension by other addons
+### 12. Extension by other addons
 
-**Status:** Not started · **Priority:** Low · **Depends on:** 10
+**Status:** Not started · **Priority:** Low · **Depends on:** 11
 
 **Objective:** a separate addon with `## Dependencies: Tainted` can customize Tainted in code (like a
 Tukui edit addon) and could later provide an in-game configuration. Tainted itself stays
@@ -748,8 +967,6 @@ editing Tainted's files, and this contract is documented.
 - Is an in-game configuration addon compatible with §6 "No in-game configuration" when it's a
   separate, optional addon?
 
-Unit frames continue in parallel as a leaf. Only item 0 touches them.
-
 ## 4. Known architectural risks (observed)
 
 - **Ambiguous client flags.** Renamed in item 0 (`isRetail` → `isStandard`, `isClassic` →
@@ -768,12 +985,11 @@ Unit frames continue in parallel as a leaf. Only item 0 touches them.
 
 ## 5. Deferred work (don't fix early)
 
-- Unit-frame raid-holder healer repositioning: currently dead machinery. Revisit with unit frames.
-- Dead stubs (party unit, `development.lua`, `event_trace.lua`): remove during
-  item 10.
-- Mainline-only misc files are kept but unverified on 12.x. Leave them until item 9.
-- Combat-log based dispels/interrupts on Retail. Check the API docs before reviving (item 9).
-- Duplicate client detection inside the dispels/screenshots mini-addons. Handle with item 9.
+- Dead stubs (`development.lua`, `event_trace.lua`): remove during
+  item 11.
+- Mainline-only misc files are kept but unverified on 12.x. Leave them until item 10.
+- Combat-log based dispels/interrupts on Retail. Check the API docs before reviving (item 10).
+- Duplicate client detection inside the dispels/screenshots mini-addons. Handle with item 10.
 - Visual refinements outside design.md.
 
 ## 6. Decisions
@@ -791,8 +1007,8 @@ Unit frames continue in parallel as a leaf. Only item 0 touches them.
 **Needs confirmation:**
 - Item 0: one startup model for all modules, or keep both and document them?
 - Item 2 vs 4: which comes first on Retail, chat or action bars?
-- Item 9: keep or drop each misc feature on Midnight.
-- Item 11: what to export, when `C` is read, and whether a separate in-game configuration addon is allowed (see item 11).
+- Item 10: keep or drop each misc feature on Midnight.
+- Item 12: what to export, when `C` is read, and whether a separate in-game configuration addon is allowed (see item 12).
 
 ## Completed
 
@@ -846,6 +1062,18 @@ Unit frames continue in parallel as a leaf. Only item 0 touches them.
   - [x] 3. Client extras
   - [x] 4. Classic bank
   - [x] 5. Classic sort
-- [ ] 9. Miscellaneous
-- [ ] 10. Final compatibility audit
-- [ ] 11. Extension by other addons
+- [ ] 9. Unit frames
+  - [ ] 1. Nameplate artwork (classic family)
+  - [ ] 2. Retail unit-frame auras
+  - [ ] 3. Retail raid auras
+  - [ ] 4. Retail drift fixes
+  - [ ] 5. Plugins
+  - [ ] 6. Healer raid position
+  - [ ] 7. Forever and family flags
+  - [ ] 8. Cleanup
+  - [ ] 9. oUF_Merge: Era, TBC, WotLK
+  - [ ] 10. oUF_Merge: MoP
+  - [ ] 11. Done
+- [ ] 10. Miscellaneous
+- [ ] 11. Final compatibility audit
+- [ ] 12. Extension by other addons
