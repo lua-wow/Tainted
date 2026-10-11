@@ -355,6 +355,19 @@ C["unitframes"] = {
         ["selectedAlpha"] = 1.0,
         ["selectedScale"] = 1.2
     },
+    -- false: party members are shown by the raid frames
+    ["party"] = {
+        ["enabled"] = false,
+        ["width"] = 180,
+        ["height"] = 24,
+        ["auras"] = true,
+        ["tags"] = {
+            ["name"] = "[namecolor][namemedium]|r",
+            ["health"] = "[healthcolor][perhp]%|r"
+        },
+        -- room for the aura row above each frame
+        ["yOffset"] = 35
+    },
     ["raid"] = {
         ["enabled"] = true,
         ["width"] = 90,

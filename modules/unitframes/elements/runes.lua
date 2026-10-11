@@ -2,9 +2,6 @@ local _, ns = ...
 local E, C = ns.E, ns.C
 local UnitFrames = E:GetModule("UnitFrames")
 
--- Blizzard
-local GetRuneCooldown = _G.GetRuneCooldown
-
 --------------------------------------------------
 -- Runes
 --------------------------------------------------

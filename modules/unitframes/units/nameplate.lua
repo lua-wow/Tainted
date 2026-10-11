@@ -7,7 +7,6 @@ local LibMobs = LibStub("LibMobs")
 assert(LibMobs, "Unable to locate LibMobs")
 
 -- Blizzard
-local UnitGUID = _G.UnitGUID
 local UnitThreatSituation = _G.UnitThreatSituation
 local UnitSelectionType = _G.UnitSelectionType
 local UnitIsConnected = _G.UnitIsConnected
@@ -260,64 +259,6 @@ elseif E.isMists then
             if not threat or threat == 0 or threat == 3 then
                 element:SetColor(creatureColor)
             end
-        end
-    end
-end
-
-local power_proto = {}
-
-function power_proto:PostUpdate(unit, cur, min, max)
-    local frame = self:GetParent()
-
-    if not unit then
-        unit = frame.__unit or frame.unit
-    end
-
-    if not unit then return end
-
-    if not cur then
-        cur, max = UnitPower(unit), UnitPowerMax(unit)
-    end
-
-    local Power = frame.Power
-    local Health = frame.Health
-    local CastBar = frame.Castbar
-    local IsPowerHidden = Power.IsHidden
-
-    local offset = E.Scale(1)
-
-    if (cur and cur == 0) and (max and max == 0) then
-        if (not IsPowerHidden) then
-            Health:ClearAllPoints()
-            Health:SetPoint("TOP", 0, 0)
-            Health:SetPoint("LEFT", 0, 0)
-            Health:SetPoint("RIGHT", 0, 0)
-            Health:SetPoint("BOTTOM", 0, 0)
-
-            Power:SetAlpha(0)
-            Power.IsHidden = true
-
-            if (CastBar) then
-                CastBar:ClearAllPoints()
-                CastBar:SetSize(Health:GetWidth(), Power:GetHeight())
-                CastBar:SetPoint("BOTTOM", Health, "BOTTOM", 0, 0)
-            end
-        end
-    else
-        if (IsPowerHidden) then
-            Health:ClearAllPoints()
-            Health:SetPoint("TOP", 0, 0)
-            Health:SetPoint("LEFT", 0, 0)
-            Health:SetPoint("RIGHT", 0, 0)
-            Health:SetPoint("BOTTOM", 0, E.Scale(C.unitframes.power.height))
-
-            if (CastBar) then
-                CastBar:ClearAllPoints()
-                CastBar:SetAllPoints(Power)
-            end
-
-            Power:SetAlpha(1)
-            Power.IsHidden = false
         end
     end
 end

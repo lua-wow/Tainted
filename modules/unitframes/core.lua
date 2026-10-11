@@ -87,12 +87,12 @@ end
 
 function UnitFrames:DisableBlizzard()
 	local PartyFrame = PartyFrame
-	
-	if C.unitframes.raid.enabled then
-        if (PartyFrame) then
-            PartyFrame:SetParent(E.Hider)
-        end
 
+	if (PartyFrame and (C.unitframes.raid.enabled or C.unitframes.party.enabled)) then
+        PartyFrame:SetParent(E.Hider)
+    end
+
+	if C.unitframes.raid.enabled then
 		-- Disable Blizzard Raid Frames.
         if (CompactRaidFrameManager) then
             CompactRaidFrameManager:SetParent(E.Hider)
@@ -226,8 +226,27 @@ local function NameplateCallback(frame, event, unit)
     end
 end
 
+function UnitFrames:GetPartyAttributes()
+    return addon .. "Party",
+        nil,
+        "showParty", true,
+        "showPlayer", true,
+        "point", "TOP",
+        "yOffset", -C.unitframes.party.yOffset,
+        "initial-width", C.unitframes.party.width,
+        "initial-height", C.unitframes.party.height,
+        "oUF-initialConfigFunction", [[
+            local header = self:GetParent()
+            self:SetWidth(header:GetAttribute("initial-width"))
+            self:SetHeight(header:GetAttribute("initial-height"))
+        ]]
+end
+
 function UnitFrames:GetRaidVisibility()
-    local visibility = "custom [group:raid, @raid21, noexists] show; [group:party, nogroup:raid] show; "
+    local visibility = "custom [group:raid, @raid21, noexists] show; "
+    if not C.unitframes.party.enabled then
+        visibility = visibility .. "[group:party, nogroup:raid] show; "
+    end
     if C.unitframes.raid.solo then
         visibility = visibility .. "[@player, exists, nogroup:party] show; "
     end
@@ -321,7 +340,8 @@ function UnitFrames:Init()
         frame.__key = unit:gsub("%d+", "")
         frame.__config = C.unitframes[frame.__key]
 
-        if frame.__key ~= "raid" then
+        -- header children are sized by oUF-initialConfigFunction
+        if frame.__key ~= "raid" and frame.__key ~= "party" then
             local width = frame.__config.width or 200
             local height = frame.__config.height or 32
             frame:SetSize(width, height)
@@ -343,6 +363,8 @@ function UnitFrames:Init()
             UnitFrames:CreateFocusTargetFrame(frame)
         elseif (unit == "pet") then
             UnitFrames:CreatePetFrame(frame)
+        elseif (unit == "party") then
+            UnitFrames:CreatePartyFrame(frame)
         elseif (unit == "raid") then
             UnitFrames:CreateRaidFrame(frame)
         elseif (unit:match("^arena%d")) then
@@ -389,9 +411,15 @@ function UnitFrames:Init()
             end
         end
 
-        local boss = CreateUnit("boss", holder, NUM_BOSS_FRAMES)
+        CreateUnit("boss", holder, NUM_BOSS_FRAMES)
         
-        local arena = CreateUnit("arena", holder, NUM_ARENA_FRAMES)
+        CreateUnit("arena", holder, NUM_ARENA_FRAMES)
+
+        if (C.unitframes.party.enabled) then
+            local party = SpawnHeader(self, "custom [group:party, nogroup:raid] show; hide", UnitFrames:GetPartyAttributes())
+            party:SetParent(holder)
+            party:SetPoint("LEFT", holder, "LEFT", 28, 0)
+        end
 
         if (C.unitframes.raid.enabled) then
             local raid = SpawnHeader(self, UnitFrames:GetRaidVisibility(), UnitFrames:GetRaidAttributes())

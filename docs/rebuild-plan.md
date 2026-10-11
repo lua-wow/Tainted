@@ -963,12 +963,25 @@ hidden Blizzard frame.
      Forever's cap unverified), `showPet` on Era, the MoP `E.isMists` adapters, Tempest.
    - Clients: Forever (+ Retail regression; tapped color on all 6).
    - Test: Forever player frame (indicators, totems, alt power), nameplate colors, raid.
-8. **Cleanup** · Depends on: 1–7
-   - Change: `Heatlth` typo; dead `power_proto`, `PostUpdateNameplatePower`/`isHidden`,
-     `CustomTimeText`/`CustomDelayText`, unused `CreateThreatIndicator`, `party.lua` stub; unused
-     locals. Tempest (`shaman.lua`) untouched.
+8. **Cleanup** · Done · Depends on: 1–7
+   - Change: `Heatlth` typo fixed (the player raid role icon anchored to the frame, now to the
+     health bar); dead nameplate `power_proto` (never mixed in) and the power element's
+     `isHidden`/`PostUpdateNameplatePower` (undefined) branch removed; `threat.lua`
+     (`CreateThreatIndicator` never called) deleted with its TOC line; unused locals removed.
+     Unit-frame luacheck warnings 34 → 1 (Tempest's empty `if`; `shaman.lua` untouched).
+   - Party frames: the never-called `party.lua` stub is now wired to a party header behind
+     `C.unitframes.party.enabled` (default `false`: the raid frames show the party, as before).
+     When enabled: a vertical column (`TOP`, `yOffset` 35 for the aura row) at the left edge,
+     centred vertically, shown in a party outside a raid, including the player; unit frames with
+     compact auras, leader, ready check, resurrect and range; the raid header drops its party
+     clause. Fixed position (no healer move).
+   - Kept: castbar `CustomTimeText`/`CustomDelayText`. Retail oUF ignores them, but oUF_Classic,
+     oUF_Merge and oUF_Mists call them, so they still format the Classic/MoP timer text.
    - Clients: all 6.
-   - Test: `/reload` on each; frames unchanged.
+   - Test: `/reload` on each; frames unchanged; raid role icon above the health bar; nameplate
+     power bars; Classic castbar timer `cur / max`; boss and arena frames; with
+     `party.enabled = true`: party column in a party (joins/leaves, in combat), raid frames in a
+     raid, no Blizzard party frames.
 9. **oUF_Merge: Era, TBC, WotLK** · Depends on: 8
    - Change: port oUF_Mists into `libs/oUF_Merge` (Mists-only elements, class powers, tags, arena
      preparation, boss container, alt-power table, absorb and range events), keeping the Classic-only
@@ -1156,7 +1169,7 @@ editing Tainted's files, and this contract is documented.
   - [x] 5. Plugins (pending in-game verification)
   - [x] 6. Healer raid position
   - [x] 7. Forever and family flags
-  - [ ] 8. Cleanup
+  - [x] 8. Cleanup
   - [ ] 9. oUF_Merge: Era, TBC, WotLK
   - [ ] 10. oUF_Merge: MoP
   - [ ] 11. Classic totems

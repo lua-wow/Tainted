@@ -2,10 +2,6 @@ local _, ns = ...
 local E, C, A = ns.E, ns.C, ns.A
 local UnitFrames = E:GetModule("UnitFrames")
 
--- Blizzard
-local UnitIsFriend = _G.UnitIsFriend
-local UnitIsEnemy = _G.UnitIsEnemy
-
 --------------------------------------------------
 -- Auras
 --------------------------------------------------

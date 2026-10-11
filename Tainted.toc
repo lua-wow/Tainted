@@ -124,7 +124,6 @@ modules\unitframes\elements\portrait.lua
 modules\unitframes\elements\runes.lua
 modules\unitframes\elements\stagger.lua
 modules\unitframes\elements\targetindicator.lua
-modules\unitframes\elements\threat.lua
 modules\unitframes\elements\totems.lua
 
 modules\unitframes\classes\deathknight.lua

@@ -159,7 +159,6 @@ do
     end
 
     local function CreateMainlineHealthPrediction(parent, width)
-        local level = parent:GetFrameLevel()
         local texture = C.unitframes.texture
 
         local healingColor = C.unitframes.health.prediction.colors.healing

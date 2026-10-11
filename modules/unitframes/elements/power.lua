@@ -49,11 +49,6 @@ do
             element.Value = value
         end
 
-        if (frame.__key == "nameplate") then
-            element.isHidden = true
-            element.PostUpdate = UnitFrames.PostUpdateNameplatePower
-        end
-
         return element
     end
 end

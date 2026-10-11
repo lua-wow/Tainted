@@ -2,15 +2,6 @@ local _, ns = ...
 local E, C = ns.E, ns.C
 local UnitFrames = E:GetModule("UnitFrames")
 
--- percentages at which bar should change color
-local STAGGER_YELLOW_TRANSITION =  _G.STAGGER_YELLOW_TRANSITION or 0.3
-local STAGGER_RED_TRANSITION = _G.STAGGER_RED_TRANSITION or 0.6
-
--- table indices of bar colors
-local STAGGER_GREEN_INDEX = _G.STAGGER_GREEN_INDEX or 1
-local STAGGER_YELLOW_INDEX = _G.STAGGER_YELLOW_INDEX or 2
-local STAGGER_RED_INDEX = _G.STAGGER_RED_INDEX or 3
-
 local issecretvalue = _G.issecretvalue
 
 --------------------------------------------------

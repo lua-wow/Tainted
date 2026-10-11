@@ -5,10 +5,6 @@ local UnitFrames = E:GetModule("UnitFrames")
 local LibDispel = LibStub("LibDispel")
 assert(LibDispel, "Filger requires LibDispel")
 
--- Blizzard
-local UnitIsFriend = _G.UnitIsFriend
-local UnitIsEnemy = _G.UnitIsEnemy
-
 --------------------------------------------------
 -- Auras
 --------------------------------------------------
@@ -140,7 +136,6 @@ function aura_proto:PostUpdateButton(button, unit, data, position)
     button.duration = duration
 
     if (button.Timer) then
-        local size = button:GetSize()
         if (duration) then
             button:SetScript("OnUpdate", self.OnUpdate)
             button.Timer:Show()

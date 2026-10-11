@@ -4,15 +4,8 @@ assert(oUF, "JasjeUI was unable to locate oUF install.")
 
 local E, L = ns.E, ns.L
 
--- Lua
-local format = string.format
-
 -- Blizzard
-local TANK = _G.TANK or "Tank"
-local HEALER = _G.HEALER or "Healer"
-local DAMAGE = _G.DAMAGE or "Damage"
 local DEAD = _G.DEAD or "Dead"
-local CHAT_FLAG_AFK = _G.CHAT_FLAG_AFK
 
 local UnitReaction = _G.UnitReaction
 local UnitIsPlayer = _G.UnitIsPlayer
@@ -22,12 +15,7 @@ local GetQuestDifficultyColor = _G.GetQuestDifficultyColor
 local UnitIsGroupLeader = _G.UnitIsGroupLeader
 local UnitIsGroupAssistant = _G.UnitIsGroupAssistant
 local UnitIsRaidOfficer = _G.UnitIsRaidOfficer
-local UnitIsDeadOrGhost = _G.UnitIsDeadOrGhost
-local UnitHealth = _G.UnitHealth
-local UnitHealthMax = _G.UnitHealthMax
-local UnitIsAFK = _G.UnitIsAFK
 local UnitClassification = _G.UnitClassification
-local UnitPowerType = _G.UnitPowerType
 local issecretvalue = _G.issecretvalue
 
 -- secret booleans (Midnight) can't be tested; treat them as false

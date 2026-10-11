@@ -76,7 +76,7 @@ function UnitFrames:CreateCastbar(frame, parent)
     local element = Mixin(CreateFrame("StatusBar", frame:GetName() .. "Castbar", frame), element_proto)
     element:SetStatusBarTexture(texture)
     
-    local iconOwner = nil
+    local iconOwner
     if mode == "detached" then
         element:SetPoint("TOPLEFT", owner, "BOTTOMLEFT", 0, -3)
         element:SetPoint("TOPRIGHT", owner, "BOTTOMRIGHT", 0, -3)
