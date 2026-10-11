@@ -707,7 +707,7 @@ and MoP, with no Lua errors or taint messages.
 
 ### 9. Unit frames
 
-**Status:** Not started · **Priority:** High · **Depends on:** 0, 5 (AuraContainer, curves, duration
+**Status:** In progress · **Priority:** High · **Depends on:** 0, 5 (AuraContainer, curves, duration
 objects), 6 (unit tooltip)
 
 **Objective:** unit frames, raid frames and nameplates on every client, secret-safe on Retail, with
@@ -786,7 +786,8 @@ on secrets, and which contexts enable the unit-based predicates, is unverified.
 **Observed (nameplate artwork on Era, TBC, MoP; `docs/issues/mop-nameplates.png`):** oUF_Classic and
 oUF_Mists hide Blizzard's plate from a post-hook on `NamePlateDriverFrame.AcquireUnitFrame`. The hook
 runs before `NamePlateBaseMixin:AcquireUnitFrame` assigns `self.UnitFrame` (and `ReleaseUnitFrame`
-clears it), so `frame.UnitFrame` is always nil and nothing is hidden. Retail oUF hides it on
+clears it), so `frame.UnitFrame` is always nil and nothing is hidden (the hook also receives the
+driver, not the plate, as `frame`). Retail oUF hides it on
 `NAME_PLATE_UNIT_ADDED`. Tainted's target callback also moves the widget container back into the
 hidden Blizzard frame.
 
@@ -808,7 +809,7 @@ hidden Blizzard frame.
 - Retail and Forever use `libs\oUF`, read-only; work around it in Tainted.
 - One classic oUF for Era, TBC, WotLK and MoP. Mists changes are ported by editing `libs/oUF_Merge`
   (branch `classic-unified`, starts equal to `classic`); it is merged into `classic` afterwards.
-  oUF_Mists stays untouched until the merge is verified on MoP; oUF_Mists and oUF_Merge are removed
+  oUF_Mists stays untouched (except step 1's nameplate fix) until the merge is verified on MoP; oUF_Mists and oUF_Merge are removed
   last (by the maintainer).
 - oUF_Atonement, oUF_AuraTrack, oUF_RaidDebuffs and oUF_TargetIndicator may be edited. oUF_Tempest is
   out of scope (possibly dropped).
@@ -817,7 +818,8 @@ hidden Blizzard frame.
   - Buffs, in order: `HELPFUL|BIG_DEFENSIVE`; `HELPFUL|EXTERNAL_DEFENSIVE|!BIG_DEFENSIVE`;
     `HELPFUL|PLAYER|RAID_IN_COMBAT|!BIG_DEFENSIVE|!EXTERNAL_DEFENSIVE` (own HoTs).
   - Debuffs, in order: `HARMFUL|RAID_PLAYER_DISPELLABLE`; boss debuffs; crowd control; important.
-- Classic-family nameplate artwork is hidden from Tainted code until the merged oUF fixes it.
+- Classic-family nameplate artwork is fixed in oUF_Classic and oUF_Mists (submodule edits), not in
+  Tainted.
 - `C_Ping` and other client-specific functions: feature detection per function.
 - Healer raid position: `C.unitframes.raid.healer = { position = true, threshold = 20 }` (code
   constants). With a healer role and a group of at most `threshold` members, the raid frames move to
@@ -826,12 +828,14 @@ hidden Blizzard frame.
 
 **Recommended steps** (`make check` after each; Classic regressions checked on Era first):
 
-1. **Nameplate artwork (classic family)** · Depends on: —
-   - Change: the nameplate callback hides `frame:GetParent().UnitFrame` on `NAME_PLATE_UNIT_ADDED`
-     when it isn't forbidden, with a one-time `OnShow` hide keyed by the unit frame (Blizzard pools
-     them across plates). The target callback anchors to `CastBarsContainer.castBar` and leaves
-     `WidgetContainer` on oUF's frame; the duplicate re-parent and ×2 scale are removed. Temporary:
-     step 10 removes it. Relies on Blizzard's driver handling the event first (unverified).
+1. **Nameplate artwork (classic family)** · Done, pending in-game verification · Depends on: —
+   - Change: oUF_Classic and oUF_Mists drop the `AcquireUnitFrame` post-hook and call
+     `DisableNamePlate(nameplate)` on `NAME_PLATE_UNIT_ADDED` (skips forbidden plates); its
+     one-time `OnShow` hide is keyed by the unit frame (Blizzard pools them across plates). Edits
+     stay uncommitted in the submodules. Tainted's target callback anchors to
+     `CastBarsContainer.castBar` and leaves `WidgetContainer` on oUF's frame; the duplicate
+     re-parent and ×2 scale are removed. Relies on Blizzard's driver handling the event first
+     (unverified).
    - Clients: Era, TBC, WotLK, MoP.
    - Test: no Blizzard health bar, level, name or border under Tainted plates; target switching;
      widget plates; friendly forbidden plates in instances unaffected.
@@ -898,8 +902,7 @@ hidden Blizzard frame.
      behavior listed in Observed. Feature detection for `GetArenaOpponentSpec`,
      `GetInspectSpecialization`, `PlayerVehicleHasComboPoints`, `GetRuneType`,
      `BossTargetFrameContainer`, `showArenaEnemyFrames`, `C_SpecializationInfo` at file load and each
-     `C_Ping` function; totem slots from `MAX_TOTEMS`. Nameplates hidden via `DisableBlizzard(unit)`
-     on `NAME_PLATE_UNIT_ADDED` (hook keyed by unit frame, `HealthBarsContainer.healthBar`); Mists
+     `C_Ping` function; totem slots from `MAX_TOTEMS`. Step 1's nameplate fix ported; Mists
      `Private.unitSelectionType` fixed. TOC: the `vanilla, tbc, wrath` line loads `libs\oUF_Merge`;
      MoP keeps oUF_Mists.
    - Clients: Era, TBC, WotLK.
@@ -907,8 +910,8 @@ hidden Blizzard frame.
      without errors, nameplates.
    - Rollback: TOC line back to `libs\oUF_Classic`.
 10. **oUF_Merge: MoP** · Depends on: 9
-    - Change: oUF_Merge TOC line tagged `classic`; oUF_Mists line removed (submodule kept); step 1's
-      workaround removed. `E.isMists` branches keep the oUF_Mists callback signatures.
+    - Change: oUF_Merge TOC line tagged `classic`; oUF_Mists line removed (submodule kept).
+      `E.isMists` branches keep the oUF_Mists callback signatures.
     - Clients: MoP.
     - Test: chi, holy power, shards, arcane charges, stagger, runes, alt power, arena preparation,
       boss frames, nameplates, castbar.
@@ -1063,7 +1066,7 @@ editing Tainted's files, and this contract is documented.
   - [x] 4. Classic bank
   - [x] 5. Classic sort
 - [ ] 9. Unit frames
-  - [ ] 1. Nameplate artwork (classic family)
+  - [x] 1. Nameplate artwork (classic family) (pending in-game verification)
   - [ ] 2. Retail unit-frame auras
   - [ ] 3. Retail raid auras
   - [ ] 4. Retail drift fixes

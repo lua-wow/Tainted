@@ -140,8 +140,6 @@ nameplates_proto.SetAddedCallback = function(self, event, unit)
     self.widgetContainer = blizzPlate and blizzPlate.WidgetContainer or nil
 
     if self.widgetContainer then
-        self.widgetContainer:SetScale(2.0)
-        self.widgetContainer:SetParent(self)
         self.widgetContainer:SetIgnoreParentAlpha(true)
         self.widgetContainer:ClearAllPoints()
         self.widgetContainer:SetPoint("BOTTOM", self, "BOTTOM")
@@ -166,10 +164,8 @@ nameplates_proto.SetTargetCallback = function(self, event, unit)
     -- end
 
     if self.widgetContainer then
-        self.widgetContainer:SetParent(self.blizzPlate)
-        self.widgetContainer:SetIgnoreParentAlpha(false)
         self.widgetContainer:ClearAllPoints()
-        self.widgetContainer:SetPoint("TOP", self.blizzPlate.castBar, "BOTTOM")
+        self.widgetContainer:SetPoint("TOP", self.blizzPlate.CastBarsContainer.castBar, "BOTTOM")
     end
 end
 
