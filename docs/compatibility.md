@@ -34,8 +34,8 @@ A single `Tainted.toc` serves every supported client (`## Interface: 120100, 160
 
 ## Current status
 
-- Retail is being revived. Classic-only modules (bags, actionbars)
-  are tagged `classic` in the TOC for now; drop the tag to enable them on Retail.
+- Retail is being revived. Bags and action bars load on all clients (bag bank and sort are
+  `classic`-tagged); miscellaneous loads only on Classic and MoP.
 - Chat loads on all clients (one shared implementation, no per-client files).
 - Datatexts load on all clients. An element's `Enable` returns `true` only if it can run on
   the client.
@@ -43,6 +43,12 @@ A single `Tainted.toc` serves every supported client (`## Interface: 120100, 160
   (Retail, Forever), `OnTooltipSet*` hooks elsewhere.
 - Player auras: `SecureAuraHeaderTemplate` only exists on Classic (`modules/auras/classic`);
   mainline uses Blizzard's `AuraContainer` (`modules/auras/mainline`), which renders secret values itself.
+- Blizzard tweaks load on all clients, except ghost (`GhostFrame`: Retail, Forever, MoP) and
+  talking head (Retail, Forever). Branches use feature detection (`MirrorTimerContainer`,
+  `QueueStatusButton`, `C_Housing`, experience bar APIs), not client flags. Blizzard frames are
+  re-anchored from `SetPoint` hooks with `ClearAllPointsBase`/`SetPointBase` (durability,
+  mainline objective tracker), never by replacing their methods. Wrath/MoP `WatchFrame` is
+  reparented to `UIParent` to leave the right managed container.
 
 ## oUF variants
 

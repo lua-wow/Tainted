@@ -11,10 +11,10 @@ Legend: **Observed** = seen in the code · **Recommended** = proposal, not yet a
 
 - Revived after a long maintenance gap. TOC, references and settings have been cleaned up.
 - **Observed:** on Retail and Forever, only core, unit frames, maps (minimap/worldmap), chat and datatexts
-  load, plus tooltips, auras, action bars, bags and part of the Blizzard tweaks (framerate, talking
-  head, mirror timers, experience with house favor, queue status, ghost, objective tracker). Miscellaneous only loads on Classic and MoP.
+  load, plus tooltips, auras, action bars, bags and the Blizzard tweaks (all clients; ghost and
+  talking head where the frame exists). Miscellaneous only loads on Classic and MoP.
 - **Observed:** working: unit frames (most mature), minimap, chat and datatexts on all clients; action bars on Classic (Retail/Forever pending verification).
-  Blizzard tweaks: item 7 steps 1–13 done (UI widgets pending in-game
+  Blizzard tweaks: item 7 done (UI widgets and the final all-client check pending in-game
   verification). Bags (window on all clients, bank and sort on
   Classic/MoP) pending in-game verification.
 - Constraints: one TOC for 6 clients; Retail oUF is read-only; Midnight secret values
@@ -355,7 +355,7 @@ Feasibility study: [actionbar-report.md](actionbar-report.md).
 
 ### 7. Blizzard UI tweaks
 
-**Status:** In progress (steps 1–13 done, 14 pending) · **Priority:** Low · **Depends on:** 1, 2
+**Status:** Done, pending in-game verification · **Priority:** Low · **Depends on:** 1, 2
 
 **Objective:** each tweak verified per client or dropped; mainline gets the ones that work there.
 
@@ -564,7 +564,7 @@ Feasibility study: [actionbar-report.md](actionbar-report.md).
     - Change: remove `raid_utility.lua`, `C.blizzard.raid_utility`, `/tainted raid` and its README line.
     - Clients: all 6 (not loaded today).
     - Test: `/tainted` no longer lists `raid`; no errors.
-14. **Done** · Depends on: 3–13
+14. **Done** · Done, pending in-game verification · Depends on: 3–13
     - Change: compatibility.md current status; §1 and §5 of this plan (`C.blizzard` settings).
     - Test: `/reload` on all 6 clients; taint log clean after combat and Edit Mode.
 
@@ -771,9 +771,7 @@ Unit frames continue in parallel as a leaf. Only item 0 touches them.
 - Unit-frame raid-holder healer repositioning: currently dead machinery. Revisit with unit frames.
 - Dead stubs (party unit, `development.lua`, `event_trace.lua`): remove during
   item 10.
-- Settings with no effect (`C.blizzard.ghost/talkinghead/raid_utility`): resolve
-  with their items.
-- Mainline-only Blizzard/misc files are kept but unverified on 12.x. Leave them until items 7/9.
+- Mainline-only misc files are kept but unverified on 12.x. Leave them until item 9.
 - Combat-log based dispels/interrupts on Retail. Check the API docs before reviving (item 9).
 - Duplicate client detection inside the dispels/screenshots mini-addons. Handle with item 9.
 - Visual refinements outside design.md.
@@ -827,7 +825,7 @@ Unit frames continue in parallel as a leaf. Only item 0 touches them.
   - [x] 2. Temporary enchants
   - [x] 3. Mainline aura containers (pending in-game verification)
 - [x] 6. Tooltips (pending in-game verification)
-- [ ] 7. Blizzard UI tweaks
+- [x] 7. Blizzard UI tweaks (pending in-game verification)
   - [x] 1. TOC lines instead of XML
   - [x] 2. Isolated tweak init
   - [x] 3. Framerate + talking head on mainline
@@ -841,7 +839,7 @@ Unit frames continue in parallel as a leaf. Only item 0 touches them.
   - [x] 11. Durability (verified on MoP)
   - [x] 12. Objective tracker anchor on mainline (verified on MoP, Retail and Era)
   - [x] 13. Raid utility
-  - [ ] 14. Done
+  - [x] 14. Done (pending in-game verification)
 - [x] 8. Bags (pending in-game verification)
   - [x] 1. Bag window
   - [x] 2. Slot presentation and updates
