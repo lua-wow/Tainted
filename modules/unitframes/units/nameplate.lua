@@ -222,7 +222,12 @@ if E.isStandard then
             or (element.colorClassNPC and not (UnitIsPlayer(unit) or UnitInPartyIsAI(unit)))
             or (element.colorClassPet and UnitPlayerControlled(unit) and not UnitIsPlayer(unit)) then
             local _, class = UnitClass(unit)
-            color = self.colors.class[class]
+            if (issecretvalue(class)) then
+                -- custom class colors can't be indexed by a secret class (same as Retail oUF)
+                color = C_ClassColor.GetClassColor(class)
+            else
+                color = self.colors.class[class]
+            end
         elseif (element.colorSelection and selection) then
             if creatureRole and (selection == 0) then
                 color = element.colors[creatureRole] or self.colors.selection[selection]

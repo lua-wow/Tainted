@@ -69,6 +69,7 @@ read_globals = {
     'C_Bank',
     'C_BattleNet',
     'C_ChallengeMode',
+    'C_ClassColor',
     'C_Container',
     'C_CovenantSanctumUI',
     'C_CurrencyInfo',

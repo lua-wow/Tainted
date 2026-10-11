@@ -62,7 +62,7 @@ function element_proto:Override(event, slot)
             end
     
             if (totem.Cooldown) then
-                totem.Cooldown:SetCooldown(start, duration)
+                totem.Cooldown:SetCooldownFromDurationObject(duration)
             end
         end
 

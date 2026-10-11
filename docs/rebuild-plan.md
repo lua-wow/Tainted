@@ -725,8 +725,8 @@ one classic oUF.
   `oUF_TargetIndicator` (`classic`). Retail oUF has its own `TargetIndicator` element;
   oUF_TargetIndicator calls `PostUpdate(isTarget)` like it.
 - oUF per client (TOC tags; every client knows every game-type token, so only one copy loads;
-  runtime unverified): Retail and Forever `libs\oUF`; Era, TBC, WotLK `libs\oUF_Classic`; MoP
-  `libs\oUF_Mists`.
+  runtime unverified): Retail and Forever `libs\oUF`; Era, TBC, WotLK `libs\oUF_Merge` (since
+  step 4; `libs\oUF_Classic` before); MoP `libs\oUF_Mists`.
 - Per-oUF branching uses `isRetailOUF = E.isStandard or E.isCamelot` (`core.lua`, `health.lua`):
   header visibility, nameplate spawn and callbacks, health prediction.
 - Game flags where a family or the oUF variant is meant: AdditionalPower, PowerPrediction, Phase,
@@ -812,6 +812,10 @@ hidden Blizzard frame.
   (branch `classic-unified`, starts equal to `classic`); it is merged into `classic` afterwards.
   oUF_Mists stays untouched (except step 1's nameplate fix) until the merge is verified on MoP; oUF_Mists and oUF_Merge are removed
   last (by the maintainer).
+- Era, TBC and WotLK load `libs\oUF_Merge` from step 4 (it was identical to oUF_Classic then);
+  classic-family oUF edits go to oUF_Merge only, oUF_Classic stays untouched until step 11.
+  oUF_Merge mirrors Retail oUF callback signatures, aligned per element as steps need them;
+  Tainted adapts to oUF_Mists on MoP until step 10.
 - oUF_Atonement, oUF_AuraTrack, oUF_RaidDebuffs and oUF_TargetIndicator may be edited. oUF_Tempest is
   out of scope (possibly dropped).
 - Retail raid frames: oUF `Auras` groups with Blizzard filters replace oUF_AuraTrack and
@@ -877,13 +881,20 @@ hidden Blizzard frame.
    - Clients: Retail, Forever (Classic: only `debuffs.enabled` check).
    - Test: dispellable debuff first, boss debuff, crowd control; defensives, externals and own HoTs
      on raid members; in combat, raid boss, M+, arena. Era: RaidDebuffs/AuraTrack unchanged.
-4. **Retail drift fixes** · Depends on: —
-   - Change: ClassPower `PostUpdate` takes the Retail argument order under `isRetailOUF`; nameplate
-     `UpdateColor` uses `C_ClassColor.GetClassColor` for a secret class; castbar channel check via
-     `castBarID`; `Over*Indicator` as Textures; totem icons via `SetCooldownFromDurationObject`;
-     AlternativePower percent skipped when secret; name truncation skipped for secret names;
-     `[rolecolor]` fixed or removed; LibMobs checks `issecretvalue` before testing the GUID.
-   - Clients: Retail, Forever.
+4. **Retail drift fixes** · Done (verified on Retail) · Depends on: —
+   - Change: TOC `vanilla, tbc, wrath` line loads `libs\oUF_Merge`. ClassPower `PostUpdate` takes
+     the Retail order `(cur, max, hasCurChanged, hasMaxChanged, powerType)`; oUF_Merge now passes
+     it too (tracks `__cur`), and an `E.isMists` adapter forwards oUF_Mists' old order. Nameplate
+     `UpdateColor` uses `C_ClassColor.GetClassColor` for a secret class (as Retail oUF); castbar
+     treats a non-nil `castBarID` (`NeverSecret`) or a non-secret name as a channel;
+     `Over*Indicator` are Textures (5 px wide; never drawn before); totem icons via
+     `SetCooldownFromDurationObject`; AlternativePower clears the percent when `cur`/`max` is
+     secret; `[nameshort]` wraps a secret name with `C_StringUtil.WrapString` (no truncation;
+     `E.UTF8Sub` already skips secrets); `[rolecolor]` removed (unused); LibMobs `UnitRole`
+     checks `issecretvalue` before testing the GUID (submodule edit, uncommitted).
+   - Unverified: whether `castBarID` is set for every channel; secret `C_ClassColor` colors in
+     `SetStatusBarColor`; `OverHealAbsorbIndicator` sits left of the health bar (oUF's anchor).
+   - Clients: Retail, Forever (Era/TBC/WotLK: oUF_Merge load and class power; MoP: class power).
    - Test: combo points, holy power, Maelstrom; enemy channel colors; PvP nameplate class colors;
      names in M+; boss alt power; taint log clean.
 5. **Plugins** · Depends on: —
@@ -922,8 +933,8 @@ hidden Blizzard frame.
      `GetInspectSpecialization`, `PlayerVehicleHasComboPoints`, `GetRuneType`,
      `BossTargetFrameContainer`, `showArenaEnemyFrames`, `C_SpecializationInfo` at file load and each
      `C_Ping` function; totem slots from `MAX_TOTEMS`. Step 1's nameplate fix ported; Mists
-     `Private.unitSelectionType` fixed. TOC: the `vanilla, tbc, wrath` line loads `libs\oUF_Merge`;
-     MoP keeps oUF_Mists.
+     `Private.unitSelectionType` fixed. TOC: the `vanilla, tbc, wrath` line already loads
+     `libs\oUF_Merge` (step 4); MoP keeps oUF_Mists.
    - Clients: Era, TBC, WotLK.
    - Test: combo points on target (Era/TBC), totems, aura tooltips, WotLK DK runes, arena (TBC/WotLK)
      without errors, nameplates.
@@ -1088,7 +1099,7 @@ editing Tainted's files, and this contract is documented.
   - [x] 1. Nameplate artwork (classic family)
   - [x] 2. Retail unit-frame auras (verified on Retail)
   - [x] 3. Retail raid auras (verified on Retail)
-  - [ ] 4. Retail drift fixes
+  - [x] 4. Retail drift fixes (verified on Retail)
   - [ ] 5. Plugins
   - [ ] 6. Healer raid position
   - [ ] 7. Forever and family flags

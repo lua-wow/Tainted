@@ -56,7 +56,6 @@ local events = {
     -- colors
     ["healthcolor"]     = "UNIT_HEALTH UNIT_MAXHEALTH",
     ["namecolor"]       = "UNIT_POWER_UPDATE",
-    ["rolecolor"]       = "RAID_ROSTER_UPDATE GROUP_ROSTER_UPDATE",
     ["hostility"]       = "UNIT_POWER_UPDATE",
     ["difficulty"]      = "UNIT_FACTION UNIT_LEVEL PLAYER_LEVEL_UP",
     -- others
@@ -100,6 +99,10 @@ local tags = {
         local isAssistant = IsTrue(UnitIsGroupAssistant(unit)) or IsTrue(UnitIsRaidOfficer(unit))
         local assist = isAssistant and "[A] " or ""
         local lead = isLeader and "[L] " or ""
+        -- secret names can't be concatenated or truncated
+        if (issecretvalue and issecretvalue(name)) then
+            return C_StringUtil.WrapString(name, lead .. assist)
+        end
         return E.UTF8Sub(lead .. assist .. name, 10, false)
     end,
     ["namemedium"] = function(unit)
@@ -128,11 +131,6 @@ local tags = {
             -- return "|c" .. E.colors.white.hex
             return E.colors.white:GenerateHexColorMarkup()
         end
-    end,
-    ["rolecolor"] = function(unit)
-        local role = UnitGroupRolesAssigned(unit)
-        local color = oUF.colors.roles[role or "NONE"]
-		return color:GenerateHexColorMarkup()
     end,
     ["hostility"] = function(unit)
         local reaction = UnitReaction(unit, "player")

@@ -199,13 +199,14 @@ do
         HealingOther:SetStatusBarColor(healingColor:GetRGBA())
         parent.HealingOther = HealingOther
         
-        local OverHealIndicator = CreateFrame("StatusBar", nil, parent)
+        -- Retail oUF expects the Over*Indicator widgets as Textures
+        local OverHealIndicator = parent:CreateTexture(nil, "OVERLAY")
         OverHealIndicator:SetPoint("TOP")
         OverHealIndicator:SetPoint("BOTTOM")
         OverHealIndicator:SetPoint("LEFT", parent:GetStatusBarTexture(), "RIGHT")
-        OverHealIndicator:SetWidth(width)
-        OverHealIndicator:SetStatusBarTexture(texture)
-        OverHealIndicator:SetStatusBarColor(healingColor:GetRGBA())
+        OverHealIndicator:SetWidth(5)
+        OverHealIndicator:SetTexture(texture)
+        OverHealIndicator:SetVertexColor(healingColor:GetRGBA())
         parent.OverHealIndicator = OverHealIndicator
         
         local DamageAbsorb = CreateFrame("StatusBar", nil, parent)
@@ -217,13 +218,13 @@ do
         DamageAbsorb:SetStatusBarColor(absorbColor:GetRGBA())
         parent.DamageAbsorb = DamageAbsorb
         
-        local OverDamageAbsorbIndicator = CreateFrame("StatusBar", nil, parent)
+        local OverDamageAbsorbIndicator = parent:CreateTexture(nil, "OVERLAY")
         OverDamageAbsorbIndicator:SetPoint("TOP")
         OverDamageAbsorbIndicator:SetPoint("BOTTOM")
         OverDamageAbsorbIndicator:SetPoint("LEFT", parent:GetStatusBarTexture(), "RIGHT")
         OverDamageAbsorbIndicator:SetWidth(5)
-        OverDamageAbsorbIndicator:SetStatusBarTexture(texture)
-        OverDamageAbsorbIndicator:SetStatusBarColor(absorbColor:GetRGBA())
+        OverDamageAbsorbIndicator:SetTexture(texture)
+        OverDamageAbsorbIndicator:SetVertexColor(absorbColor:GetRGBA())
         parent.OverDamageAbsorbIndicator = OverDamageAbsorbIndicator
         
         local HealAbsorb = CreateFrame("StatusBar", nil, parent)
@@ -235,13 +236,13 @@ do
         HealAbsorb:SetStatusBarColor(absorbColor:GetRGBA())
         parent.HealAbsorb = HealAbsorb
         
-        local OverHealAbsorbIndicator = CreateFrame("StatusBar", nil, parent)
+        local OverHealAbsorbIndicator = parent:CreateTexture(nil, "OVERLAY")
         OverHealAbsorbIndicator:SetPoint("TOP")
         OverHealAbsorbIndicator:SetPoint("BOTTOM")
         OverHealAbsorbIndicator:SetPoint("RIGHT", parent:GetStatusBarTexture(), "LEFT")
         OverHealAbsorbIndicator:SetWidth(5)
-        OverHealAbsorbIndicator:SetStatusBarTexture(texture)
-        OverHealAbsorbIndicator:SetStatusBarColor(absorbColor:GetRGBA())
+        OverHealAbsorbIndicator:SetTexture(texture)
+        OverHealAbsorbIndicator:SetVertexColor(absorbColor:GetRGBA())
         parent.OverHealAbsorbIndicator = OverHealAbsorbIndicator
 
         parent.HealingAll = HealingAll               

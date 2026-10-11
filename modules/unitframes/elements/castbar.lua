@@ -35,8 +35,9 @@ function element_proto:UpdateColor(unit, notInterruptible)
     local colors = C.unitframes.castbar.colors
 
     local color = colors.casting
-    local channel, _, _, _, _, _, _, _, isEmpowered = UnitChannelInfo(unit)
-    if (channel) then
+    -- name is secret on Retail when cast info is restricted; castBarID never is
+    local channel, _, _, _, _, _, _, _, isEmpowered, _, castBarID = UnitChannelInfo(unit)
+    if (castBarID ~= nil or (not issecretvalue(channel) and channel)) then
         color = isEmpowered and colors.empowering or colors.channeling
     end
 

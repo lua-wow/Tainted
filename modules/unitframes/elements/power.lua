@@ -129,7 +129,10 @@ do
         end
 
         if (self.Value) then
-            if (max and max ~= 0) then
+            -- UnitPower/UnitPowerMax are secret when power is restricted (Retail)
+            if (issecretvalue(cur) or issecretvalue(max)) then
+                self.Value:SetText("")
+            elseif (max and max ~= 0) then
                 local perc = 100 * ((cur - min) / (max - min))
                 self.Value:SetFormattedText("%d%%", perc)
             else
