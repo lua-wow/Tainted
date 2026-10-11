@@ -840,13 +840,22 @@ hidden Blizzard frame.
    - Clients: Era, TBC, WotLK, MoP.
    - Test: no Blizzard health bar, level, name or border under Tainted plates; target switching;
      widget plates; friendly forbidden plates in instances unaffected.
-2. **Retail unit-frame auras** · Depends on: —
+2. **Retail unit-frame auras** · Done (verified on Retail) · Depends on: —
    - Change: `elements/auras.lua` tagged `classic` (unchanged); new `elements/auras_mainline.lua`
      (`mainline`): `CreateBuffs`/`CreateDebuffs` build `frame:CreateAuras{...}` with
-     `AddGroup("HELPFUL")`/`AddGroup("HARMFUL")` (`HARMFUL|PLAYER` on nameplates), size, spacing and
-     count from `C.unitframes.auras`; `PostCreateButton` adds the Tainted backdrop; duration colored
-     by `E.curves.auras.timer`, count, debuff border with `colors.dispel`, stealable border (as
+     `AddGroup("HELPFUL")`/`AddGroup("HARMFUL")` (`HELPFUL|PLAYER` with `buffs.selfBuffs`,
+     `HARMFUL|PLAYER` on nameplates), size, spacing, count and anchors as Classic;
+     `PostCreateButton` adds the Tainted backdrop; centered timer colored by
+     `E.curves.auras.duration` (the Classic unit-frame curve, not `timer`), count, debuff border with
+     `colors.dispel`, stealable border in `colors.stealable` (dispel-type textures as
      `modules/auras/mainline`).
+   - Differences from Classic (they need aura data that is secret on Retail): every debuff gets a
+     type border (Classic: only on friendly units); no desaturated foreign debuffs; no dispellable
+     flash. Raid frames are step 3. Whether the flow layout resizes the container is unverified
+     (the element keeps a fixed one-row size).
+   - Nothing may anchor to an AuraContainer (`SetPoint` errors: "dependent object would inherit
+     forbidden aspects: UntrustedLayoutScriptExecution"), so Debuffs are offset from the unit frame
+     by one buff row instead of anchoring to Buffs.
    - Clients: Retail, Forever.
    - Test: target, focus, pet, boss, arena and nameplate auras placed as on Classic; timers, stacks,
      borders, tooltips; no errors in combat, dungeon, M+, PvP.
@@ -1067,7 +1076,7 @@ editing Tainted's files, and this contract is documented.
   - [x] 5. Classic sort
 - [ ] 9. Unit frames
   - [x] 1. Nameplate artwork (classic family)
-  - [ ] 2. Retail unit-frame auras
+  - [x] 2. Retail unit-frame auras (verified on Retail)
   - [ ] 3. Retail raid auras
   - [ ] 4. Retail drift fixes
   - [ ] 5. Plugins

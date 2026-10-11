@@ -111,7 +111,8 @@ modules\unitframes\core.lua
 modules\unitframes\tags.lua
 
 modules\unitframes\elements\atonement.lua
-modules\unitframes\elements\auras.lua
+modules\unitframes\elements\auras.lua [AllowLoadGameType classic]
+modules\unitframes\elements\auras_mainline.lua [AllowLoadGameType mainline]
 modules\unitframes\elements\castbar.lua
 modules\unitframes\elements\classpower.lua
 modules\unitframes\elements\health.lua
