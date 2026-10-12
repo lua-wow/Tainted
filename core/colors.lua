@@ -23,14 +23,6 @@ oUF.colors.health = oUF:CreateColor(0.29, 0.68, 0.30)
 
 oUF.colors.disconnected = oUF:CreateColor(0.1, 0.1, 0.1)
 
-oUF.colors.runes = {
-	[1] = oUF:CreateColor(0.69, 0.31, 0.31),
-	[2] = oUF:CreateColor(0.41, 0.80, 1.00),
-	[3] = oUF:CreateColor(0.65, 0.63, 0.35),
-	[4] = oUF:CreateColor(0.53, 0.53, 0.93),
-	[5] = oUF:CreateColor(0.55, 0.57, 0.61), -- unspec, new char
-}
-
 oUF.colors.reaction = {
 	[1] = oUF:CreateColor(0.78, 0.25, 0.25), -- Hated
 	[2] = oUF:CreateColor(0.78, 0.25, 0.25), -- Hostile

@@ -1092,7 +1092,7 @@ breakpoints work on Retail/Forever).
       `cur - pct%` in an encounter; focus/pet/party/nameplates still percent; values 0, 999,
       1000, 1500, 18.2m, ≥ 1e9; rage/energy ≤ 100; low-level character; tooltip health; Monk
       stagger (MoP, Retail).
-12. **DK rune types** · Depends on: 10
+12. **DK rune types** · Done · Depends on: 10
     - Change: oUF_Classic Runes (submodule edits, uncommitted) restores the pre-Legion behavior
       when `GetRuneType` exists: runemap `{1, 2, 5, 6, 3, 4}`, no sorting, each rune colored by
       its type (fallback `colors.power.RUNES`), `RUNE_TYPE_UPDATE(runeIndex)` (unitless)
@@ -1102,6 +1102,11 @@ breakpoints work on Retail/Forever).
       behaves as now. Tainted: `core/colors.lua` drops its `oUF.colors.runes` override;
       `elements/runes.lua` sets `colorSpec = true` (Retail/Forever color by spec; on WotLK/MoP
       the rune type wins).
+    - Rune type order follows the combat text and pre-Legion oUF (1 blood, 2 unholy, 3 frost,
+      4 death): `runeTypeColor = {1, 3, 2, 4}`. If frost and unholy show swapped colors in-game,
+      it becomes `{1, 2, 3, 4}` (Blizzard's `RUNETYPE_*` constants). No extra login event: oUF
+      updates all elements on `PLAYER_ENTERING_WORLD`. Retail/Forever runes change from gray to
+      oUF's spec colors.
     - Unverified: rune type order (Blizzard's constants vs its combat text); WotLK slot types.
     - Commits: oUF_Classic (`classic`): `elements/runes.lua`, `colors.lua`. Parent: submodule
       pointer, `core/colors.lua`, `modules/unitframes/elements/runes.lua`.
@@ -1349,7 +1354,7 @@ editing Tainted's files, and this contract is documented.
   - [x] 9. oUF_Merge: Era, TBC, WotLK
   - [x] 10. oUF_Merge: MoP
   - [x] 11. Short values
-  - [ ] 12. DK rune types
+  - [x] 12. DK rune types
   - [ ] 13. oUF_Classic: Retail callbacks, colors and factory
   - [ ] 14. Classic AdditionalPower
   - [ ] 15. oUF_Classic: Retail prediction

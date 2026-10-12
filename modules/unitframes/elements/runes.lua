@@ -8,21 +8,8 @@ local UnitFrames = E:GetModule("UnitFrames")
 local MAX_RUNES = _G.MAX_RUNES or 6
 
 local element_proto = {
-    colorSpec = false
+    colorSpec = true
 }
-
--- function element_proto:PostUpdate(runemap)
---     local element = self
---     for index, runeID in next, runemap do
---         local rune = element[index]
---         local start, duration, runeReady = GetRuneCooldown(runeID)
---         if (runeReady) then
---             rune:SetAlpha(1)
---         else
---             rune:SetAlpha(0.5)
---         end
---     end
--- end
 
 function UnitFrames:CreateRunes(frame)
     local texture = C.unitframes.texture
