@@ -27,7 +27,7 @@ libs\LibStub\LibStub.lua
 libs\LibDispel\LibDispel.xml
 libs\LibMobs\LibMobs.xml
 libs\oUF\oUF.xml [AllowLoadGameType mainline]
-libs\oUF_Merge\oUF.xml [AllowLoadGameType classic]
+libs\oUF_Classic\oUF.xml [AllowLoadGameType classic]
 libs\oUF_Atonement\oUF_Atonement.lua [AllowLoadGameType mainline]
 libs\oUF_AuraTrack\oUF_AuraTrack.xml [AllowLoadGameType classic]
 libs\oUF_RaidDebuffs\oUF_RaidDebuffs.xml [AllowLoadGameType classic]

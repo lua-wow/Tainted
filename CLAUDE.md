@@ -39,7 +39,7 @@ architecture win when they conflict.
   Tainted usage → verify current behavior on each affected client → fix → check other
   usages of the same changed API.
 - `libs/oUF` (Retail oUF) is read-only: work around problems in Tainted and report them.
-  `libs/oUF_Classic` and `libs/oUF_Mists` may be fixed; don't merge them unless asked.
+  `libs/oUF_Classic` (Era, TBC, WotLK, MoP) may be fixed.
 - UI layout/styling work: check against [docs/design.md](docs/design.md) and its reference image.
 
 ## Compatibility

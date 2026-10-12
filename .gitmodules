@@ -6,10 +6,6 @@
 	path = libs/oUF_Classic
 	url = https://github.com/lua-wow/oUF.git
 	branch = classic
-[submodule "libs/oUF_Mists"]
-	path = libs/oUF_Mists
-	url = https://github.com/lua-wow/oUF.git
-	branch = mop
 [submodule "libs/oUF_Atonement"]
 	path = libs/oUF_Atonement
 	url = https://github.com/lua-wow/oUF_Atonement.git
@@ -58,7 +54,3 @@
 	path = modules/miscellaneous/screenshots
 	url = https://github.com/lua-wow/screenshots.git
 	branch = master
-[submodule "libs/oUF_Merge"]
-	path = libs/oUF_Merge
-	url = https://github.com/lua-wow/oUF.git
-	branch = classic-unified

@@ -725,8 +725,8 @@ one classic oUF.
   `oUF_TargetIndicator` (`classic`). Retail oUF has its own `TargetIndicator` element;
   oUF_TargetIndicator calls `PostUpdate(isTarget)` like it.
 - oUF per client (TOC tags; every client knows every game-type token, so only one copy loads;
-  runtime unverified): Retail and Forever `libs\oUF`; Era, TBC, WotLK `libs\oUF_Merge` (since
-  step 4; `libs\oUF_Classic` before); MoP `libs\oUF_Merge` (since step 10; `libs\oUF_Mists` before).
+  runtime unverified): Retail and Forever `libs\oUF`; Era, TBC, WotLK and MoP `libs\oUF_Classic`
+  (one classic oUF since step 10; oUF_Merge from step 4 and oUF_Mists on MoP before).
 - Per-oUF branching used `isRetailOUF = E.isStandard or E.isCamelot` (`core.lua`, `health.lua`):
   header visibility, nameplate spawn and callbacks, health prediction. Since step 7: `E.isMainline`
   (Retail oUF loads on the `mainline` family).
@@ -805,18 +805,14 @@ hidden Blizzard frame.
   and undocumented globals (`GetArenaOpponentSpec`, `GetInspectSpecialization`,
   `PlayerVehicleHasComboPoints`, `GetRuneType`). `C_Ping` only has `IsPingSystemEnabled`;
   `PingableUnitFrameTemplate` is an empty stub.
-- WotLK DKs: Tainted creates `frame.Runes`, but oUF_Classic has no Runes element.
+- WotLK DKs: Tainted creates `frame.Runes`, but oUF_Classic had no Runes element (live since step 9).
 
 **Decided:**
 - Retail and Forever use `libs\oUF`, read-only; work around it in Tainted.
-- One classic oUF for Era, TBC, WotLK and MoP. Mists changes are ported by editing `libs/oUF_Merge`
-  (branch `classic-unified`, starts equal to `classic`); it is merged into `classic` afterwards.
-  oUF_Mists stays untouched (except step 1's nameplate fix) until the merge is verified on MoP; oUF_Mists and oUF_Merge are removed
-  last (by the maintainer).
-- Era, TBC and WotLK load `libs\oUF_Merge` from step 4 (it was identical to oUF_Classic then);
-  classic-family oUF edits go to oUF_Merge only, oUF_Classic stays untouched until step 13.
-  oUF_Merge mirrors Retail oUF callback signatures, aligned per element as steps need them;
-  Tainted adapts to oUF_Mists on MoP until step 10.
+- One classic oUF for Era, TBC, WotLK and MoP: Mists changes were ported in `libs/oUF_Merge`
+  (branch `classic-unified`), loaded on Era/TBC/WotLK from step 4 and on MoP from step 10, then
+  squash-merged into `classic`. `libs/oUF_Classic` serves all four; oUF_Merge and oUF_Mists are
+  removed. ClassPower `PostUpdate` uses the Retail oUF signature.
 - oUF_Atonement, oUF_AuraTrack, oUF_RaidDebuffs and oUF_TargetIndicator may be edited. oUF_Tempest is
   out of scope (possibly dropped). The Atonement bar is dropped on Retail (step 5).
 - Retail raid frames: oUF `Auras` groups with Blizzard filters replace oUF_AuraTrack and
@@ -1027,11 +1023,12 @@ hidden Blizzard frame.
     - Test: chi, holy power, shards, arcane charges, stagger, runes, alt power, arena preparation,
       boss frames, nameplates, castbar; combo points cleared on a target switch and restored when
       switching back (MoP), Era combo points unchanged.
-    - Rollback: restore the oUF_Mists line, oUF_Merge back to `vanilla, tbc, wrath`. The two lines
-      must never load on the same client (shared `oUF` namespace).
+    - Then (maintainer): `classic-unified` squash-merged into `classic`; the TOC loads
+      `libs\oUF_Classic` (`classic`) on Era, TBC, WotLK and MoP; oUF_Merge and oUF_Mists submodules
+      removed. Game loads on Era and MoP.
 11. **Classic totems** · Depends on: 10
     - Change: `CreateTotems` also builds the bar on Classic (drop its `E.isMainline` guard).
-      oUF_Merge has a Totems element that calls `Totems.Override(self, event, slot)` like Retail
+      oUF_Classic has a Totems element that calls `Totems.Override(self, event, slot)` like Retail
       oUF; Classic API docs (Era, TBC, Titan, MoP) have `GetTotemInfo`, `GetTotemDuration`,
       `SetTimerDuration`, `C_StringUtil.TruncateWhenZero` and the duration-object methods;
       `MAX_TOTEMS` is 4 with both priority tables. `shaman.lua` then anchors Maelstrom below the
@@ -1040,8 +1037,8 @@ hidden Blizzard frame.
     - Test: shaman totem bar (bars and icon mode, timers, tooltips, right-click), other MoP classes
       with totem slots, totems after `/reload` and zoning.
 12. **Threat indicator** · Depends on: 11
-    - Change: a unit-frame threat indicator on oUF's `ThreatIndicator` element (present in `libs/oUF`,
-      oUF_Merge and oUF_Mists). Not a restore of the old `threat.lua` (step 8: never called, no
+    - Change: a unit-frame threat indicator on oUF's `ThreatIndicator` element (present in `libs/oUF`
+      and `libs/oUF_Classic`). Not a restore of the old `threat.lua` (step 8: never called, no
       texture, anchored to `UIParent`). Which units, the look and the placement are undecided:
       `docs/design.md` has no unit-frame threat indicator (its threat bar is
       `modules/miscellaneous/threatbar.lua`); nameplates already color by threat.
@@ -1051,14 +1048,12 @@ hidden Blizzard frame.
     - Test: indicator on aggro (solo, group, tanking), cleared on drop; no secret-value errors in
       encounters and M+ on Retail/Forever.
 13. **Done** · Depends on: 1–12
-    - Change: compatibility.md (one classic oUF; unit frames per client); §1 and §4 of this plan.
-      Then the maintainer merges `classic-unified` into `classic`, points the TOC at
-      `libs\oUF_Classic` (`classic`), and removes the oUF_Mists and oUF_Merge submodules.
+    - Change: §1 and §4 of this plan (compatibility.md and the classic oUF merge are done, step 10).
     - Test: `/reload` on all 6; taint log clean after combat.
 
 **Unverified (needs in-game checks):** which oUF loads at runtime on Forever and WotLK; every
 secret-value row; Blizzard's event order for step 1; the Classic `GetSpecializationInfo` role return;
-WotLK runes and spec behavior in oUF_Merge; `IMPORTANT` on debuffs.
+WotLK runes and spec behavior in oUF_Classic; `IMPORTANT` on debuffs.
 
 ### 10. Miscellaneous
 

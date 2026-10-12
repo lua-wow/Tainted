@@ -14,7 +14,7 @@ A single `Tainted.toc` serves every supported client (`## Interface: 120100, 160
 | Classic Era     | `11509`   | `vanilla`  | `classic`  | `libs\oUF_Classic` |
 | Classic TBC     | `20506`   | `tbc`      | `classic`  | `libs\oUF_Classic` |
 | Classic WotLK   | `38002`   | `wrath`    | `classic`  | `libs\oUF_Classic` |
-| Classic MoP     | `50504`   | `mists`    | `classic`  | `libs\oUF_Mists`   |
+| Classic MoP     | `50504`   | `mists`    | `classic`  | `libs\oUF_Classic` |
 
 - WotLK is Titan 3.80.x (loads the `Wrath` flavor with `WOW_PROJECT_ID == WOW_PROJECT_WRATH_CLASSIC`),
   not the retired 3.4.x Wrath Classic. Don't assume 3.4.x behavior.
@@ -54,9 +54,9 @@ A single `Tainted.toc` serves every supported client (`## Interface: 120100, 160
 
 - `libs/oUF`: Retail oUF, fork of upstream. **Read-only** — work around problems in Tainted
   and report/document them. Updates are handled by the maintainer.
-- `libs/oUF_Classic`: branch `classic` (Era/TBC/WotLK). Fixes allowed when needed.
-- `libs/oUF_Mists`: branch `mop` (MoP). Fixes allowed when needed.
-- Do not merge/refactor the Classic and MoP implementations unless asked.
+- `libs/oUF_Classic`: branch `classic`, one oUF for Era, TBC, WotLK and MoP (game content gated
+  by `oUF.isMoP`); ClassPower `PostUpdate` uses the Retail oUF signature. Fixes allowed
+  when needed.
 
 ## Runtime client checks
 
