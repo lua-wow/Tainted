@@ -814,7 +814,7 @@ hidden Blizzard frame.
   oUF_Mists stays untouched (except step 1's nameplate fix) until the merge is verified on MoP; oUF_Mists and oUF_Merge are removed
   last (by the maintainer).
 - Era, TBC and WotLK load `libs\oUF_Merge` from step 4 (it was identical to oUF_Classic then);
-  classic-family oUF edits go to oUF_Merge only, oUF_Classic stays untouched until step 12.
+  classic-family oUF edits go to oUF_Merge only, oUF_Classic stays untouched until step 13.
   oUF_Merge mirrors Retail oUF callback signatures, aligned per element as steps need them;
   Tainted adapts to oUF_Mists on MoP until step 10.
 - oUF_Atonement, oUF_AuraTrack, oUF_RaidDebuffs and oUF_TargetIndicator may be edited. oUF_Tempest is
@@ -982,15 +982,29 @@ hidden Blizzard frame.
      power bars; Classic castbar timer `cur / max`; boss and arena frames; with
      `party.enabled = true`: party column in a party (joins/leaves, in combat), raid frames in a
      raid, no Blizzard party frames.
-9. **oUF_Merge: Era, TBC, WotLK** · Depends on: 8
-   - Change: port oUF_Mists into `libs/oUF_Merge` (Mists-only elements, class powers, tags, arena
-     preparation, boss container, alt-power table, absorb and range events), keeping the Classic-only
-     behavior listed in Observed. Feature detection for `GetArenaOpponentSpec`,
-     `GetInspectSpecialization`, `PlayerVehicleHasComboPoints`, `GetRuneType`,
-     `BossTargetFrameContainer`, `showArenaEnemyFrames`, `C_SpecializationInfo` at file load and each
-     `C_Ping` function; totem slots from `MAX_TOTEMS`. Step 1's nameplate fix ported; Mists
-     `Private.unitSelectionType` fixed. TOC: the `vanilla, tbc, wrath` line already loads
-     `libs\oUF_Merge` (step 4); MoP keeps oUF_Mists.
+9. **oUF_Merge: Era, TBC, WotLK** · Done · Depends on: 8
+   - Change: oUF_Mists ported into `libs/oUF_Merge` (submodule edits, uncommitted): AdditionalPower,
+     AlternativePower, Runes, Stagger elements; alt-power table in `private.lua` (used by
+     PowerPrediction); chi, holy power, soul shards and arcane charges in ClassPower; `arcanecharges`,
+     `arenaspec`, `chi`, `holypower` tags, battle-pet `level`, `faction` on
+     `NEUTRAL_FACTION_SELECT_RESULT`; arena preparation; boss container; Blizzard arena frames hidden;
+     absorb (HealthPrediction) and `UNIT_IN_RANGE_UPDATE` (Range) events; Power `colorPowerAtlas`;
+     nameplate widgets ignore parent alpha. Kept Classic-only: combo points on target, castbar
+     `CastingBarFrame_SetUnit` fallback, nameplate `UNIT_FACTION`, `GetAddOnMetadata` fallback,
+     `ping-receiver`, aura `auraIndex` on Era, Retail ClassPower `PostUpdate` order.
+   - The four Mists class powers are gated by `oUF.isMoP` (game content). Arcane charges compare
+     `RequireSpec` with `C_SpecializationInfo.GetSpecialization()` (Mists compared the spec index with
+     `GetInspectSpecialization`'s spec ID, so the bar never showed). Tags use
+     `C_SpecializationInfo.GetSpecialization()` (the global is a deprecation fallback).
+   - Feature detection: `GetArenaOpponentSpec` (arena preparation, `arenaspec`, `raidcolor`),
+     `PlayerVehicleHasComboPoints`, `BossTargetFrameContainer` (else per-frame boss hiding),
+     `Arena_LoadUI`, the `showArenaEnemyFrames` CVar (`C_CVar`). `GetInspectSpecialization` is no longer
+     used; `GetRuneType` and `C_Ping` functions are not called by oUF_Merge. Totems already use the
+     layout's slot count. Step 1's nameplate fix and the `unitSelectionType` fix were already in.
+   - WotLK DKs: Tainted's `frame.Runes` is now live (one color, `colors.power.RUNES`; no rune types).
+   - Verified: Era rogue combo points (target switch, kill). Druid untested.
+   - Unverified: arena preparation on TBC/WotLK (`GetArenaOpponentSpec` presence);
+     `BossTargetFrameContainer` on Era/TBC/WotLK.
    - Clients: Era, TBC, WotLK.
    - Test: combo points on target (Era/TBC), totems, aura tooltips, WotLK DK runes, arena (TBC/WotLK)
      without errors, nameplates.
@@ -1013,7 +1027,18 @@ hidden Blizzard frame.
     - Clients: Era, TBC, WotLK, MoP.
     - Test: shaman totem bar (bars and icon mode, timers, tooltips, right-click), other MoP classes
       with totem slots, totems after `/reload` and zoning.
-12. **Done** · Depends on: 1–11
+12. **Threat indicator** · Depends on: 11
+    - Change: a unit-frame threat indicator on oUF's `ThreatIndicator` element (present in `libs/oUF`,
+      oUF_Merge and oUF_Mists). Not a restore of the old `threat.lua` (step 8: never called, no
+      texture, anchored to `UIParent`). Which units, the look and the placement are undecided:
+      `docs/design.md` has no unit-frame threat indicator (its threat bar is
+      `modules/miscellaneous/threatbar.lua`); nameplates already color by threat.
+    - `UnitThreatSituation` is `SecretWhenUnitThreatStateRestricted` on Retail and Forever: check
+      how Retail oUF's element handles a secret status before styling it (unverified).
+    - Clients: all 6.
+    - Test: indicator on aggro (solo, group, tanking), cleared on drop; no secret-value errors in
+      encounters and M+ on Retail/Forever.
+13. **Done** · Depends on: 1–12
     - Change: compatibility.md (one classic oUF; unit frames per client); §1 and §4 of this plan.
       Then the maintainer merges `classic-unified` into `classic`, points the TOC at
       `libs\oUF_Classic` (`classic`), and removes the oUF_Mists and oUF_Merge submodules.
@@ -1170,10 +1195,11 @@ editing Tainted's files, and this contract is documented.
   - [x] 6. Healer raid position
   - [x] 7. Forever and family flags
   - [x] 8. Cleanup
-  - [ ] 9. oUF_Merge: Era, TBC, WotLK
+  - [x] 9. oUF_Merge: Era, TBC, WotLK
   - [ ] 10. oUF_Merge: MoP
   - [ ] 11. Classic totems
-  - [ ] 12. Done
+  - [ ] 12. Threat indicator
+  - [ ] 13. Done
 - [ ] 10. Miscellaneous
 - [ ] 11. Final compatibility audit
 - [ ] 12. Extension by other addons
