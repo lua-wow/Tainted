@@ -34,6 +34,8 @@ do
         prediction:SetPoint("RIGHT", element:GetStatusBarTexture(), "RIGHT")
         prediction:SetStatusBarTexture(texture)
         prediction:SetStatusBarColor(color:GetRGBA())
+        -- only retail oUF shows it; unsized and unset on classic it would draw a wide bar
+        prediction:Hide()
         element.CostPrediction = prediction
 
         local tag = frame.__config.tags.power
@@ -66,10 +68,6 @@ do
     }
         
     function UnitFrames:CreateAdditionalPower(frame)
-        if not E.isMainline then
-            return nil
-        end
-        
         local height = (C.unitframes.power.height or 5) - 1
         local texture = C.unitframes.texture
         local color = C.unitframes.power.prediction.color
@@ -88,6 +86,7 @@ do
         prediction:SetPoint("RIGHT", element:GetStatusBarTexture(), "RIGHT")
         prediction:SetStatusBarTexture(texture)
         prediction:SetStatusBarColor(color:GetRGBA())
+        prediction:Hide()
         element.CostPrediction = prediction
 
         return element

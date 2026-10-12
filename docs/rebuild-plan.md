@@ -1166,13 +1166,24 @@ breakpoints work on Retail/Forever).
       joining/leaving groups, in and out of combat, pet battles (MoP); nameplates: step 1 tests
       again, clicking/targeting plates, widget plates, target switch, friendly plates in
       instances, cvars after `/reload`.
-14. **Classic AdditionalPower** · Depends on: 13
-    - Change: oUF_Classic (submodule edits, uncommitted): the `private.lua` display-pair fallback
-      follows Blizzard's `AlternatePowerBar` (TOC `wrath, cata, mists`): WotLK and MoP druid
-      Rage/Energy → mana; MoP monk Energy → mana for Mistweaver only (`SPEC_MONK_MISTWEAVER` via
-      `C_SpecializationInfo.GetSpecialization`, re-checked on `PLAYER_SPECIALIZATION_CHANGED`);
-      no pairs on Era/TBC (Blizzard has no bar there). Tainted: `CreateAdditionalPower` drops
-      its `E.isMainline` gate.
+14. **Classic AdditionalPower** · Done · Depends on: 13
+    - Change: oUF_Classic (submodule edits, uncommitted): the `private.lua` display pairs
+      follow Blizzard's `Wrath/AlternatePowerBar.lua` (TOC `wrath, cata, mists`): WotLK and MoP
+      druid Rage/Energy → mana; MoP monk Energy → mana; no pairs on Era/TBC (Blizzard has no bar
+      there). The Retail pairs and the `_G.ALT_POWER_BAR_PAIR_DISPLAY_INFO` lookup (no Classic
+      client defines it) are gone. AdditionalPower adds Blizzard's monk `specRestriction`:
+      shown only when `C_SpecializationInfo.GetSpecialization() == SPEC_MONK_MISTWEAVER`,
+      re-checked on `PLAYER_SPECIALIZATION_CHANGED` (registered for MoP monks only). Tainted:
+      `CreateAdditionalPower` drops its `E.isMainline` gate.
+    - Side effects: Classic PowerPrediction now gets its `altBar` (mana cost while in a druid
+      form; `HasAltPowerBar` reads the same pairs, no spec check, but the bar's parent is hidden
+      for other monk specs).
+    - `Power.CostPrediction` and `AdditionalPower.CostPrediction` are hidden at creation: only
+      Retail oUF sizes and shows them. On Classic the main power bar drew a wide overlay (no
+      width, `TOP` centres it, 0/0 range draws full; seen on MoP, pre-existing). Step 15 wires
+      them on Classic.
+    - Verified: MoP Mistweaver shows the mana bar beside its power bar (`UnitPowerType` →
+      `3 ENERGY`); spec changes show/hide it; mana cost prediction on it.
     - Commits: oUF_Classic (`classic`): `private.lua`, `elements/additionalpower.lua`. Parent:
       submodule pointer, `modules/unitframes/elements/power.lua`.
     - Clients: WotLK, MoP (Era/TBC: created, never shown).
@@ -1377,7 +1388,7 @@ editing Tainted's files, and this contract is documented.
   - [x] 11. Short values
   - [x] 12. DK rune types
   - [x] 13. oUF_Classic: Retail callbacks, colors and factory
-  - [ ] 14. Classic AdditionalPower
+  - [x] 14. Classic AdditionalPower
   - [ ] 15. oUF_Classic: Retail prediction
   - [ ] 16. Classic totems
   - [ ] 17. Threat indicator
