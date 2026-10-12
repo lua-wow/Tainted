@@ -115,7 +115,7 @@ do
             return
         end
 
-        -- retail oUF keeps barID internal; oUF_Mists still exposes __barID
+        -- retail oUF keeps barID internal; oUF_Merge still exposes __barID
         local barID = self.__barID or UnitPowerBarID(unit)
         local name = GetUnitPowerBarStringsByID(barID) or GetUnitPowerBarStrings(unit)
 
@@ -137,7 +137,7 @@ do
     end
         
     function UnitFrames:CreateAlternativePower(frame)
-        -- only retail oUF and oUF_Mists have the AlternativePower element
+        -- Retail/Forever and MoP only (oUF_Merge has the element on every classic client)
         if not (E.isMainline or E.isMists) then
             return nil
         end

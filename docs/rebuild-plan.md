@@ -726,7 +726,7 @@ one classic oUF.
   oUF_TargetIndicator calls `PostUpdate(isTarget)` like it.
 - oUF per client (TOC tags; every client knows every game-type token, so only one copy loads;
   runtime unverified): Retail and Forever `libs\oUF`; Era, TBC, WotLK `libs\oUF_Merge` (since
-  step 4; `libs\oUF_Classic` before); MoP `libs\oUF_Mists`.
+  step 4; `libs\oUF_Classic` before); MoP `libs\oUF_Merge` (since step 10; `libs\oUF_Mists` before).
 - Per-oUF branching used `isRetailOUF = E.isStandard or E.isCamelot` (`core.lua`, `health.lua`):
   header visibility, nameplate spawn and callbacks, health prediction. Since step 7: `E.isMainline`
   (Retail oUF loads on the `mainline` family).
@@ -1009,12 +1009,24 @@ hidden Blizzard frame.
    - Test: combo points on target (Era/TBC), totems, aura tooltips, WotLK DK runes, arena (TBC/WotLK)
      without errors, nameplates.
    - Rollback: TOC line back to `libs\oUF_Classic`.
-10. **oUF_Merge: MoP** · Depends on: 9
-    - Change: oUF_Merge TOC line tagged `classic`; oUF_Mists line removed (submodule kept).
-      `E.isMists` branches keep the oUF_Mists callback signatures.
-    - Clients: MoP.
+10. **oUF_Merge: MoP** · Done · Depends on: 9
+    - Change: oUF_Merge TOC line tagged `classic`; oUF_Mists line removed (submodule kept). The
+      `E.isMists` ClassPower `PostUpdate` adapter (oUF_Mists' old order) is removed: oUF_Merge
+      passes the Retail order on MoP too.
+    - Combo points: on MoP `UnitPower(unit, ComboPoints)` kept the previous target's points after
+      a target switch. oUF_Merge ClassPower now reads `GetComboPoints(unit, 'target')` (submodule
+      edit, uncommitted), as Blizzard's `ComboFrame` on Era, TBC, WotLK and MoP (undocumented
+      global, used by Blizzard on all four). Target switches already update through
+      `PLAYER_TARGET_CHANGED` → `VisibilityPath`. Applies to Era/TBC/WotLK too (Era regression).
+    - Callback signatures Tainted uses are otherwise equal in oUF_Mists and oUF_Merge (Power
+      `PostUpdateColor` gains a trailing `atlas`; AlternativePower still sets `__barID`). Kept
+      `E.isMists` branches: Stagger anchored above ClassPower (layout), nameplate
+      `PostUpdateColor(unit, r, g, b)`, AlternativePower gate (oUF_Merge has the element on
+      Era/TBC/WotLK too; not enabled there).
+    - Clients: MoP (combo points: Era, TBC, WotLK too).
     - Test: chi, holy power, shards, arcane charges, stagger, runes, alt power, arena preparation,
-      boss frames, nameplates, castbar.
+      boss frames, nameplates, castbar; combo points cleared on a target switch and restored when
+      switching back (MoP), Era combo points unchanged.
     - Rollback: restore the oUF_Mists line, oUF_Merge back to `vanilla, tbc, wrath`. The two lines
       must never load on the same client (shared `oUF` namespace).
 11. **Classic totems** · Depends on: 10
@@ -1196,7 +1208,7 @@ editing Tainted's files, and this contract is documented.
   - [x] 7. Forever and family flags
   - [x] 8. Cleanup
   - [x] 9. oUF_Merge: Era, TBC, WotLK
-  - [ ] 10. oUF_Merge: MoP
+  - [x] 10. oUF_Merge: MoP
   - [ ] 11. Classic totems
   - [ ] 12. Threat indicator
   - [ ] 13. Done

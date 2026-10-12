@@ -72,15 +72,6 @@ function element_proto:PostUpdate(cur, max, _, hasMaxChanged, powerType)
     end
 end
 
--- oUF_Mists passes (cur, max, hasMaxChanged, powerType); Retail oUF and oUF_Merge add hasCurChanged
-if E.isMists then
-    local PostUpdate = element_proto.PostUpdate
-
-    function element_proto:PostUpdate(cur, max, hasMaxChanged, powerType)
-        return PostUpdate(self, cur, max, nil, hasMaxChanged, powerType)
-    end
-end
-
 function UnitFrames:CreateClassPower(frame)
     local texture = C.unitframes.texture
     local width = C.unitframes.classpower.width
