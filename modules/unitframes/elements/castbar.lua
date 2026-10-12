@@ -41,11 +41,6 @@ function element_proto:UpdateColor(unit, notInterruptible)
         color = isEmpowered and colors.empowering or colors.channeling
     end
 
-    -- classic/mists oUF don't pass it, but still expose it on the element
-    if (notInterruptible == nil) then
-        notInterruptible = element.notInterruptible
-    end
-
     if (not issecretvalue(notInterruptible) and notInterruptible) then
         color = colors.notInterruptible
     end

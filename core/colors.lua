@@ -234,11 +234,9 @@ end
 
 oUF.colors.stealable = oUF:CreateColor(0.93, 0.91, 0.55)
 
--- Retail oUF only; keyed by dispel name (Classic/MoP oUF use colors.debuff)
-if oUF.colors.dispel then
-	oUF.colors.dispel.Bleed = oUF:CreateColor(0.90, 0.10, 0.10)
-	oUF.colors.dispel.Enrage = oUF:CreateColor(0.78, 0.25, 0.25)
-end
+-- keyed by dispel name
+oUF.colors.dispel.Bleed = oUF:CreateColor(0.90, 0.10, 0.10)
+oUF.colors.dispel.Enrage = oUF:CreateColor(0.78, 0.25, 0.25)
 
 E.colors = oUF.colors
 E.CreateColor = oUF.CreateColor

@@ -202,30 +202,6 @@ local function CreateUnit(unit, parent, num)
     return units[unit]
 end
 
--- Retail oUF sets visibility through a header method, Classic/Mists oUF takes it as the 3rd argument
-local function SpawnHeader(self, visibility, name, template, ...)
-    if E.isMainline then
-        local header = self:SpawnHeader(name, template, ...)
-        header:SetVisibility(visibility)
-        return header
-    end
-    return self:SpawnHeader(name, template, visibility, ...)
-end
-
--- Classic/Mists oUF has a single nameplate callback, so dispatch it to the Retail-style ones
-local function NameplateCallback(frame, event, unit)
-    if not frame then return end
-
-    local Nameplates = UnitFrames.Nameplates
-    if event == "NAME_PLATE_UNIT_ADDED" then
-        if Nameplates.SetAddedCallback then Nameplates.SetAddedCallback(frame, event, unit) end
-    elseif event == "NAME_PLATE_UNIT_REMOVED" then
-        if Nameplates.SetRemovedCallback then Nameplates.SetRemovedCallback(frame, event, unit) end
-    elseif event == "PLAYER_TARGET_CHANGED" then
-        if Nameplates.SetTargetCallback then Nameplates.SetTargetCallback(frame, event, unit) end
-    end
-end
-
 function UnitFrames:GetPartyAttributes()
     return addon .. "Party",
         nil,
@@ -416,17 +392,20 @@ function UnitFrames:Init()
         CreateUnit("arena", holder, NUM_ARENA_FRAMES)
 
         if (C.unitframes.party.enabled) then
-            local party = SpawnHeader(self, "custom [group:party, nogroup:raid] show; hide", UnitFrames:GetPartyAttributes())
+            local party = self:SpawnHeader(UnitFrames:GetPartyAttributes())
+            party:SetVisibility("custom [group:party, nogroup:raid] show; hide")
             party:SetParent(holder)
             party:SetPoint("LEFT", holder, "LEFT", 28, 0)
         end
 
         if (C.unitframes.raid.enabled) then
-            local raid = SpawnHeader(self, UnitFrames:GetRaidVisibility(), UnitFrames:GetRaidAttributes())
+            local raid = self:SpawnHeader(UnitFrames:GetRaidAttributes())
+            raid:SetVisibility(UnitFrames:GetRaidVisibility())
             raid:SetParent(RaidHolder)
             raid:SetPoint("BOTTOMLEFT", 0, 0)
 
-            local raid40 = SpawnHeader(self, UnitFrames:GetRaid40Visibilty(), UnitFrames:GetRaid40Attributes())
+            local raid40 = self:SpawnHeader(UnitFrames:GetRaid40Attributes())
+            raid40:SetVisibility(UnitFrames:GetRaid40Visibilty())
             raid40:SetParent(RaidHolder)
             raid40:SetPoint("BOTTOMLEFT", 0, 0)
         end
@@ -438,11 +417,6 @@ function UnitFrames:Init()
                     E:error("CVar " .. k .. " is not accessible.")
                     UnitFrames.Nameplates.cvars[k] = nil
                 end
-            end
-
-            if not E.isMainline then
-                self:SpawnNamePlates(addon, NameplateCallback, UnitFrames.Nameplates.cvars)
-                return
             end
 
             local nameplates = self:SpawnNamePlates(addon)

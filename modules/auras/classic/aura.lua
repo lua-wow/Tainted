@@ -4,8 +4,7 @@ local E, C = ns.E, ns.C
 -- Blizzard
 local GetTemporaryEnchantmentInfo = C_PaperDollInfo and C_PaperDollInfo.GetTemporaryEnchantmentInfo
 
--- Classic/MoP oUF: colors.debuff; Retail oUF: colors.dispel
-local debuffColors = E.colors.debuff or E.colors.dispel
+local debuffColors = E.colors.dispel
 
 --------------------------------------------------
 -- Auras

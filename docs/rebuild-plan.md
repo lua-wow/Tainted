@@ -1115,29 +1115,50 @@ breakpoints work on Retail/Forever).
       blood, frost, unholy in Blizzard's order; Death runes (Blood Tap, Death Rune Mastery /
       Blood Rites) recolor and revert; cooldown fill; vehicle hides; `/reload`, zoning, dungeon
       in combat; Retail/Forever spec colors, also after a spec change.
-13. **oUF_Classic: Retail callbacks, colors and factory** · Depends on: 10, 12
+13. **oUF_Classic: Retail callbacks, colors and factory** · Done ·
+    Depends on: 10, 12
     - Change: oUF_Classic (submodule edits, uncommitted) passes Retail arguments: color objects
-      to `PostUpdateColor` (Health, Power, AdditionalPower, AlternativePower, Runes) and
+      to `PostUpdateColor` (Health `(unit, color)`, Power `(unit, color, altR, altG, altB)`,
+      AdditionalPower `(color)`, AlternativePower `(unit, color)`, Runes `(color)`) and
       ThreatIndicator `PostUpdate(unit, status, color)`; Castbar `PostCastStart(unit, spellID,
       notInterruptible, name, texture, isTradeSkill)`, `PostCastInterruptible(unit, spellID,
-      notInterruptible)`, `PostCastUpdate(unit, spellID, …)`, `PostCastStop(unit, spellID)`;
-      Totems `PostUpdate(slot, haveTotem, name, icon, duration)`; Range `PostUpdate(object,
-      inRange, isEligible)`; PvPIndicator `PostUpdate(unit)`; Stagger `PostVisibility(isVisible)`;
-      `colors.dispel` replaces `colors.debuff`. Factory: `SpawnHeader(name, template, …)` +
-      `header:SetVisibility`; `SpawnNamePlates(prefix)` returns Retail's driver (size, hit-test
-      insets and cvars on login), keeping `PetBattleFrameHider`, `DisableNamePlate` (step 1) and
-      the widget/soft-target reparenting.
-    - Tainted: MoP nameplate `PostUpdateColor(unit, color)`; castbar drops the
-      `element.notInterruptible` fallback; Classic auras read `E.colors.dispel`; `core.lua` loses
-      the `SpawnHeader` wrapper and `NameplateCallback` (Retail spawn code on every client).
+      notInterruptible)`, `PostCastUpdate(unit, spellID)` (no duration objects);
+      `PostCastStop(unit, spellID)` was already equal; Totems `PostUpdate(slot, haveTotem, name,
+      icon, duration)` with `GetTotemDuration(slot)` (duration object, documented on all 4);
+      Range `PostUpdate(object, inRange, isEligible)` (`isEligible` = connected and range
+      checked); Stagger `PostVisibility(isVisible)`; `colors.dispel` replaces `colors.debuff`
+      (entries and the `none`/`''` aliases kept). oUF_Classic's `SetRGBA` defaults alpha to 1
+      like `ColorMixin` (a nil alpha made `ColorCurve:AddPoint` reject the dispel colors on
+      MoP). Gradient colors pass one cached color object
+      per element (`Private.SmoothColor`); Power passes alt components only without a color
+      object, as Retail. Factory: `SpawnHeader(name, template, …)` + `header:SetVisibility`;
+      `SpawnNamePlates(prefix)` returns Retail's driver (`Set*Callback`, `SetSize`,
+      `Set*Interactible`, `SetCVars`; size, hit-test insets and cvars on login), keeping
+      `PetBattleFrameHider`, `DisableNamePlate` (step 1) and the widget/soft-target reparenting.
+      The target callback only runs with a plate (as Retail); the dead `UNIT_FACTION` branch is
+      gone. No widgets-only pause (oUF_Classic has no `PauseAllElements`).
+    - PvPIndicator unchanged: Classic's `(unit, status)` already matches Retail's call
+      (`unit, status, info`) positionally.
+    - Tainted: MoP nameplate `PostUpdateColor(unit)`; castbar drops the
+      `element.notInterruptible` fallback; Classic auras (`elements/auras.lua`,
+      `modules/auras/classic/aura.lua`) read `E.colors.dispel`; `core/colors.lua` and
+      `core/curves.lua` lose their `colors.dispel` guards (the dispel curve now also exists on
+      Classic, used only for secret dispel names); `core.lua` loses the `SpawnHeader` wrapper and
+      `NameplateCallback` (Retail spawn code on every client).
     - Kept: Castbar `CustomTimeText`/`CustomDelayText` (Classic times are numbers), Classic
       `Buffs`/`Debuffs`, game-content gates.
-    - Change on Classic: plates get Retail's `SetSize(200, 20)` and hit-test insets.
-    - Commits: oUF_Classic (`classic`): `ouf.lua`, `colors.lua`, `elements/{health,power,
-      additionalpower,alternativepower,runes,threatindicator,castbar,totems,range,pvpindicator,
-      stagger}.lua`. Parent: submodule pointer, `modules/unitframes/core.lua`,
-      `units/nameplate.lua`, `elements/castbar.lua`, `elements/auras.lua`,
-      `modules/auras/classic/aura.lua`.
+    - Change on Classic: plates get Retail's `SetSize(200, 20)` and hit-test insets
+      (`C_NamePlate.SetNamePlateSize`, `C_NamePlateManager.SetNamePlateHitTestInsets`,
+      `Enum.NamePlateType` documented on all 4; Blizzard's Classic nameplate driver matches
+      Retail's).
+    - Unverified: hit-test insets on Classic (clickable area of plates); `GetTotemDuration` at
+      runtime on Classic.
+    - Commits: oUF_Classic (`classic`): `ouf.lua`, `colors.lua`, `private.lua`,
+      `elements/{auras,health,power,additionalpower,alternativepower,runes,threatindicator,
+      castbar,totems,range,stagger}.lua`. Parent: submodule pointer, `core/colors.lua`,
+      `core/curves.lua`, `modules/unitframes/core.lua`, `units/nameplate.lua`,
+      `elements/castbar.lua`, `elements/auras.lua`, `modules/auras/classic/aura.lua`,
+      `docs/rebuild-plan.md`.
     - Clients: Era, TBC, WotLK, MoP (Retail/Forever: `core.lua` regression).
     - Test: castbar colors (cast, channel, not interruptible) in a dungeon; MoP tank nameplate
       colors; dispel-type aura borders (unit frames, player auras, RaidDebuffs in a raid); boss
@@ -1355,7 +1376,7 @@ editing Tainted's files, and this contract is documented.
   - [x] 10. oUF_Merge: MoP
   - [x] 11. Short values
   - [x] 12. DK rune types
-  - [ ] 13. oUF_Classic: Retail callbacks, colors and factory
+  - [x] 13. oUF_Classic: Retail callbacks, colors and factory
   - [ ] 14. Classic AdditionalPower
   - [ ] 15. oUF_Classic: Retail prediction
   - [ ] 16. Classic totems

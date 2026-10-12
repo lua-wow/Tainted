@@ -246,7 +246,7 @@ if E.isMainline then
         end
     end
 elseif E.isMists then
-    function health_proto:PostUpdateColor(unit, r, g, b)
+    function health_proto:PostUpdateColor(unit)
         local element = self
 
         local isTank = Talents:IsTank()
