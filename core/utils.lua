@@ -8,26 +8,24 @@ local infinity = math.huge
 -- Blizzard
 local issecretvalue = _G.issecretvalue
 local AbbreviateNumbers = _G.AbbreviateNumbers
+local CreateAbbreviateConfig = _G.CreateAbbreviateConfig
 
 local round = function(value)
 	return floor(value + 0.5)
 end
 
--- return short value of a number!
-E.ShortValue = function(value)
-	-- secret values (Midnight) can't be compared or used in arithmetic
-	if (issecretvalue and issecretvalue(value)) then
-		return AbbreviateNumbers(value)
-	end
+-- b/m/k with one decimal (significandDivisor * fractionDivisor = breakpoint), built once
+local SHORT = {
+	config = CreateAbbreviateConfig({
+		{ breakpoint = 1E9, abbreviation = "b", significandDivisor = 1E8, fractionDivisor = 10, abbreviationIsGlobal = false },
+		{ breakpoint = 1E6, abbreviation = "m", significandDivisor = 1E5, fractionDivisor = 10, abbreviationIsGlobal = false },
+		{ breakpoint = 1E3, abbreviation = "k", significandDivisor = 1E2, fractionDivisor = 10, abbreviationIsGlobal = false },
+	})
+}
 
-	local v = math.abs(value)
-	-- values that would round up to "1000k" are shown as millions
-	if (v >= 1E6 - 50) then
-		return (("%.1fm"):format(value / 1E6):gsub("%.?0+([km])$", "%1"))
-	elseif (v >= 1E3) then
-		return (("%.1fk"):format(value / 1E3):gsub("%.?0+([km])$", "%1"))
-	end
-	return tostring(round(value))
+-- return short value of a number; a secret value (Midnight) returns a secret string, same format
+E.ShortValue = function(value)
+	return AbbreviateNumbers(value, SHORT)
 end
 
 -- format seconds to minutes, hours or days

@@ -11,6 +11,8 @@ local UnitReaction = _G.UnitReaction
 local UnitIsPlayer = _G.UnitIsPlayer
 local UnitLevel = _G.UnitLevel
 local UnitName = _G.UnitName
+local UnitHealth = _G.UnitHealth
+local UnitPower = _G.UnitPower
 local GetQuestDifficultyColor = _G.GetQuestDifficultyColor
 local UnitIsGroupLeader = _G.UnitIsGroupLeader
 local UnitIsGroupAssistant = _G.UnitIsGroupAssistant
@@ -31,10 +33,10 @@ local GHOST = L.GHOST or "Ghost"
 --------------------------------------------------
 local events = {
     -- health
-    -- ["curhp"]           = "UNIT_HEALTH UNIT_MAXHEALTH",
+    ["curhp"]           = "UNIT_HEALTH UNIT_MAXHEALTH",
     -- ["maxhp"]           = "UNIT_MAXHEALTH",
     -- power
-    -- ["curpp"]           = "UNIT_POWER_UPDATE UNIT_POWER_FREQUENT UNIT_MAXPOWER",
+    ["curpp"]           = "UNIT_POWER_UPDATE UNIT_MAXPOWER",
     -- ["maxpp"]           = "UNIT_MAXPOWER",
     -- names
     ["name"]            = "UNIT_NAME_UPDATE",
@@ -54,24 +56,17 @@ local events = {
 
 local tags = {
     -- health
-    -- ["curhp"] = function(unit)
-    --     local value = UnitHealth(unit)
-    --     return E.ShortValue(value)
-    -- end,
+    ["curhp"] = function(unit)
+        return E.ShortValue(UnitHealth(unit))
+    end,
     -- ["maxhp"] = function(unit)
     --     local value = UnitHealthMax(unit)
     --     return E.ShortValue(value)
     -- end,
     -- power
-    -- ["curpp"] = function(unit)
-    --     local powerType, powerToken = UnitPowerType(unit)
-    --     local color = oUF.colors.power[powerToken or "MANA"]
-    --     if UnitIsDeadOrGhost(unit) then
-    --         return ""
-    --     end
-    --     local value = UnitPower(unit, powerType)
-    --     return E.ShortValue(value)
-    -- end,
+    ["curpp"] = function(unit)
+        return E.ShortValue(UnitPower(unit))
+    end,
     -- ["maxpp"] = function(unit)
     --     local value = UnitPowerMax(unit)
     --     return E.ShortValue(value)

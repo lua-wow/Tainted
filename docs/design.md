@@ -64,7 +64,7 @@ small font. Information appears next to what it describes and nowhere else.
 - Outlined text where it sits over bars, icons or the game world (unit frames, auras, action
   bars, tooltips); plain text inside panels (chat, datatexts).
 - Unit frames: name centred, health value on one end, power value on the other. Short formats
-  (`18.2m`, `43%`). Level/classification is a small prefix to the name.
+  (`1.5b`, `18.2m`, `1.5k`, `43%`). Level/classification is a small prefix to the name.
 - Auras: duration/count as small text on or under the icon, coloured by urgency; no timer bars.
 - Datatexts: label + value, value coloured; three per panel, evenly spaced.
 - No titles, headers or captions on Tainted's own frames. Blizzard-owned text (objective

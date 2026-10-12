@@ -807,6 +807,50 @@ hidden Blizzard frame.
   `PingableUnitFrameTemplate` is an empty stub.
 - WotLK DKs: Tainted creates `frame.Runes`, but oUF_Classic had no Runes element (live since step 9).
 
+**Observed (oUF_Classic vs Retail oUF API):**
+
+| Element | Classic → Retail | Tainted call sites | Verdict |
+|:--|:--|:--|:--|
+| Health | `PostUpdateColor(unit, r, g, b)` → `(unit, color)` | MoP nameplate callback (`nameplate.lua`); `health.lua` already takes `(unit, color)` and ignores it | mirror |
+| HealthPrediction | separate element → inside Health (`HealingAll`, `HealingPlayer`, `HealingOther`, `DamageAbsorb`, `HealAbsorb`, `Over*Indicator`, `UpdatePredictionSize`) | `CreateHealthPrediction` branch | mirror: `CreateUnitHealPredictionCalculator`, `UnitGetDetailedHealPrediction` documented on all 4 Classic clients (runtime unverified) |
+| Power | `PostUpdateColor(unit, r, g, b, atlas)` → `(unit, color, altR, altG, altB)`; `GetDisplayPower()` → `(unit)` | none | mirror |
+| PowerPrediction | separate element → `Power.CostPrediction`/`AdditionalPower.CostPrediction` | `CreatePowerPrediction` branch; `Power.CostPrediction` already built (inert on Classic) | mirror: Classic already uses `UnitCastingInfo` + `C_Spell.GetSpellPowerCost` |
+| AdditionalPower | `PostUpdateColor(r, g, b)` → `(color)`; no CostPrediction. Inert on Classic: no Classic client defines `ALT_POWER_BAR_PAIR_DISPLAY_INFO`, the `private.lua` fallback has Retail pairs | `CreateAdditionalPower` `E.isMainline` gate | mirror |
+| AlternativePower | `PostUpdateColor(unit, r, g, b)` → `(unit, color)`; Classic sets `__barID` | `PostUpdate` already falls back to `UnitPowerBarID` | mirror |
+| Castbar | `PostCastStart/Interruptible/Update(unit)` → `(unit, spellID, notInterruptible, …)`; `PostCastStop(unit, spellID)`; no `PostCastInterrupted`/`PostCastGlobal`; `UpdatePips(numStages)` → `(stages)`; Retail times with duration objects | `element.notInterruptible` fallback (`castbar.lua`) | args: mirror. Timer: keep `CustomTimeText`/`CustomDelayText` |
+| ClassPower | `PostUpdate` already Retail order; no charged points; `PreUpdate(event)` → `(unit)` | none | done; charged points are Retail content |
+| Runes | `PostUpdateColor(r, g, b)` → `(color)`; spec colors only, no rune types (all runes `colors.power.RUNES` gray on WotLK/MoP with `colorSpec = false`) | none | mirror + rune types |
+| Stagger | no `PostVisibility(isVisible)` | none | mirror |
+| ThreatIndicator | `PostUpdate(unit, status, r, g, b)` → `(unit, status, color)` | none yet | mirror |
+| Totems | `PostUpdate(slot, haveTotem, name, start, duration, icon)` → `(slot, haveTotem, name, icon, duration)` | none (`Override(event, slot)` is equal) | mirror |
+| Range | `PostUpdate(object, inRange, checkedRange, isConnected)` → `(object, inRange, isEligible)` | none | mirror |
+| PvPIndicator | `PostUpdate(unit, status)` → `(unit)` | none | mirror |
+| Auras | button elements → `CreateAuras` + `AddGroup` on Blizzard's AuraContainer | `auras.lua` / `auras_mainline.lua`, `raid.lua` | impossible: AuraContainer on Classic unverified; AuraTrack/RaidDebuffs need Classic auras |
+| Indicators, portrait, tags | equal callbacks | none | nothing to do |
+| Retail-only elements (Phase, PvPClassification, Quest, Summon, FocusIndicator, MasterLooter, PrivateAuras, Happiness) | game content | `E.isMainline` gates stay | not ported; oUF_TargetIndicator already matches Retail |
+| colors | `debuff` → `dispel` | Classic auras (`modules/auras/classic/aura.lua`, `elements/auras.lua`); `core/curves.lua` guard (then also builds the dispel curve on Classic, harmless) | mirror `dispel` |
+| `SpawnHeader` | `(name, template, visibility, …)` → `(name, template, …)` + `header:SetVisibility` | `SpawnHeader` wrapper (`core.lua`) | mirror; keep `PetBattleFrameHider` |
+| `SpawnNamePlates` | `(prefix, callback, cvars)` → driver with `SetAddedCallback`/`SetRemovedCallback`/`SetTargetCallback`/`SetSize`/`SetCVars`/`Set*Interactible` | `NameplateCallback` + spawn branch (`core.lua`) | mirror: `C_NamePlate.SetNamePlateSize`, `C_NamePlateManager.SetNamePlateHitTestInsets` documented on all 4; keep Classic `DisableNamePlate` and widget reparenting; dead `UNIT_FACTION` branch (never registered) goes |
+
+Game-content branches stay: `E.isMists` Stagger anchor, MoP nameplate tank colors, AlternativePower
+gate, indicator gates, raid aura split.
+
+**Observed (rune types, WotLK and MoP):** Blizzard's rune frame (`RuneFrame_Shared.lua`, wrath/cata/
+mists) reads `GetRuneType(rune)` (undocumented global) and handles `RUNE_TYPE_UPDATE(runeIndex)`
+(documented); display order 1, 2, 5, 6, 3, 4 (MoP `RuneFrame.xml`, WotLK `RuneFrame_FixRunes`).
+Its constants say 2 = frost, 3 = unholy; its combat text and pre-Legion oUF (`39071ca^`, colors
+blood `1, 0, 0`, unholy `0, .5, 0`, frost `0, 1, 1`, death `.9, .1, 1`) say 2 = unholy.
+Tainted's `oUF.colors.runes` (olive unholy, unused gray `[5]`) is unchanged since the initial
+commit; oUF's spec colors are blood `247, 65, 57`, frost `148, 203, 247`, unholy `173, 235, 66`.
+
+**Observed (number abbreviation):** `AbbreviateNumbers(number, options)` and
+`CreateAbbreviateConfig(breakpoints)` are C functions on all 6 clients; Retail/Forever accept
+secret numbers (`AllowedWhenTainted`) and return a secret string, which Retail oUF tags display.
+`E.ShortValue` uses Lua rounding (`18.2m`) for plain values but Blizzard's default (`18M`) for
+secret ones, so Retail's format changes in combat. Output under 1000, for fractions, and what
+`RequiresRestrictedAbbreviationBreakpoints` allows on Classic are unverified (ElvUI's custom
+breakpoints work on Retail/Forever).
+
 **Decided:**
 - Retail and Forever use `libs\oUF`, read-only; work around it in Tainted.
 - One classic oUF for Era, TBC, WotLK and MoP: Mists changes were ported in `libs/oUF_Merge`
@@ -944,7 +988,7 @@ hidden Blizzard frame.
    - Change: the `isRetailOUF` locals are gone; oUF-variant and family branches use `E.isMainline`
      (Retail + Forever): AdditionalPower, AlternativePower (`or E.isMists`), PowerPrediction (not
      created), Phase, PvPClassification, Quest and Summon indicators, Totems (guard moved into
-     `CreateTotems`; Classic is step 11), nameplate health `UpdateColor`,
+     `CreateTotems`; Classic is step 16), nameplate health `UpdateColor`,
      `CompactRaidFrameManager_SetSetting`, the `CreateAtonement` drop. The priest hook always calls
      `CreateAtonement`, so Classic priests get the bar without the `mainline`-only oUF_Atonement
      plugin (no updates; unverified in-game). Unit-frame health `colorTapping` is on for every
@@ -1026,7 +1070,105 @@ hidden Blizzard frame.
     - Then (maintainer): `classic-unified` squash-merged into `classic`; the TOC loads
       `libs\oUF_Classic` (`classic`) on Era, TBC, WotLK and MoP; oUF_Merge and oUF_Mists submodules
       removed. Game loads on Era and MoP.
-11. **Classic totems** · Depends on: 10
+11. **Short values** · Done, pending in-game verification · Depends on: 4
+    - Change: `E.ShortValue` formats every value, secret or not, with
+      `AbbreviateNumbers(value, SHORT)`; `SHORT` is built once in `core/utils.lua` with
+      `CreateAbbreviateConfig` (`1e9` → `b`, `1e6` → `m`, `1e3` → `k`, one decimal,
+      `abbreviationIsGlobal = false`): `1.5b`, `18.2m`, `1.5k` in and out of combat. `tags.lua`
+      re-enables `curhp`/`curpp` as `E.ShortValue(UnitHealth(u))`/`E.ShortValue(UnitPower(u))`
+      with their `events` entries (the registration loop would otherwise clear oUF's). Player,
+      target, ToT and arena keep `[curhp]` (now short); boss becomes
+      `[healthcolor][curhp] - [perhp]%|r`; focus, focustarget, pet, nameplate and party keep
+      `[perhp]%`. Tooltip health and Stagger text use the same format. design.md gains `1.5b`.
+    - Truncates like Blizzard (`1999` → `1.9k`, was `2k`; `999999` → `999.9k`, was `1m`).
+    - Unverified: `CreateAbbreviateConfig` with these breakpoints on Classic; output under 1000
+      and for fractions (round plain values first if it keeps decimals); `1000` → `1k` or
+      `1.0k`.
+    - Commits: no submodule commit. Parent: `core/utils.lua`, `modules/unitframes/tags.lua`,
+      `config/settings.lua`, `docs/design.md`.
+    - Clients: all 6.
+    - Test: player/target/ToT/arena text out of combat, in combat, raid boss and M+ on
+      Retail/Forever (no secret errors, same format when combat starts); boss frames
+      `cur - pct%` in an encounter; focus/pet/party/nameplates still percent; values 0, 999,
+      1000, 1500, 18.2m, ≥ 1e9; rage/energy ≤ 100; low-level character; tooltip health; Monk
+      stagger (MoP, Retail).
+12. **DK rune types** · Depends on: 10
+    - Change: oUF_Classic Runes (submodule edits, uncommitted) restores the pre-Legion behavior
+      when `GetRuneType` exists: runemap `{1, 2, 5, 6, 3, 4}`, no sorting, each rune colored by
+      its type (fallback `colors.power.RUNES`), `RUNE_TYPE_UPDATE(runeIndex)` (unitless)
+      recolors only that rune, `PostUpdateColor(color, rune)` per rune. `colors.runes` keeps
+      the spec meaning (1 blood, 2 frost, 3 unholy) plus `[4]` death `0.9, 0.1, 1`; the element
+      maps the rune type to that index if the game's order differs. Without `GetRuneType` it
+      behaves as now. Tainted: `core/colors.lua` drops its `oUF.colors.runes` override;
+      `elements/runes.lua` sets `colorSpec = true` (Retail/Forever color by spec; on WotLK/MoP
+      the rune type wins).
+    - Unverified: rune type order (Blizzard's constants vs its combat text); WotLK slot types.
+    - Commits: oUF_Classic (`classic`): `elements/runes.lua`, `colors.lua`. Parent: submodule
+      pointer, `core/colors.lua`, `modules/unitframes/elements/runes.lua`.
+    - Clients: WotLK, MoP, Retail, Forever.
+    - Test: `/run for i=1,6 do print(i, GetRuneType(i)) end` on a fresh DK; two runes each of
+      blood, frost, unholy in Blizzard's order; Death runes (Blood Tap, Death Rune Mastery /
+      Blood Rites) recolor and revert; cooldown fill; vehicle hides; `/reload`, zoning, dungeon
+      in combat; Retail/Forever spec colors, also after a spec change.
+13. **oUF_Classic: Retail callbacks, colors and factory** · Depends on: 10, 12
+    - Change: oUF_Classic (submodule edits, uncommitted) passes Retail arguments: color objects
+      to `PostUpdateColor` (Health, Power, AdditionalPower, AlternativePower, Runes) and
+      ThreatIndicator `PostUpdate(unit, status, color)`; Castbar `PostCastStart(unit, spellID,
+      notInterruptible, name, texture, isTradeSkill)`, `PostCastInterruptible(unit, spellID,
+      notInterruptible)`, `PostCastUpdate(unit, spellID, …)`, `PostCastStop(unit, spellID)`;
+      Totems `PostUpdate(slot, haveTotem, name, icon, duration)`; Range `PostUpdate(object,
+      inRange, isEligible)`; PvPIndicator `PostUpdate(unit)`; Stagger `PostVisibility(isVisible)`;
+      `colors.dispel` replaces `colors.debuff`. Factory: `SpawnHeader(name, template, …)` +
+      `header:SetVisibility`; `SpawnNamePlates(prefix)` returns Retail's driver (size, hit-test
+      insets and cvars on login), keeping `PetBattleFrameHider`, `DisableNamePlate` (step 1) and
+      the widget/soft-target reparenting.
+    - Tainted: MoP nameplate `PostUpdateColor(unit, color)`; castbar drops the
+      `element.notInterruptible` fallback; Classic auras read `E.colors.dispel`; `core.lua` loses
+      the `SpawnHeader` wrapper and `NameplateCallback` (Retail spawn code on every client).
+    - Kept: Castbar `CustomTimeText`/`CustomDelayText` (Classic times are numbers), Classic
+      `Buffs`/`Debuffs`, game-content gates.
+    - Change on Classic: plates get Retail's `SetSize(200, 20)` and hit-test insets.
+    - Commits: oUF_Classic (`classic`): `ouf.lua`, `colors.lua`, `elements/{health,power,
+      additionalpower,alternativepower,runes,threatindicator,castbar,totems,range,pvpindicator,
+      stagger}.lua`. Parent: submodule pointer, `modules/unitframes/core.lua`,
+      `units/nameplate.lua`, `elements/castbar.lua`, `elements/auras.lua`,
+      `modules/auras/classic/aura.lua`.
+    - Clients: Era, TBC, WotLK, MoP (Retail/Forever: `core.lua` regression).
+    - Test: castbar colors (cast, channel, not interruptible) in a dungeon; MoP tank nameplate
+      colors; dispel-type aura borders (unit frames, player auras, RaidDebuffs in a raid); boss
+      alt power (MoP); totems; raid range fading; DK runes; raid/raid40/party headers on
+      joining/leaving groups, in and out of combat, pet battles (MoP); nameplates: step 1 tests
+      again, clicking/targeting plates, widget plates, target switch, friendly plates in
+      instances, cvars after `/reload`.
+14. **Classic AdditionalPower** · Depends on: 13
+    - Change: oUF_Classic (submodule edits, uncommitted): the `private.lua` display-pair fallback
+      follows Blizzard's `AlternatePowerBar` (TOC `wrath, cata, mists`): WotLK and MoP druid
+      Rage/Energy → mana; MoP monk Energy → mana for Mistweaver only (`SPEC_MONK_MISTWEAVER` via
+      `C_SpecializationInfo.GetSpecialization`, re-checked on `PLAYER_SPECIALIZATION_CHANGED`);
+      no pairs on Era/TBC (Blizzard has no bar there). Tainted: `CreateAdditionalPower` drops
+      its `E.isMainline` gate.
+    - Commits: oUF_Classic (`classic`): `private.lua`, `elements/additionalpower.lua`. Parent:
+      submodule pointer, `modules/unitframes/elements/power.lua`.
+    - Clients: WotLK, MoP (Era/TBC: created, never shown).
+    - Test: druid in Bear/Cat shows the mana bar, hidden in caster form and Moonkin; updates in
+      combat; MoP Mistweaver in Fierce Tiger stance shows it, Windwalker/Brewmaster don't; spec
+      change; vehicles; Era/TBC druid: no bar, no errors.
+15. **oUF_Classic: Retail prediction** · Depends on: 14
+    - Change: oUF_Classic (submodule edits, uncommitted) moves HealthPrediction into Health
+      (Retail fields, `UpdatePredictionSize`, `CreateUnitHealPredictionCalculator`) and
+      PowerPrediction into `Power.CostPrediction`/`AdditionalPower.CostPrediction`; both old
+      elements are removed. Tainted: `CreateHealthPrediction`/`CreatePowerPrediction` lose
+      their `E.isMainline` branches (Classic bars deleted).
+    - Unverified: prediction calculator data on Era/TBC.
+    - Commits: oUF_Classic (`classic`): `elements/health.lua`, `elements/power.lua`,
+      `elements/additionalpower.lua`, remove `elements/healthprediction.lua` and
+      `elements/powerprediction.lua` (+ their `oUF.xml` lines). Parent: submodule pointer,
+      `modules/unitframes/elements/health.lua`, `modules/unitframes/elements/power.lua`.
+    - Clients: Era, TBC, WotLK, MoP.
+    - Test: incoming heals (own, others) on player and raid frames in combat; absorbs (WotLK
+      Power Word: Shield, MoP); heal absorbs (MoP); overheal indicators; mana cost on cast
+      (player, druid in form on WotLK/MoP).
+16. **Classic totems** · Depends on: 10
     - Change: `CreateTotems` also builds the bar on Classic (drop its `E.isMainline` guard).
       oUF_Classic has a Totems element that calls `Totems.Override(self, event, slot)` like Retail
       oUF; Classic API docs (Era, TBC, Titan, MoP) have `GetTotemInfo`, `GetTotemDuration`,
@@ -1036,7 +1178,7 @@ hidden Blizzard frame.
     - Clients: Era, TBC, WotLK, MoP.
     - Test: shaman totem bar (bars and icon mode, timers, tooltips, right-click), other MoP classes
       with totem slots, totems after `/reload` and zoning.
-12. **Threat indicator** · Depends on: 11
+17. **Threat indicator** · Depends on: 13, 16
     - Change: a unit-frame threat indicator on oUF's `ThreatIndicator` element (present in `libs/oUF`
       and `libs/oUF_Classic`). Not a restore of the old `threat.lua` (step 8: never called, no
       texture, anchored to `UIParent`). Which units, the look and the placement are undecided:
@@ -1044,16 +1186,18 @@ hidden Blizzard frame.
       `modules/miscellaneous/threatbar.lua`); nameplates already color by threat.
     - `UnitThreatSituation` is `SecretWhenUnitThreatStateRestricted` on Retail and Forever: check
       how Retail oUF's element handles a secret status before styling it (unverified).
+    - Both oUFs call `PostUpdate(unit, status, color)` after step 13, so no client branch.
     - Clients: all 6.
     - Test: indicator on aggro (solo, group, tanking), cleared on drop; no secret-value errors in
       encounters and M+ on Retail/Forever.
-13. **Done** · Depends on: 1–12
+18. **Done** · Depends on: 1–17
     - Change: §1 and §4 of this plan (compatibility.md and the classic oUF merge are done, step 10).
     - Test: `/reload` on all 6; taint log clean after combat.
 
 **Unverified (needs in-game checks):** which oUF loads at runtime on Forever and WotLK; every
 secret-value row; Blizzard's event order for step 1; the Classic `GetSpecializationInfo` role return;
-WotLK runes and spec behavior in oUF_Classic; `IMPORTANT` on debuffs.
+WotLK spec behavior in oUF_Classic; `IMPORTANT` on debuffs; rune type order (step 12);
+number abbreviation on Classic (step 11); Classic heal-prediction data (step 15).
 
 ### 10. Miscellaneous
 
@@ -1204,9 +1348,14 @@ editing Tainted's files, and this contract is documented.
   - [x] 8. Cleanup
   - [x] 9. oUF_Merge: Era, TBC, WotLK
   - [x] 10. oUF_Merge: MoP
-  - [ ] 11. Classic totems
-  - [ ] 12. Threat indicator
-  - [ ] 13. Done
+  - [x] 11. Short values
+  - [ ] 12. DK rune types
+  - [ ] 13. oUF_Classic: Retail callbacks, colors and factory
+  - [ ] 14. Classic AdditionalPower
+  - [ ] 15. oUF_Classic: Retail prediction
+  - [ ] 16. Classic totems
+  - [ ] 17. Threat indicator
+  - [ ] 18. Done
 - [ ] 10. Miscellaneous
 - [ ] 11. Final compatibility audit
 - [ ] 12. Extension by other addons
