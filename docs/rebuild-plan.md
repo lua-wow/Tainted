@@ -1190,17 +1190,39 @@ breakpoints work on Retail/Forever).
     - Test: druid in Bear/Cat shows the mana bar, hidden in caster form and Moonkin; updates in
       combat; MoP Mistweaver in Fierce Tiger stance shows it, Windwalker/Brewmaster don't; spec
       change; vehicles; Era/TBC druid: no bar, no errors.
-15. **oUF_Classic: Retail prediction** · Depends on: 14
-    - Change: oUF_Classic (submodule edits, uncommitted) moves HealthPrediction into Health
-      (Retail fields, `UpdatePredictionSize`, `CreateUnitHealPredictionCalculator`) and
-      PowerPrediction into `Power.CostPrediction`/`AdditionalPower.CostPrediction`; both old
-      elements are removed. Tainted: `CreateHealthPrediction`/`CreatePowerPrediction` lose
-      their `E.isMainline` branches (Classic bars deleted).
-    - Unverified: prediction calculator data on Era/TBC.
+15. **oUF_Classic: Retail prediction** · Done · Depends on: 14
+    - Change: oUF_Classic (submodule edits, uncommitted) moves HealthPrediction into Health:
+      Retail sub-widgets (`HealingAll`, `HealingPlayer`, `HealingOther`, `DamageAbsorb`,
+      `HealAbsorb`, `Over*Indicator` via `SetAlphaFromBoolean`), options (`*ClampMode`,
+      `healAbsorbMode`, `incomingHealOverflow`), `element.values` calculator,
+      `UpdatePredictionSize`; prediction events registered only for present sub-widgets.
+      PowerPrediction moves into `Power.CostPrediction` (player only, `UNIT_SPELLCAST_*`) and
+      `AdditionalPower.CostPrediction` (registered while the bar is enabled). Both old elements,
+      their `oUF.xml` lines and the now unused `Private.HasAltPowerBar` are removed. Tainted:
+      `CreateHealthPrediction` is the former mainline builder on every client (Classic bars
+      deleted); `CreatePowerPrediction` and the player's `PowerPrediction` are gone; the two
+      `CostPrediction` bars are no longer hidden at creation (both oUFs hide them on enable).
+    - Classic Health keeps `UnitHealth`/`UnitHealthMax` for the main bar (Retail reads the
+      calculator) and calls `UnitGetDetailedHealPrediction` only when a prediction sub-widget
+      exists: bad calculator data on a Classic client can only break the prediction bars.
+      All calculator APIs, `SetAlphaFromBoolean` and the three prediction events are documented
+      on Era, TBC, WotLK and MoP; no Blizzard Classic UI calls the calculator.
+    - Looks different on Classic (Retail layout): incoming heals and absorbs start at the health edge
+      and overlap (were chained my → other → absorb); heal overflow 1.05 (was 1); 5 px
+      over-heal/over-absorb indicators.
+    - Verified: health prediction on Era and TBC. MoP probe (`core/development.lua`): the
+      calculator's health and incoming heals match `UnitHealth`/`UnitGetIncomingHeals`; heals
+      past max health are capped at 1.05 × max with `clamped = true` (priest: raw 7895 →
+      290.35 at full health). The overflow stays at 1.05 (Retail oUF's and Blizzard's default),
+      so an over-heal draws up to 5% past the bar edge with the over-heal indicator. Small bars
+      on large health pools are expected (Soothing Mist tick 2812 of 472k); Surging Mist cast
+      during Soothing Mist is instant and has no prediction.
+    - Unverified: absorbs and heal absorbs on MoP/WotLK.
     - Commits: oUF_Classic (`classic`): `elements/health.lua`, `elements/power.lua`,
-      `elements/additionalpower.lua`, remove `elements/healthprediction.lua` and
-      `elements/powerprediction.lua` (+ their `oUF.xml` lines). Parent: submodule pointer,
-      `modules/unitframes/elements/health.lua`, `modules/unitframes/elements/power.lua`.
+      `elements/additionalpower.lua`, `private.lua`, `oUF.xml`, remove
+      `elements/healthprediction.lua` and `elements/powerprediction.lua`. Parent: submodule
+      pointer, `modules/unitframes/elements/health.lua`, `modules/unitframes/elements/power.lua`,
+      `modules/unitframes/units/player.lua`, `docs/rebuild-plan.md`.
     - Clients: Era, TBC, WotLK, MoP.
     - Test: incoming heals (own, others) on player and raid frames in combat; absorbs (WotLK
       Power Word: Shield, MoP); heal absorbs (MoP); overheal indicators; mana cost on cast
@@ -1234,7 +1256,7 @@ breakpoints work on Retail/Forever).
 **Unverified (needs in-game checks):** which oUF loads at runtime on Forever and WotLK; every
 secret-value row; Blizzard's event order for step 1; the Classic `GetSpecializationInfo` role return;
 WotLK spec behavior in oUF_Classic; `IMPORTANT` on debuffs; rune type order (step 12);
-number abbreviation on Classic (step 11); Classic heal-prediction data (step 15).
+number abbreviation on Classic (step 11); Classic absorbs and heal absorbs on WotLK/MoP (step 15).
 
 ### 10. Miscellaneous
 
@@ -1389,7 +1411,7 @@ editing Tainted's files, and this contract is documented.
   - [x] 12. DK rune types
   - [x] 13. oUF_Classic: Retail callbacks, colors and factory
   - [x] 14. Classic AdditionalPower
-  - [ ] 15. oUF_Classic: Retail prediction
+  - [x] 15. oUF_Classic: Retail prediction
   - [ ] 16. Classic totems
   - [ ] 17. Threat indicator
   - [ ] 18. Done

@@ -34,8 +34,6 @@ do
         prediction:SetPoint("RIGHT", element:GetStatusBarTexture(), "RIGHT")
         prediction:SetStatusBarTexture(texture)
         prediction:SetStatusBarColor(color:GetRGBA())
-        -- only retail oUF shows it; unsized and unset on classic it would draw a wide bar
-        prediction:Hide()
         element.CostPrediction = prediction
 
         local tag = frame.__config.tags.power
@@ -86,7 +84,6 @@ do
         prediction:SetPoint("RIGHT", element:GetStatusBarTexture(), "RIGHT")
         prediction:SetStatusBarTexture(texture)
         prediction:SetStatusBarColor(color:GetRGBA())
-        prediction:Hide()
         element.CostPrediction = prediction
 
         return element
@@ -172,48 +169,5 @@ do
         end
         
         return element
-    end
-end
-
---------------------------------------------------
--- Power Prediction
---------------------------------------------------
-do
-    local element_proto = {}
-
-    function UnitFrames:CreatePowerPrediction(frame)
-        -- retail oUF has no PowerPrediction element; it uses Power.CostPrediction instead
-        if (E.isMainline) then return end
-
-        local parent = frame.Power
-        local width = frame.__config.width or 200
-        local texture = C.unitframes.texture
-        local color = C.unitframes.power.prediction.color
-
-        local mainBar = CreateFrame("StatusBar", nil, parent)
-        mainBar:SetPoint("TOP")
-        mainBar:SetPoint("BOTTOM")
-        mainBar:SetPoint("RIGHT", parent:GetStatusBarTexture(), "RIGHT")
-        mainBar:SetWidth(width)
-        mainBar:SetStatusBarTexture(texture)
-        mainBar:SetStatusBarColor(color.r, color.g, color.b, color.a or 0.30)
-        mainBar:SetReverseFill(true)
-
-        local altBar
-        if frame.AdditionalPower then
-            altBar = CreateFrame("StatusBar", nil, frame.AdditionalPower)
-            altBar:SetPoint("TOP")
-            altBar:SetPoint("BOTTOM")
-            altBar:SetPoint("RIGHT", frame.AdditionalPower:GetStatusBarTexture(), "RIGHT")
-            altBar:SetWidth(width)
-            altBar:SetStatusBarTexture(texture)
-            altBar:SetStatusBarColor(color.r, color.g, color.b, color.a or 0.30)
-            altBar:SetReverseFill(true)
-        end
-
-        return Mixin({
-            mainBar = mainBar,
-            altBar = altBar
-        }, element_proto)
     end
 end

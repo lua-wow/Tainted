@@ -18,7 +18,6 @@ function UnitFrames:CreatePlayerFrame(frame)
 
     frame.AdditionalPower = self:CreateAdditionalPower(frame)
     frame.AlternativePower = self:CreateAlternativePower(frame)
-    frame.PowerPrediction = self:CreatePowerPrediction(frame)
 
     -- indicators
     frame.AssistantIndicator = self:CreateAssistantIndicator(frame)
