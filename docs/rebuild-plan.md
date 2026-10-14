@@ -1227,13 +1227,21 @@ breakpoints work on Retail/Forever).
     - Test: incoming heals (own, others) on player and raid frames in combat; absorbs (WotLK
       Power Word: Shield, MoP); heal absorbs (MoP); overheal indicators; mana cost on cast
       (player, druid in form on WotLK/MoP).
-16. **Classic totems** · Depends on: 10
-    - Change: `CreateTotems` also builds the bar on Classic (drop its `E.isMainline` guard).
+16. **Classic totems** · Done · Depends on: 10
+    - Change: `CreateTotems` also builds the bar on Classic (its `E.isMainline` guard is gone).
       oUF_Classic has a Totems element that calls `Totems.Override(self, event, slot)` like Retail
       oUF; Classic API docs (Era, TBC, Titan, MoP) have `GetTotemInfo`, `GetTotemDuration`,
-      `SetTimerDuration`, `C_StringUtil.TruncateWhenZero` and the duration-object methods;
-      `MAX_TOTEMS` is 4 with both priority tables. `shaman.lua` then anchors Maelstrom below the
-      totem bar on Classic too.
+      `SetTimerDuration`, `SetCooldownFromDurationObject`, `C_StringUtil.TruncateWhenZero`,
+      `Enum.StatusBarInterpolation`/`StatusBarTimerDirection` and the duration-object methods;
+      `MAX_TOTEMS` is 4 with both priority tables; `TotemFrame` (unregistered by oUF_Classic) and
+      `GameTooltip:SetTotem` exist on all four. `E.curves.auras.duration` and `oUF.colors.totems`
+      load on every client.
+    - `shaman.lua` unchanged: `CreateTempest` already anchors below `frame.Totems` when present,
+      and its call is commented out (no Maelstrom bar on any client).
+    - Bar timers use `E.FormatTime` (`15m`, was `890`); a secret remaining time (Retail,
+      `SecretWhenTotemSlotSecret`) keeps `C_StringUtil.TruncateWhenZero` (raw seconds).
+    - Unverified: `GetTotemDuration` at runtime on Classic (nil for an empty slot, as Retail).
+    - Commits: parent: `modules/unitframes/elements/totems.lua`, `docs/rebuild-plan.md`.
     - Clients: Era, TBC, WotLK, MoP.
     - Test: shaman totem bar (bars and icon mode, timers, tooltips, right-click), other MoP classes
       with totem slots, totems after `/reload` and zoning.
@@ -1412,7 +1420,7 @@ editing Tainted's files, and this contract is documented.
   - [x] 13. oUF_Classic: Retail callbacks, colors and factory
   - [x] 14. Classic AdditionalPower
   - [x] 15. oUF_Classic: Retail prediction
-  - [ ] 16. Classic totems
+  - [x] 16. Classic totems
   - [ ] 17. Threat indicator
   - [ ] 18. Done
 - [ ] 10. Miscellaneous

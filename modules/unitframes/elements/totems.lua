@@ -4,6 +4,7 @@ local UnitFrames = E:GetModule("UnitFrames")
 
 -- Blizzard
 local GetTotemInfo = _G.GetTotemInfo
+local issecretvalue = _G.issecretvalue
 local STANDARD_TOTEM_PRIORITIES = _G.STANDARD_TOTEM_PRIORITIES
 local SHAMAN_TOTEM_PRIORITIES = _G.SHAMAN_TOTEM_PRIORITIES
 
@@ -22,10 +23,14 @@ function element_proto:OnUpdate(elapsed)
     if (self.elapsed >= 0.1) then
         local remaining = self.duration:GetRemainingDuration(0)
         if (remaining) then
-            local truncated = C_StringUtil.TruncateWhenZero(remaining)
             local color = self.duration:EvaluateRemainingDuration(E.curves.auras.duration)
             self:SetValue(remaining)
-            self.Timer:SetText(truncated)
+            -- a secret (Retail) can't be compared or formatted: raw seconds
+            if (issecretvalue(remaining)) then
+                self.Timer:SetText(C_StringUtil.TruncateWhenZero(remaining))
+            else
+                self.Timer:SetText(remaining > 0 and E.FormatTime(remaining) or "")
+            end
             self.Timer:SetTextColor(color.r, color.g, color.b)
         else
             self:SetValue(0)
@@ -77,8 +82,6 @@ function element_proto:Override(event, slot)
 end
 
 function UnitFrames:CreateTotems(frame)
-    if not E.isMainline then return nil end
-
     local texture = C.unitframes.texture
     local fontObject = E.GetFont(C.unitframes.font)
     local width = C.unitframes.classpower.width or 200
