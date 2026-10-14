@@ -54,9 +54,25 @@ function UIWidgets:Setup()
     end
 end
 
+-- below-minimap widgets (capture bars) go under the minimap strip. The container is a right
+-- managed frame: every layout of the right container calls SetPoint on it, also in combat.
+local function Reanchor(frame, _, relativeTo)
+    local anchor = _G.TaintedMinimapDataText or _G.Minimap
+    if relativeTo == anchor then return end
+    frame:ClearAllPoints()
+    frame:SetPoint("TOP", anchor, "BOTTOM", 0, -5)
+end
+
 -- the power bar container stays where Blizzard puts it: it exists only on mainline, inside EncounterBar
 function UIWidgets:Init()
     hooksecurefunc(UIWidgetTemplateStatusBarMixin, "Setup", self.Setup)
+
+    local container = _G.UIWidgetBelowMinimapContainerFrame
+    if container then
+        hooksecurefunc(container, "SetPoint", Reanchor)
+        -- already laid out: Blizzard_UIWidgets loads before addons
+        Reanchor(container)
+    end
 end
 
 MODULE.UIWidgets = UIWidgets
