@@ -94,7 +94,8 @@ small font. Information appears next to what it describes and nowhere else.
 - **Nameplates:** the same visual language as unit frames, smaller; auras above the bar.
 - **Raid/party:** small uniform cells, compact grid, name only; status by colour and alpha.
   One large raid-debuff icon in the centre of the cell, with its border coloured by debuff
-  type when the player can dispel it and red when they can't.
+  type when the player can dispel it and red when they can't. The cell border shows the
+  player's target (highlight colour) or the member's threat (yellow, orange, red); black otherwise.
 - **Action bars:** square icons, uniform size and gap, 1px border, hotkey/count in small
   outlined text. No bar backgrounds, art or gryphons.
 - **Auras:** square icons in tidy rows, uniform size and gap, cropped icon with border;

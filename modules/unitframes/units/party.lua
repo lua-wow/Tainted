@@ -10,5 +10,6 @@ function UnitFrames:CreatePartyFrame(frame)
     frame.LeaderIndicator = self:CreateLeaderIndicator(frame)
     frame.ReadyCheckIndicator = self:CreateReadyCheckIndicator(frame)
     frame.ResurrectIndicator = self:CreateResurrectIndicator(frame)
+    frame.ThreatIndicator = self:CreateThreatIndicator(frame)
     frame.Range = self:CreateRange(frame)
 end

@@ -1245,18 +1245,28 @@ breakpoints work on Retail/Forever).
     - Clients: Era, TBC, WotLK, MoP.
     - Test: shaman totem bar (bars and icon mode, timers, tooltips, right-click), other MoP classes
       with totem slots, totems after `/reload` and zoning.
-17. **Threat indicator** · Depends on: 13, 16
-    - Change: a unit-frame threat indicator on oUF's `ThreatIndicator` element (present in `libs/oUF`
-      and `libs/oUF_Classic`). Not a restore of the old `threat.lua` (step 8: never called, no
-      texture, anchored to `UIParent`). Which units, the look and the placement are undecided:
-      `docs/design.md` has no unit-frame threat indicator (its threat bar is
-      `modules/miscellaneous/threatbar.lua`); nameplates already color by threat.
-    - `UnitThreatSituation` is `SecretWhenUnitThreatStateRestricted` on Retail and Forever: check
-      how Retail oUF's element handles a secret status before styling it (unverified).
+17. **Threat indicator** · Done, pending in-game verification · Depends on: 13, 16
+    - Change: raid (raid, raid40) and party frames get oUF's `ThreatIndicator` as an empty Frame
+      (`elements/threatindicator.lua`, new TOC line): oUF only shows/hides it, `PostUpdate(unit,
+      status, color)` stores `color` (`colors.threat[status]`, nil at status 0) and recolors the
+      border only when it changed. `UnitFrames:UpdateBorderColor(frame)` (`targetindicator.lua`)
+      picks the border: target highlight > threat color > `C.general.border.color`. The
+      TargetIndicator `PostUpdate` stores `isTargeted` and calls it (nameplates unchanged; a
+      secret `isTargeted` still returns early). Not a restore of the old `threat.lua`.
+    - `UnitThreatSituation(unit)` (one token, no `feedbackUnit`): the
+      `SecretWhenUnitThreatStateRestricted` predicate says single-token queries are generally not
+      secret. Retail oUF compares `status > 0` itself, so a secret status would error inside oUF
+      (fallback then: an `Override` with `issecretvalue`). Unverified.
     - Both oUFs call `PostUpdate(unit, status, color)` after step 13, so no client branch.
+      design.md: raid/party cell border line.
+    - Commits: parent: `Tainted.toc`, `modules/unitframes/elements/threatindicator.lua`,
+      `modules/unitframes/elements/targetindicator.lua`, `modules/unitframes/units/raid.lua`,
+      `modules/unitframes/units/party.lua`, `docs/design.md`, `docs/rebuild-plan.md`.
     - Clients: all 6.
-    - Test: indicator on aggro (solo, group, tanking), cleared on drop; no secret-value errors in
-      encounters and M+ on Retail/Forever.
+    - Test: raid/party member border yellow/orange/red with threat (group, tanking, pulling off the
+      tank), black on drop and after combat; targeted member keeps the highlight and shows threat
+      again after a target change; `party.enabled = true` party column; nameplate target
+      highlight unchanged; no secret-value errors in encounters and M+ on Retail/Forever.
 18. **Done** · Depends on: 1–17
     - Change: §1 and §4 of this plan (compatibility.md and the classic oUF merge are done, step 10).
     - Test: `/reload` on all 6; taint log clean after combat.
@@ -1264,7 +1274,8 @@ breakpoints work on Retail/Forever).
 **Unverified (needs in-game checks):** which oUF loads at runtime on Forever and WotLK; every
 secret-value row; Blizzard's event order for step 1; the Classic `GetSpecializationInfo` role return;
 WotLK spec behavior in oUF_Classic; `IMPORTANT` on debuffs; rune type order (step 12);
-number abbreviation on Classic (step 11); Classic absorbs and heal absorbs on WotLK/MoP (step 15).
+number abbreviation on Classic (step 11); Classic absorbs and heal absorbs on WotLK/MoP (step 15);
+secret `UnitThreatSituation` on raid units (step 17).
 
 ### 10. Miscellaneous
 
@@ -1421,7 +1432,7 @@ editing Tainted's files, and this contract is documented.
   - [x] 14. Classic AdditionalPower
   - [x] 15. oUF_Classic: Retail prediction
   - [x] 16. Classic totems
-  - [ ] 17. Threat indicator
+  - [x] 17. Threat indicator (pending in-game verification)
   - [ ] 18. Done
 - [ ] 10. Miscellaneous
 - [ ] 11. Final compatibility audit

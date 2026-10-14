@@ -84,5 +84,6 @@ function UnitFrames:CreateRaidFrame(frame)
     frame.ReadyCheckIndicator = self:CreateReadyCheckIndicator(frame)
     frame.ResurrectIndicator = self:CreateResurrectIndicator(frame)
     frame.TargetIndicator = self:CreateTargetIndicator(frame)
+    frame.ThreatIndicator = self:CreateThreatIndicator(frame)
     frame.Range = self:CreateRange(frame)
 end
