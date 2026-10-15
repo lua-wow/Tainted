@@ -4,7 +4,6 @@ local E, C = ns.E, ns.C
 -- Blizzard
 local UnitAffectingCombat = _G.UnitAffectingCombat
 local UnitDetailedThreatSituation = _G.UnitDetailedThreatSituation
-local UnitIsDead = _G.UnitIsDead
 local UnitName = _G.UnitName
 
 --------------------------------------------------
@@ -60,20 +59,16 @@ function element_proto:Update()
     end
 end
 
-function element_proto:OnUpdate(elapsed)
-    self.elapsed = (self.elapsed or 0) + elapsed
-    if self.elapsed >= 0.75 then
-        self:Update()
-        self.elapsed = 0
-    end
-end
-
 function element_proto:OnShow()
-    self:SetScript("OnUpdate", self.OnUpdate)
+    self:RegisterEvent("PLAYER_TARGET_CHANGED")
+    self:RegisterUnitEvent("UNIT_THREAT_LIST_UPDATE", "target")
+    self:RegisterUnitEvent("UNIT_THREAT_SITUATION_UPDATE", "player")
 end
 
 function element_proto:OnHide()
-    self:SetScript("OnUpdate", nil)
+    self:UnregisterEvent("PLAYER_TARGET_CHANGED")
+    self:UnregisterEvent("UNIT_THREAT_LIST_UPDATE")
+    self:UnregisterEvent("UNIT_THREAT_SITUATION_UPDATE")
 end
 
 function element_proto:OnEvent(event, ...)
@@ -85,8 +80,6 @@ function element_proto:OnEvent(event, ...)
         self:RegisterEvent("PLAYER_DEAD")
         self:RegisterEvent("PLAYER_REGEN_ENABLED")
         self:RegisterEvent("PLAYER_REGEN_DISABLED")
-        -- self:RegisterEvent("UNIT_THREAT_SITUATION_UPDATE")
-        -- self:RegisterEvent("UNIT_THREAT_LIST_UPDATE")
         self:Hide()
         self.isInit = true
     elseif event == "PLAYER_ENTERING_WORLD" then
@@ -97,16 +90,18 @@ function element_proto:OnEvent(event, ...)
             self:Show()
             self:Update()
         end
-    else
+    elseif event == "PLAYER_DEAD" or event == "PLAYER_REGEN_ENABLED" then
         if self:IsShown() then
             self:Hide()
         end
+    else
+        self:Update()
     end
 end
 
 local fontObject = E.GetFont(C.miscellaneous.font)
 
-local frame = Mixin(CreateFrame("StatusBar", "TaintedThreatBar", E.PetHider), element_proto)
+local frame = Mixin(CreateFrame("StatusBar", nil, E.PetHider), element_proto)
 frame:SetPoint("TOP", 0, -10)
 frame:SetSize(230, 18)
 frame:SetFrameStrata("HIGH")

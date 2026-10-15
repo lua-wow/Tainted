@@ -1418,7 +1418,7 @@ steps = upstream commit + pointer bump by the maintainer):
    - Clients: all 6.
    - Test: merchant open with junk and damaged gear on Era (fallbacks off), MoP, Retail, Forever;
      not enough money message; merchant without repair; Retail with Blizzard's sell-all-junk disabled.
-5. **Threat bar: events instead of polling** · Depends on: 1
+5. **Threat bar: events instead of polling** · Done, pending in-game verification · Depends on: 1
    - Change: update on `UNIT_THREAT_LIST_UPDATE`/`UNIT_THREAT_SITUATION_UPDATE`/`PLAYER_TARGET_CHANGED`
      while in combat instead of the 0.75 s `OnUpdate`; drop `UnitIsDead`; unnamed frame if nothing
      references `TaintedThreatBar` (none found).
@@ -1624,7 +1624,7 @@ editing Tainted's files, and this contract is documented.
   - [x] 2. Announcers: chat API and dead code (pending in-game verification)
   - [x] 3. Screenshots: fixes, all clients (pending in-game verification)
   - [x] 4. Merchant on all clients
-  - [ ] 5. Threat bar: events instead of polling
+  - [x] 5. Threat bar: events instead of polling (pending in-game verification)
   - [ ] 6. Threat bar on mainline
   - [ ] 7. Auto keystone on Retail
   - [ ] 8. Dungeon portals on Retail
