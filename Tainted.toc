@@ -93,6 +93,11 @@ modules\blizzard\ui_widgets.lua
 
 ## miscellaneous
 modules\miscellaneous\dispels\init.xml [AllowLoadGameType classic]
+modules\miscellaneous\dispels\data\vanilla.lua [AllowLoadGameType classic]
+modules\miscellaneous\dispels\data\tbc.lua [AllowLoadGameType tbc, wrath, mists]
+modules\miscellaneous\dispels\data\wrath.lua [AllowLoadGameType wrath, mists]
+modules\miscellaneous\dispels\data\cata.lua [AllowLoadGameType mists]
+modules\miscellaneous\dispels\data\mists.lua [AllowLoadGameType mists]
 modules\miscellaneous\interrupts\init.xml [AllowLoadGameType classic]
 modules\miscellaneous\screenshots\init.xml [AllowLoadGameType classic]
 modules\miscellaneous\settings.lua [AllowLoadGameType classic]

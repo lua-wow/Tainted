@@ -1392,7 +1392,7 @@ steps = upstream commit + pointer bump by the maintainer):
    - Clients: Era, TBC, Wrath, MoP (no behavior change).
    - Test: `/reload` on Era and MoP; merchant repairs/sells; threat bar in combat; a level-up or death
      screenshot; an interrupt in a group announces; no errors.
-2. **Announcers: chat API and dead code** (submodules `dispels`, `interrupts`) · Depends on: 1
+2. **Announcers: chat API and dead code** (submodules `dispels`, `interrupts`) · Done, pending in-game verification · Depends on: 1
    - Change: `C_ChatInfo.SendChatMessage`. Dispels: drop the `isRetail…isMoP` flags, the Retail
      `spells[0]` branch and unused locals/fields. Interrupts: drop `ns.Interrupts = Interrupts` and
      recompute the chat type on `GROUP_ROSTER_UPDATE`.
@@ -1618,7 +1618,7 @@ editing Tainted's files, and this contract is documented.
   - [x] 18. Done (pending in-game verification)
 - [ ] 10. Miscellaneous
   - [x] 1. TOC lines instead of XML (pending in-game verification)
-  - [ ] 2. Announcers: chat API and dead code
+  - [x] 2. Announcers: chat API and dead code (pending in-game verification)
   - [ ] 3. Screenshots: fixes, all clients
   - [ ] 4. Merchant on all clients
   - [ ] 5. Threat bar: events instead of polling
