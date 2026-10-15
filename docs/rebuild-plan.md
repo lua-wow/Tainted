@@ -1418,22 +1418,26 @@ steps = upstream commit + pointer bump by the maintainer):
    - Clients: all 6.
    - Test: merchant open with junk and damaged gear on Era (fallbacks off), MoP, Retail, Forever;
      not enough money message; merchant without repair; Retail with Blizzard's sell-all-junk disabled.
-5. **Threat bar: events instead of polling** · Done, pending in-game verification · Depends on: 1
+5. **Threat bar: events instead of polling** · Done · Depends on: 1
    - Change: update on `UNIT_THREAT_LIST_UPDATE`/`UNIT_THREAT_SITUATION_UPDATE`/`PLAYER_TARGET_CHANGED`
      while in combat instead of the 0.75 s `OnUpdate`; drop `UnitIsDead`; unnamed frame if nothing
      references `TaintedThreatBar` (none found).
    - Clients: Era, TBC, Wrath, MoP.
    - Test: solo and party combat; target switch mid-combat; pet battle (MoP, hidden); death and
      leaving combat hide it; covers the right datatext strip only in combat.
-6. **Threat bar on mainline** · Done, pending in-game verification · Depends on: 5
+6. **Threat bar on mainline** · Done · Depends on: 5
    - Change: hide the bar when `C_Secrets.ShouldUnitThreatValuesBeSecret("player", "target")` is true
      (or `status` is secret), as ElvUI does; untag `threatbar.lua`.
    - Clients: Retail, Forever.
    - Test: open-world combat shows %, color and target name; dungeon, M+, raid boss and PvP: no
      secret-value errors (bar hidden where values are secret); Edit Mode open/close.
-7. **Auto keystone on Retail** · Depends on: 1
+7. **Auto keystone on Retail** · Done · Depends on: 1
    - Change: `C_Item.GetItemInfoInstant` (as `core/keystone.lua`); unnamed frame; TOC line
-     `[AllowLoadGameType standard]`.
+     `[AllowLoadGameType standard]`. Also hooks at once if `Blizzard_ChallengesUI` is already
+     loaded. The scan reads `C_Container`, so it doesn't depend on the bag UI (Blizzard or Tainted).
+     Auto-slot through `UseContainerItem` on 12.x unverified; the file keeps `SlotKeystone`
+     (`C_Container.PickupContainerItem` + `C_ChallengeMode.SlotKeystone`, Blizzard's drag path)
+     as a one-line swap in `OnShow` if it fails.
    - Clients: Retail.
    - Test: open the font of power with a key in bags (slotted), without a key (nothing), after
      `/reload` with the UI already loaded; no taint when starting the key.
@@ -1624,9 +1628,9 @@ editing Tainted's files, and this contract is documented.
   - [x] 2. Announcers: chat API and dead code (pending in-game verification)
   - [x] 3. Screenshots: fixes, all clients (pending in-game verification)
   - [x] 4. Merchant on all clients
-  - [x] 5. Threat bar: events instead of polling (pending in-game verification)
-  - [x] 6. Threat bar on mainline (pending in-game verification)
-  - [ ] 7. Auto keystone on Retail
+  - [x] 5. Threat bar: events instead of polling
+  - [x] 6. Threat bar on mainline
+  - [x] 7. Auto keystone on Retail
   - [ ] 8. Dungeon portals on Retail
   - [ ] 9. Skyriding race
   - [ ] 10. Done

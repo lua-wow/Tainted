@@ -172,6 +172,7 @@ read_globals = {
     'CooldownFrame_Set',
     'CreateColor',
     'CreateFrame',
+    'CursorHasItem',
     'DoReadyCheck',
     'Enum',
     'EnumerateFrames',
