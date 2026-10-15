@@ -92,9 +92,12 @@ modules\blizzard\talkinghead.lua [AllowLoadGameType mainline]
 modules\blizzard\ui_widgets.lua
 
 ## miscellaneous
-# modules\miscellaneous\init.xml
-modules\miscellaneous\init_classic.xml [AllowLoadGameType vanilla, tbc, wrath]
-modules\miscellaneous\init_mists.xml [AllowLoadGameType mists]
+modules\miscellaneous\dispels\init.xml [AllowLoadGameType classic]
+modules\miscellaneous\interrupts\init.xml [AllowLoadGameType classic]
+modules\miscellaneous\screenshots\init.xml [AllowLoadGameType classic]
+modules\miscellaneous\settings.lua [AllowLoadGameType classic]
+modules\miscellaneous\merchant.lua [AllowLoadGameType classic]
+modules\miscellaneous\threatbar.lua [AllowLoadGameType classic]
 
 ## actionbars
 modules\actionbars\init.xml

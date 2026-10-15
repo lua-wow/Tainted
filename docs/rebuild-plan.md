@@ -1282,7 +1282,7 @@ secret `UnitThreatSituation` on raid units (step 17).
 
 ### 10. Miscellaneous
 
-**Status:** Not started (Classic/MoP only) · **Priority:** Low · **Depends on:** 0, 3 (threat bar anchor)
+**Status:** In progress (Classic/MoP only) · **Priority:** Low · **Depends on:** 0, 3 (threat bar anchor)
 
 **Objective:** each mini-addon loads on every client where it can work, without the deprecation fallbacks, secret-safe on Retail.
 
@@ -1383,7 +1383,7 @@ Nothing is a forced drop. No Blizzard entry point is removed by any step.
 **Recommended steps** (`make check` after each; Classic regressions checked on Era first; submodule
 steps = upstream commit + pointer bump by the maintainer):
 
-1. **TOC lines instead of XML** · Depends on: —
+1. **TOC lines instead of XML** · Done, pending in-game verification · Depends on: —
    - Change: replace the commented `init.xml` line and the `init_classic.xml`/`init_mists.xml` lines
      with one line per file in the current order, tagged `[AllowLoadGameType classic]` (the union):
      `dispels\init.xml`, `interrupts\init.xml`, `screenshots\init.xml`, `settings.lua`, `merchant.lua`,
@@ -1617,7 +1617,7 @@ editing Tainted's files, and this contract is documented.
   - [x] 17. Threat indicator (pending in-game verification)
   - [x] 18. Done (pending in-game verification)
 - [ ] 10. Miscellaneous
-  - [ ] 1. TOC lines instead of XML
+  - [x] 1. TOC lines instead of XML (pending in-game verification)
   - [ ] 2. Announcers: chat API and dead code
   - [ ] 3. Screenshots: fixes, all clients
   - [ ] 4. Merchant on all clients
