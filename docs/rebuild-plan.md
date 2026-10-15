@@ -1441,11 +1441,17 @@ steps = upstream commit + pointer bump by the maintainer):
    - Clients: Retail.
    - Test: open the font of power with a key in bags (slotted), without a key (nothing), after
      `/reload` with the UI already loaded; no taint when starting the key.
-8. **Dungeon portals on Retail** · Depends on: 1
-   - Change: `C_SpellBook.IsSpellKnown`; create buttons only out of combat (defer to
-     `PLAYER_REGEN_ENABLED`); secret-safe cooldown (skip when secret, or duration object; unverified
-     which API applies); Midnight season dungeons in the table, missing-spell entries removed instead
-     of printing; TOC line `[AllowLoadGameType standard]`.
+8. **Dungeon portals on Retail** · Done · Depends on: 1
+   - Change: `C_SpellBook.IsSpellKnown` (`IsSpellKnown` dropped from `.luacheckrc`). The
+     `ChallengesFrame:Update` hook does nothing in combat, with no deferral: the panel is opened
+     out of combat, and Blizzard calls Update again on the next `OnShow`. The cooldown uses
+     `C_Spell.GetSpellCooldownDuration` + `SetCooldownFromDurationObject`, so it is secret-safe
+     with no value tests. Midnight S1/S2 dungeons are added, and teleports for Seat of the
+     Triumvirate, Kings' Rest and Temple of Sethraliss filled in. The data comes from DBM's
+     `teleportMap` and is unverified in-game. Entries without a spell were removed. The string-keyed
+     raid entries stay as reference data; the panel never looks them up. A dungeon without a spell gets no button and no
+     message. The frames are unnamed. The file hooks at once if `Blizzard_ChallengesUI` is
+     already loaded. TOC line `[AllowLoadGameType standard]`.
    - Clients: Retail.
    - Test: Mythic+ tab opened out of combat and first opened in combat; click a known portal (casts),
      unknown portal (desaturated); cooldown sweep after use; sort by score; opening inside an M+ key.
@@ -1631,7 +1637,7 @@ editing Tainted's files, and this contract is documented.
   - [x] 5. Threat bar: events instead of polling
   - [x] 6. Threat bar on mainline
   - [x] 7. Auto keystone on Retail
-  - [ ] 8. Dungeon portals on Retail
+  - [x] 8. Dungeon portals on Retail
   - [ ] 9. Skyriding race
   - [ ] 10. Done
 - [ ] 11. Final compatibility audit

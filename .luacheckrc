@@ -231,7 +231,6 @@ read_globals = {
     'IsControlKeyDown',
     'issecretvalue',
     'IsShiftKeyDown',
-    'IsSpellKnown',
     'Item',
     'LibStub',
     'MainMenuMicroButton_SetNormal',

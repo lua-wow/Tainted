@@ -104,6 +104,7 @@ modules\miscellaneous\settings.lua
 modules\miscellaneous\merchant.lua
 modules\miscellaneous\threatbar.lua
 modules\miscellaneous\auto_keystone.lua [AllowLoadGameType standard]
+modules\miscellaneous\dungeon_portals.lua [AllowLoadGameType standard]
 
 ## actionbars
 modules\actionbars\init.xml
