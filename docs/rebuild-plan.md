@@ -1411,7 +1411,7 @@ steps = upstream commit + pointer bump by the maintainer):
    - Test: level up (Era), death with `dead = true` (temporarily), boss kill outdoors (`BOSS_KILL`),
      dungeon boss kill and wipe (`ENCOUNTER_END`), `/reload` mid-encounter then kill (no error),
      achievement (Wrath+/Retail), M+ completion (Retail), no "Screenshot Taken" line with `tracer = false`.
-4. **Merchant on all clients** · Depends on: 1
+4. **Merchant on all clients** · Done · Depends on: 1
    - Change: `C_Item.GetItemInfo`; `C_Container.*` without global fallbacks; sell-all-junk branch on
      `C_MerchantFrame and C_MerchantFrame.SellAllJunkItems` instead of `E.isStandard`; fix the
      shadowed `itemLink`. Untag `merchant.lua`.
@@ -1623,7 +1623,7 @@ editing Tainted's files, and this contract is documented.
   - [x] 1. TOC lines instead of XML (pending in-game verification)
   - [x] 2. Announcers: chat API and dead code (pending in-game verification)
   - [x] 3. Screenshots: fixes, all clients (pending in-game verification)
-  - [ ] 4. Merchant on all clients
+  - [x] 4. Merchant on all clients
   - [ ] 5. Threat bar: events instead of polling
   - [ ] 6. Threat bar on mainline
   - [ ] 7. Auto keystone on Retail

@@ -101,7 +101,7 @@ modules\miscellaneous\dispels\data\mists.lua [AllowLoadGameType mists]
 modules\miscellaneous\interrupts\init.xml [AllowLoadGameType classic]
 modules\miscellaneous\screenshots\init.xml
 modules\miscellaneous\settings.lua
-modules\miscellaneous\merchant.lua [AllowLoadGameType classic]
+modules\miscellaneous\merchant.lua
 modules\miscellaneous\threatbar.lua [AllowLoadGameType classic]
 
 ## actionbars
