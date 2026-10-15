@@ -102,7 +102,7 @@ modules\miscellaneous\interrupts\init.xml [AllowLoadGameType classic]
 modules\miscellaneous\screenshots\init.xml
 modules\miscellaneous\settings.lua
 modules\miscellaneous\merchant.lua
-modules\miscellaneous\threatbar.lua [AllowLoadGameType classic]
+modules\miscellaneous\threatbar.lua
 
 ## actionbars
 modules\actionbars\init.xml

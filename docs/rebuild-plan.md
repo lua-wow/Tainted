@@ -1425,7 +1425,7 @@ steps = upstream commit + pointer bump by the maintainer):
    - Clients: Era, TBC, Wrath, MoP.
    - Test: solo and party combat; target switch mid-combat; pet battle (MoP, hidden); death and
      leaving combat hide it; covers the right datatext strip only in combat.
-6. **Threat bar on mainline** · Depends on: 5
+6. **Threat bar on mainline** · Done, pending in-game verification · Depends on: 5
    - Change: hide the bar when `C_Secrets.ShouldUnitThreatValuesBeSecret("player", "target")` is true
      (or `status` is secret), as ElvUI does; untag `threatbar.lua`.
    - Clients: Retail, Forever.
@@ -1625,7 +1625,7 @@ editing Tainted's files, and this contract is documented.
   - [x] 3. Screenshots: fixes, all clients (pending in-game verification)
   - [x] 4. Merchant on all clients
   - [x] 5. Threat bar: events instead of polling (pending in-game verification)
-  - [ ] 6. Threat bar on mainline
+  - [x] 6. Threat bar on mainline (pending in-game verification)
   - [ ] 7. Auto keystone on Retail
   - [ ] 8. Dungeon portals on Retail
   - [ ] 9. Skyriding race

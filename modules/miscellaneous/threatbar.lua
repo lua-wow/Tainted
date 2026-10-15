@@ -2,6 +2,7 @@ local _, ns = ...
 local E, C = ns.E, ns.C
 
 -- Blizzard
+local issecretvalue = _G.issecretvalue
 local UnitAffectingCombat = _G.UnitAffectingCombat
 local UnitDetailedThreatSituation = _G.UnitDetailedThreatSituation
 local UnitName = _G.UnitName
@@ -27,36 +28,36 @@ function element_proto:Update()
     if not UnitAffectingCombat("player") then return end
 
     local isTanking, status, percentage, _, _ = UnitDetailedThreatSituation(self.unit, "target")
-    
-    if not percentage then
-        percentage = 0
+
+    -- secret where threat is restricted (Retail/Forever instances, PvP): hide, as when there's no threat
+    if issecretvalue(status) or not status then
+        self:SetAlpha(0)
+        return
     end
 
-    if status then
-        self:SetValue(percentage)
-        
-        if self.Text then
-            self.Text:SetFormattedText("%.2f%%", percentage)
-        end
-        
-        if self.Value then
-            self.Value:SetText(UnitName("target") or "")
-        end
-        
-        local color = E.ColorGradient(percentage, E.colors.threat[1], E.colors.threat[2], E.colors.threat[3])
-        if color then
-            self:SetStatusBarColor(color.r, color.g, color.b)
-            
-            if self.bg then
-                local mu = self.bg.multiplier or 1
-                self.bg:SetVertexColor(color.r * mu, color.g * mu, color.b * mu)
-            end
-        end
-        
-        self:SetAlpha(1)
-    else
-        self:SetAlpha(0)
+    percentage = percentage or 0
+
+    self:SetValue(percentage)
+
+    if self.Text then
+        self.Text:SetFormattedText("%.2f%%", percentage)
     end
+
+    if self.Value then
+        self.Value:SetText(UnitName("target") or "")
+    end
+
+    local color = E.ColorGradient(percentage, E.colors.threat[1], E.colors.threat[2], E.colors.threat[3])
+    if color then
+        self:SetStatusBarColor(color.r, color.g, color.b)
+
+        if self.bg then
+            local mu = self.bg.multiplier or 1
+            self.bg:SetVertexColor(color.r * mu, color.g * mu, color.b * mu)
+        end
+    end
+
+    self:SetAlpha(1)
 end
 
 function element_proto:OnShow()
