@@ -41,8 +41,6 @@ function tempest_proto:PostUpdate(cur, max, total, ready)
     local duration = element.tempest and element.tempest.duration
     element.duration = duration
 
-    print("PostUpdate", cur, max, total, ready, duration)
-
     if element.TimerBar then
         if ready and duration then
             element.TimerBar:SetTimerDuration(duration, Enum.StatusBarInterpolation.Immediate, Enum.StatusBarTimerDirection.RemainingTime)
@@ -67,6 +65,9 @@ function tempest_proto:PostUpdate(cur, max, total, ready)
 end
 
 function UnitFrames:CreateTempest(frame)
+    -- oUF_Tempest loads on Retail only
+    if not E.isStandard then return end
+
     local texture = C.unitframes.texture
     local fontObject = E.GetFont(C.unitframes.font)
 
@@ -74,8 +75,8 @@ function UnitFrames:CreateTempest(frame)
     local height = C.unitframes.classpower.height or 18
 
     local element = Mixin(CreateFrame("StatusBar", frame:GetName() .. "Tempest", frame), tempest_proto)
-    if frame.Totems then
-        element:SetPoint("TOPLEFT", frame.Totems, "BOTTOMLEFT", 0, -5)
+    if frame.ClassPower then
+        element:SetPoint("TOPLEFT", frame.ClassPower, "BOTTOMLEFT", 0, -5)
     else
         element:SetPoint(unpack(C.unitframes.classpower.anchor))
     end
@@ -123,5 +124,20 @@ function UnitFrames:CreateTempest(frame)
 end
 
 function UnitFrames:SHAMAN(frame)
-    -- frame.Tempest = self:CreateTempest(frame)
+    local tempest = self:CreateTempest(frame)
+    if not tempest then return end
+    frame.Tempest = tempest
+
+    -- totems sit below tempest while it is shown, otherwise at the class power anchor
+    local totems = frame.Totems
+    if totems then
+        tempest:HookScript("OnShow", function()
+            totems:ClearAllPoints()
+            totems:SetPoint("TOPLEFT", tempest, "BOTTOMLEFT", 0, -5)
+        end)
+        tempest:HookScript("OnHide", function()
+            totems:ClearAllPoints()
+            totems:SetPoint(unpack(C.unitframes.classpower.anchor))
+        end)
+    end
 end
