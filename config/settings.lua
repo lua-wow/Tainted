@@ -142,16 +142,13 @@ C["miscellaneous"] = {
     ["texture"] = blankTex,
     ["threatbar"] = true,
     ["screenshots"] = {
-        ["enabled"] = true,                 -- enables plugin.
         ["achievements"] = true,            -- enables screenshots of earned achievements.
         ["boss_kills"] = true,              -- enables screenshots of successful boss encounters.
         ["challenge_mode"] = true,          -- enables screenshots of successful challenge modes / mythic keys.
         ["levelup"] = true,                 -- enables screenshots when player level up.
         ["dead"] = false,                   -- enables screenshots when player dies.
-        ["messages"] = {
-            ["enabled"] = true,
-            ["tracer"] = false
-        }
+        ["messages"] = true,                -- print a chat message for each screenshot event.
+        ["tracer"] = false                  -- print "Screenshot Taken/Failed".
     },
     ["skyriding_race"] = true,
     ["mythic"] = {

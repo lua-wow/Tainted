@@ -99,8 +99,8 @@ modules\miscellaneous\dispels\data\wrath.lua [AllowLoadGameType wrath, mists]
 modules\miscellaneous\dispels\data\cata.lua [AllowLoadGameType mists]
 modules\miscellaneous\dispels\data\mists.lua [AllowLoadGameType mists]
 modules\miscellaneous\interrupts\init.xml [AllowLoadGameType classic]
-modules\miscellaneous\screenshots\init.xml [AllowLoadGameType classic]
-modules\miscellaneous\settings.lua [AllowLoadGameType classic]
+modules\miscellaneous\screenshots\init.xml
+modules\miscellaneous\settings.lua
 modules\miscellaneous\merchant.lua [AllowLoadGameType classic]
 modules\miscellaneous\threatbar.lua [AllowLoadGameType classic]
 

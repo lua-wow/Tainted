@@ -1400,9 +1400,12 @@ steps = upstream commit + pointer bump by the maintainer):
    - Test: with `loadDeprecationFallbacks` off and on: interrupt in party (PARTY), raid (RAID), dungeon
      (SAY), pet interrupt (hunter/warlock), joining a group after zoning; MoP dungeon dispel of a listed
      aura announces; no errors.
-3. **Screenshots: fixes, all clients** (submodule + TOC) · Depends on: 1
-   - Change: tracer condition uses the function's result; nil-safe encounter time; `math.floor`
-     minutes; drop the debug `print`, `Disable` and client flags. Retag `screenshots\init.xml` and
+3. **Screenshots: fixes, all clients** (submodule + TOC) · Done, pending in-game verification · Depends on: 1
+   - Change: options are flat fields on `ns.ScreenShots` (oUF element style), read once at
+     `PLAYER_LOGIN`; `SetOptions`, the merge, `Disable` and `enabled` removed, which also fixes the tracer
+     condition. `settings.lua` sets the fields from a flat `C.miscellaneous.screenshots`. Nil-safe
+     encounter time; `math.floor` minutes; drop the debug `print` and client flags. Submodule TOC
+     Interface for all 6, `.luacheckrc` and `make check`. Retag `screenshots\init.xml` and
      `settings.lua` untagged.
    - Clients: all 6.
    - Test: level up (Era), death with `dead = true` (temporarily), boss kill outdoors (`BOSS_KILL`),
@@ -1619,7 +1622,7 @@ editing Tainted's files, and this contract is documented.
 - [ ] 10. Miscellaneous
   - [x] 1. TOC lines instead of XML (pending in-game verification)
   - [x] 2. Announcers: chat API and dead code (pending in-game verification)
-  - [ ] 3. Screenshots: fixes, all clients
+  - [x] 3. Screenshots: fixes, all clients (pending in-game verification)
   - [ ] 4. Merchant on all clients
   - [ ] 5. Threat bar: events instead of polling
   - [ ] 6. Threat bar on mainline
