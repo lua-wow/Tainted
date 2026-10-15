@@ -13,7 +13,10 @@ Legend: **Observed** = seen in the code · **Recommended** = proposal, not yet a
 - **Observed:** on Retail and Forever, only core, unit frames, maps (minimap/worldmap), chat and datatexts
   load, plus tooltips, auras, action bars, bags and the Blizzard tweaks (all clients; ghost and
   talking head where the frame exists). Miscellaneous only loads on Classic and MoP.
-- **Observed:** working: unit frames (most mature), minimap, chat and datatexts on all clients; action bars on Classic (Retail/Forever pending verification).
+- **Observed:** working: minimap, chat and datatexts on all clients; action bars on Classic (Retail/Forever pending verification).
+  Unit frames: item 9 done on all clients, one classic oUF (`libs\oUF_Classic`) on Era, TBC,
+  WotLK and MoP; Retail auras, raid auras and drift fixes verified on Retail, the rest (secret
+  values on Retail/Forever, threat borders, short values) pending in-game verification.
   Blizzard tweaks: item 7 done (UI widgets and the final all-client check pending in-game
   verification). Bags (window on all clients, bank and sort on
   Classic/MoP) pending in-game verification.
@@ -707,7 +710,7 @@ and MoP, with no Lua errors or taint messages.
 
 ### 9. Unit frames
 
-**Status:** In progress · **Priority:** High · **Depends on:** 0, 5 (AuraContainer, curves, duration
+**Status:** Done, pending in-game verification · **Priority:** High · **Depends on:** 0, 5 (AuraContainer, curves, duration
 objects), 6 (unit tooltip)
 
 **Objective:** unit frames, raid frames and nameplates on every client, secret-safe on Retail, with
@@ -1267,7 +1270,7 @@ breakpoints work on Retail/Forever).
       tank), black on drop and after combat; targeted member keeps the highlight and shows threat
       again after a target change; `party.enabled = true` party column; nameplate target
       highlight unchanged; no secret-value errors in encounters and M+ on Retail/Forever.
-18. **Done** · Depends on: 1–17
+18. **Done** · Done, pending in-game verification · Depends on: 1–17
     - Change: §1 and §4 of this plan (compatibility.md and the classic oUF merge are done, step 10).
     - Test: `/reload` on all 6; taint log clean after combat.
 
@@ -1279,9 +1282,186 @@ secret `UnitThreatSituation` on raid units (step 17).
 
 ### 10. Miscellaneous
 
-**Status:** Classic/MoP only · **Priority:** Low · **Depends on:** 0
+**Status:** Not started (Classic/MoP only) · **Priority:** Low · **Depends on:** 0, 3 (threat bar anchor)
+
+**Objective:** each mini-addon loads on every client where it can work, without the deprecation fallbacks, secret-safe on Retail.
 
 **Done when:** each feature has a keep/drop decision and a verified status per client.
+
+**Observed (code):**
+
+| Feature | Files | Loaded today | Startup | `C.*` | Events · frames · APIs |
+|:--|:--|:--|:--|:--|:--|
+| Dispel announcer | `dispels/` (git submodule, standalone addon) `init.lua`, `dispels.lua` | Classic (4) | own frame; `PLAYER_LOGIN`, `PLAYER_ENTERING_WORLD`; CLEU only in party/raid instances | — | `C_CombatLog.GetCurrentEventInfo/DoesObjectMatchFilter`, `GetInstanceInfo`, `C_Spell.GetSpellLink`, `SendChatMessage` |
+| Interrupt announcer | `interrupts/` (submodule) `interrupts.lua` | Classic | own frame; CLEU always from `PLAYER_LOGIN` | — (local `cfg`) | same, plus `IsInGroup/IsInRaid` |
+| Screenshots | `screenshots/` (submodule) `init.lua`, `screenshots.lua`; `settings.lua` bridge | Classic | own frame `PLAYER_LOGIN`; `settings.lua` merges `C` at file load | `screenshots.*` | `Screenshot`, `BOSS_KILL`, `ENCOUNTER_START/END`, `ACHIEVEMENT_EARNED`, `CHALLENGE_MODE_COMPLETED`, `PLAYER_LEVEL_UP`, `PLAYER_DEAD`, `SCREENSHOT_*`; `GetAchievementInfo`, `GetDifficultyInfo` |
+| Merchant (auto repair, sell junk) | `merchant.lua` | Classic | own frame `MERCHANT_SHOW` | — | `CanMerchantRepair`, `GetRepairAllCost`, `RepairAllItems`; `C_MerchantFrame.*` behind `E.isStandard`; `C_Container.*`; `_G.GetItemInfo` |
+| Threat bar | `threatbar.lua` | Classic | own frame `PLAYER_LOGIN`; anchor on `PLAYER_ENTERING_WORLD` | `threatbar`, `font`, `texture`, `general.background.multiplier` | `UnitDetailedThreatSituation`, `UnitAffectingCombat`, `UnitName`; 0.75 s `OnUpdate` poll in combat; covers `TaintedChatRightDataText`; parent `E.PetHider` |
+| Auto keystone | `auto_keystone.lua` | nowhere | own frame `ADDON_LOADED` (`Blizzard_ChallengesUI`) | `mythic.autokeystone` | `ChallengesKeystoneFrame` `OnShow` hook; `C_Container.*`; `C_Item.GetItemInfo` (12th return) |
+| Dungeon portals | `dungeon_portals.lua` | nowhere | own frame `ADDON_LOADED` | `mythic.portals`, `font` | `hooksecurefunc(ChallengesFrame, "Update")`, `ChallengesFrame.maps`; secure macro buttons; `C_ChallengeMode.GetMapUIInfo`, `C_MythicPlus.GetSeasonBestForMap`, `IsSpellKnown`, `C_Spell.GetSpellCooldown/GetSpellName` |
+| Skyriding race | `skyriding_race.lua` | nowhere | own frame `PLAYER_LOGIN`; player `UNIT_AURA` | `skyriding_race`, `font`, `texture` | `C_UnitAuras.GetAuraSlots/GetAuraDataBySlot/GetAuraDataByAuraInstanceID` |
+
+- Independence: all eight are independent of each other. Shared code is limited to `settings.lua`
+  (screenshots bridge) and `C.miscellaneous.font/texture`. Outside dependencies:
+  - threat bar: datatexts (`TaintedChatRightDataText`, looked up at `PLAYER_ENTERING_WORLD`) and core
+    (`E.PetHider`, `E.colors.threat`);
+  - merchant: locales (`L.merchant`, `L.gold/silver/copper`);
+  - auto keystone: repeats the bag scan of `core/keystone.lua` (`GetKeystone`/`IsKeystone`).
+
+  No feature depends on minimap, chat, bags or action bars.
+- Submodules: `dispels`, `interrupts`, `screenshots` are git submodules (lua-wow/*) and standalone
+  addons with their own TOC. luacheck excludes them. Fixes there are upstream commits plus a
+  pointer bump in Tainted (both are the maintainer's git operations).
+- Duplicate client detection: `dispels/init.lua` and `screenshots/init.lua` set `isRetail/isClassic/isTBC/
+  isWrath/isCata/isMoP` from `WOW_PROJECT_ID`. Screenshots reads none of them. Dispels reads only
+  `isRetail`, for M+ affix data that is dead (CLEU can't be read on Retail, below).
+- Leaked globals and dead code:
+  - Named frames `TaintedThreatBar`, `TaintedRaceTracker` and `TaintedAutoKeystone` (the last needs no
+    name). `ns.Interrupts = Interrupts` reads an undefined global (always nil, unused).
+  - Dead code:
+    - dispels: `Dispels.debuffs`, `LE_EXPANSION_*`, `band/tinsert/tremove/GetSpellInfo/GetSpellName`;
+    - screenshots: the debug `print` in `OnAchievementEarned`, `Disable`;
+    - skyriding: `FilterAura`, `Start_StopWatch/Pause_StopWatch`, `oUF`, `changed`;
+    - threat bar: `UnitIsDead`;
+    - misc: `init.xml` and the commented TOC line.
+  - luacheck: 4 warnings (merchant shadowed `itemLink`; skyriding `oUF`, `changed`; threat bar `UnitIsDead`).
+- Settings with no effect: `screenshots.messages.tracer`. `HookEvent` stores `pcall`'s status (always
+  `true`), not the condition's result, so "Screenshot Taken/Failed" is always printed.
+- Other bugs:
+  - screenshots: `"Time: " .. encounterTime` errors when `ENCOUNTER_START` was missed (`/reload`
+    mid-fight); `math.ceil` minutes (90 s → "2 minutes 30 seconds").
+  - interrupts: the chat channel is only recomputed on `PLAYER_ENTERING_WORLD`, not on group changes.
+  - portals: `CreateButton` creates secure buttons from a `ChallengesFrame:Update` hook with no combat
+    check.
+- Game flag where a family/feature is meant: merchant `E.isStandard` (Forever has
+  `C_MerchantFrame.SellAllJunkItems` but takes the bag loop). The submodules' own flags are covered
+  above. No other misc flags.
+
+**Observed (API docs / Blizzard source, 6 clients):**
+
+| Feature | Retail · Forever | Era · TBC · Wrath · MoP | Secrets / restrictions / Edit Mode |
+|:--|:--|:--|:--|
+| Dispels, interrupts | **Can't work.** Public `C_CombatLog` has no `GetCurrentEventInfo`. It exists only in `C_CombatLogSecure` (`SecureOnly`) and `C_CombatLogInternal`. CLEU is `HasRestrictions`. `C_DamageMeter` has `Interrupts`/`Dispels` types, but they are aggregates per source and spell (`SecretWhenInCombat`), with no target, no interrupted/dispelled spell and no per-event signal, so it can't replace the announcer. Blizzard's damage meter already counts both. | Work today (`C_CombatLog.GetCurrentEventInfo` public). Dispels has data only for MoP instances (and unsupported Cata), so on Era/TBC/Wrath it listens to CLEU in every instance and never announces. | `SendChatMessage` comes only from `Blizzard_DeprecatedChatInfo` (guarded by `loadDeprecationFallbacks`) on all 6, so it errors with the fallbacks off. `C_ChatInfo.SendChatMessage` is documented on all 6. |
+| Screenshots | All events and APIs documented; encounter payloads, `Screenshot` have no secret flags | same; achievements gated to Wrath+, challenge mode to MoP+ | none; no Edit Mode |
+| Merchant | repair globals in Blizzard `MerchantFrame` on both; `C_MerchantFrame.SellAllJunkItems` on both (Blizzard only has a button, no auto) | repair globals present; no `C_MerchantFrame` | `_G.GetItemInfo` is a deprecation fallback on all 6 (`C_Item.GetItemInfo` exists everywhere) |
+| Threat bar | `UnitDetailedThreatSituation` `SecretWhenUnitThreatValuesRestricted`; predicate `C_Secrets.ShouldUnitThreatValuesBeSecret(unit, mob)` on both. Ours tests `status` and does arithmetic, so it errors when secret. ElvUI hides its bar when `status` is secret. Anchor frame exists (datatexts on all clients). | works today | — |
+| Auto keystone | Retail only: `Blizzard_ChallengesUI` loads for `standard, mists` (not Forever). Blizzard never auto-slots (drag/click → `C_ChallengeMode.SlotKeystone`). `C_Container.UseContainerItem` has no restriction flag. | MoP ChallengesUI has no keystone frame; Era/TBC/Wrath none | auto-slotting through `UseContainerItem` on 12.x is unverified |
+| Dungeon portals | Retail: `ChallengesFrameMixin:Update` and `.maps` exist; Retail ChallengesUI has no teleport buttons (spellbook flyouts only). Forever: no ChallengesUI. | MoP: `ChallengesFrame` has no `Update` method (different UI); MoP challenge-mode teleports exist but aren't proposed | `IsSpellKnown` is a deprecation fallback (`C_SpellBook.IsSpellKnown`); `C_Spell.GetSpellCooldown` `SecretWhenCooldownsRestricted` (`info.isEnabled` test); data is TWW S3, Midnight dungeons missing (map IDs unverified) |
+| Skyriding race | Retail content only (Forever has none). Data is TWW races only. | none | `C_UnitAuras.*` `SecretWhenUnitAuraRestricted`: `RACES[data.spellId]` indexes with a secret in combat in instances and PvP (UNIT_AURA is always processed). Whether Blizzard's race widget already shows the gold-time countdown is unverified. |
+
+`[AllowLoadGameType standard]` loads only on Retail. Every client's Blizzard TOCs use the
+`standard` token, so all 6 recognize it.
+
+Unverifiable without the game: CLEU announcements on Classic after the chat-API change; the threat
+predicate on Retail in open world vs instances; keystone auto-slot on 12.x; Midnight portal map IDs and
+spells; Blizzard race widget content; MoP dispel instance IDs.
+
+**Recommended (per feature):**
+
+| Feature | Recommendation | Risk |
+|:--|:--|:--|
+| Merchant | fix + enable on all 6 | low; Classic sells via `UseContainerItem` out of combat (unchanged) |
+| Screenshots | fix + enable on all 6 | low |
+| Threat bar | fix (secret-safe, event-driven) + enable on all 6 | medium on Retail (secret predicate unverified in-game) |
+| Auto keystone | fix + enable on Retail (`standard`) | low |
+| Dungeon portals | fix + enable on Retail (`standard`) | medium: secure buttons, data upkeep per season |
+| Interrupts | keep Classic-only, fix chat API | Retail/Forever impossible, no replacement (Blizzard damage meter counts interrupts, doesn't announce) |
+| Dispels | keep Classic-only, fix chat API; scope on Era/TBC/Wrath is a decision | same as interrupts |
+| Skyriding race | fix + enable on Retail, or drop (decision) | data upkeep each expansion; Blizzard overlap unverified |
+
+Nothing is a forced drop. No Blizzard entry point is removed by any step.
+
+**Loading and startup:**
+- Per-line TOC tags replace all three misc XMLs. The submodules keep their own `init.xml`: it is their
+  standalone entry point, and the TOC includes it. Their duplicate client flags are deleted upstream,
+  not replaced: no reader is left. Step 1, first in the order.
+- Startup: all eight use their own frames. Each feature is its own frame with its own handler, so one
+  failing feature doesn't stop the others (unlike Blizzard tweaks before item 7 step 2). No feature
+  needs to move to the registry. The threat bar's only cross-module need (the datatext frame) is
+  resolved at `PLAYER_ENTERING_WORLD`, after `InitModules`. File-level `C` reads remain an item 12 concern.
+
+**Recommended steps** (`make check` after each; Classic regressions checked on Era first; submodule
+steps = upstream commit + pointer bump by the maintainer):
+
+1. **TOC lines instead of XML** · Depends on: —
+   - Change: replace the commented `init.xml` line and the `init_classic.xml`/`init_mists.xml` lines
+     with one line per file in the current order, tagged `[AllowLoadGameType classic]` (the union):
+     `dispels\init.xml`, `interrupts\init.xml`, `screenshots\init.xml`, `settings.lua`, `merchant.lua`,
+     `threatbar.lua`. Delete the three misc XMLs. `auto_keystone`, `dungeon_portals` and
+     `skyriding_race` get no line yet.
+   - Clients: Era, TBC, Wrath, MoP (no behavior change).
+   - Test: `/reload` on Era and MoP; merchant repairs/sells; threat bar in combat; a level-up or death
+     screenshot; an interrupt in a group announces; no errors.
+2. **Announcers: chat API and dead code** (submodules `dispels`, `interrupts`) · Depends on: 1
+   - Change: `C_ChatInfo.SendChatMessage`. Dispels: drop the `isRetail…isMoP` flags, the Retail
+     `spells[0]` branch and unused locals/fields. Interrupts: drop `ns.Interrupts = Interrupts` and
+     recompute the chat type on `GROUP_ROSTER_UPDATE`.
+   - Clients: Era, TBC, Wrath, MoP.
+   - Test: with `loadDeprecationFallbacks` off and on: interrupt in party (PARTY), raid (RAID), dungeon
+     (SAY), pet interrupt (hunter/warlock), joining a group after zoning; MoP dungeon dispel of a listed
+     aura announces; no errors.
+3. **Screenshots: fixes, all clients** (submodule + TOC) · Depends on: 1
+   - Change: tracer condition uses the function's result; nil-safe encounter time; `math.floor`
+     minutes; drop the debug `print`, `Disable` and client flags. Retag `screenshots\init.xml` and
+     `settings.lua` untagged.
+   - Clients: all 6.
+   - Test: level up (Era), death with `dead = true` (temporarily), boss kill outdoors (`BOSS_KILL`),
+     dungeon boss kill and wipe (`ENCOUNTER_END`), `/reload` mid-encounter then kill (no error),
+     achievement (Wrath+/Retail), M+ completion (Retail), no "Screenshot Taken" line with `tracer = false`.
+4. **Merchant on all clients** · Depends on: 1
+   - Change: `C_Item.GetItemInfo`; `C_Container.*` without global fallbacks; sell-all-junk branch on
+     `C_MerchantFrame and C_MerchantFrame.SellAllJunkItems` instead of `E.isStandard`; fix the
+     shadowed `itemLink`. Untag `merchant.lua`.
+   - Clients: all 6.
+   - Test: merchant open with junk and damaged gear on Era (fallbacks off), MoP, Retail, Forever;
+     not enough money message; merchant without repair; Retail with Blizzard's sell-all-junk disabled.
+5. **Threat bar: events instead of polling** · Depends on: 1
+   - Change: update on `UNIT_THREAT_LIST_UPDATE`/`UNIT_THREAT_SITUATION_UPDATE`/`PLAYER_TARGET_CHANGED`
+     while in combat instead of the 0.75 s `OnUpdate`; drop `UnitIsDead`; unnamed frame if nothing
+     references `TaintedThreatBar` (none found).
+   - Clients: Era, TBC, Wrath, MoP.
+   - Test: solo and party combat; target switch mid-combat; pet battle (MoP, hidden); death and
+     leaving combat hide it; covers the right datatext strip only in combat.
+6. **Threat bar on mainline** · Depends on: 5
+   - Change: hide the bar when `C_Secrets.ShouldUnitThreatValuesBeSecret("player", "target")` is true
+     (or `status` is secret), as ElvUI does; untag `threatbar.lua`.
+   - Clients: Retail, Forever.
+   - Test: open-world combat shows %, color and target name; dungeon, M+, raid boss and PvP: no
+     secret-value errors (bar hidden where values are secret); Edit Mode open/close.
+7. **Auto keystone on Retail** · Depends on: 1
+   - Change: `C_Item.GetItemInfoInstant` (as `core/keystone.lua`); unnamed frame; TOC line
+     `[AllowLoadGameType standard]`.
+   - Clients: Retail.
+   - Test: open the font of power with a key in bags (slotted), without a key (nothing), after
+     `/reload` with the UI already loaded; no taint when starting the key.
+8. **Dungeon portals on Retail** · Depends on: 1
+   - Change: `C_SpellBook.IsSpellKnown`; create buttons only out of combat (defer to
+     `PLAYER_REGEN_ENABLED`); secret-safe cooldown (skip when secret, or duration object; unverified
+     which API applies); Midnight season dungeons in the table, missing-spell entries removed instead
+     of printing; TOC line `[AllowLoadGameType standard]`.
+   - Clients: Retail.
+   - Test: Mythic+ tab opened out of combat and first opened in combat; click a known portal (casts),
+     unknown portal (desaturated); cooldown sweep after use; sort by score; opening inside an M+ key.
+9. **Skyriding race** (decision below) · Depends on: 1
+   - Change (if kept): skip secret `spellId`, Midnight races added, dead stopwatch/`FilterAura`/`oUF`/`changed`
+     removed, TOC line `[AllowLoadGameType standard]`. If dropped: delete the file and
+     `C.miscellaneous.skyriding_race`.
+   - Clients: Retail.
+   - Test: start a TWW and a Midnight race (Normal, Advanced, Reverse), finish, fail, leave the start
+     area; combat in a dungeon with the tracker loaded (no secret errors).
+10. **Done** · Depends on: 1–9
+    - Change: §1, §4, §5, §6 and compatibility.md "Current status" (miscellaneous per client).
+    - Test: `/reload` on all 6 with `loadDeprecationFallbacks` off; taint log clean after combat on
+      Retail and MoP.
+
+**Needs confirmation:**
+- Submodules: fix upstream and bump pointers (proposed), or vendor them into Tainted?
+- Dispels on Era/TBC/Wrath: it never announces there (no data). Tag it `mists` only, add Classic
+  data, or keep as is?
+- Threat bar on Retail: hide while threat is secret (proposed), or render secret values (bar value
+  and text accept them; color would need a curve)?
+- Dungeon portals: accept the per-season data upkeep?
+- Skyriding race: keep and maintain the race data, or drop?
 
 ### 11. Final compatibility audit
 
@@ -1324,15 +1504,20 @@ editing Tainted's files, and this contract is documented.
 
 - **Ambiguous client flags.** Renamed in item 0 (`isRetail` → `isStandard`, `isClassic` →
   `isVanilla`, `isMoP` → `isMists`, `isForever` → `isCamelot`), and family flags
-  `isMainline`/`isClassic` added. Call sites still use game flags where a family is meant, so
-  Forever and TBC/WotLK/MoP can take wrong paths until each item moves them to family flags.
+  `isMainline`/`isClassic` added. Items 1–9 moved their call sites to family flags or feature
+  detection; the game flags left in unit frames are game content (nameplate max distance,
+  `showPet` on Era, MoP layout and colors). Item 10: only merchant (`E.isStandard` for a feature
+  check), step 4.
 - **Implicit dependencies.** Modules find each other's frames by global name and rely on TOC
   order (chat/minimap → datatexts).
 - **Core does module work.** It triggers the chat reset (action-bar settings moved out in item 4).
 - **Two startup models.** Some modules use the registry `Init`. About 15 others create their own
   frame and initialize on login. Errors in the second group aren't isolated.
-- **Secret values / restricted APIs on Midnight.** Most likely to affect auras, tags, the combat
-  log and tooltips.
+- **Secret values / restricted APIs on Midnight.** Auras (item 5), tooltips (item 6) and unit-frame
+  tags and elements (item 9) are handled. The combat log (CLEU) isn't readable by addons on
+  Retail/Forever, so dispels/interrupts stay Classic-only; threat bar and skyriding race are item 10
+  steps 6 and 9. Open unit-frame
+  cases are in item 9's Unverified list.
 - **Pixel scale timing.** It is computed at file load, before UI scale is applied at login.
   Unverified.
 
@@ -1340,9 +1525,6 @@ editing Tainted's files, and this contract is documented.
 
 - Dead stubs (`development.lua`, `event_trace.lua`): remove during
   item 11.
-- Mainline-only misc files are kept but unverified on 12.x. Leave them until item 10.
-- Combat-log based dispels/interrupts on Retail. Check the API docs before reviving (item 10).
-- Duplicate client detection inside the dispels/screenshots mini-addons. Handle with item 10.
 - Visual refinements outside design.md.
 
 ## 6. Decisions
@@ -1360,7 +1542,7 @@ editing Tainted's files, and this contract is documented.
 **Needs confirmation:**
 - Item 0: one startup model for all modules, or keep both and document them?
 - Item 2 vs 4: which comes first on Retail, chat or action bars?
-- Item 10: keep or drop each misc feature on Midnight.
+- Item 10: submodules, dispels scope, threat bar on Retail, portals upkeep, skyriding race (see item 10).
 - Item 12: what to export, when `C` is read, and whether a separate in-game configuration addon is allowed (see item 12).
 
 ## Completed
@@ -1415,7 +1597,7 @@ editing Tainted's files, and this contract is documented.
   - [x] 3. Client extras
   - [x] 4. Classic bank
   - [x] 5. Classic sort
-- [ ] 9. Unit frames
+- [x] 9. Unit frames (pending in-game verification)
   - [x] 1. Nameplate artwork (classic family)
   - [x] 2. Retail unit-frame auras (verified on Retail)
   - [x] 3. Retail raid auras (verified on Retail)
@@ -1433,7 +1615,17 @@ editing Tainted's files, and this contract is documented.
   - [x] 15. oUF_Classic: Retail prediction
   - [x] 16. Classic totems
   - [x] 17. Threat indicator (pending in-game verification)
-  - [ ] 18. Done
+  - [x] 18. Done (pending in-game verification)
 - [ ] 10. Miscellaneous
+  - [ ] 1. TOC lines instead of XML
+  - [ ] 2. Announcers: chat API and dead code
+  - [ ] 3. Screenshots: fixes, all clients
+  - [ ] 4. Merchant on all clients
+  - [ ] 5. Threat bar: events instead of polling
+  - [ ] 6. Threat bar on mainline
+  - [ ] 7. Auto keystone on Retail
+  - [ ] 8. Dungeon portals on Retail
+  - [ ] 9. Skyriding race
+  - [ ] 10. Done
 - [ ] 11. Final compatibility audit
 - [ ] 12. Extension by other addons
