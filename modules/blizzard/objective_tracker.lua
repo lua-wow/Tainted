@@ -4,7 +4,7 @@ local MODULE = E:GetModule("Blizzard")
 
 local element_proto = {}
 
-if E.isVanilla or E.isTBC or E.isWrath or E.isMists then
+if E.isClassic then
     local ObjectiveTracker_SetPoint = function(self, point, anchor, anchorPoint, x, y)
         -- only WatchFrame's secure item buttons make it protected; QuestWatchFrame (Era/TBC) has
         -- none and is laid out by the right container in combat too

@@ -56,7 +56,7 @@ core\install.lua
 core\dropdown.lua
 core\commands.lua
 core\talents.lua
-core\keystone.lua [AllowLoadGameType mainline]
+core\keystone.lua [AllowLoadGameType standard]
 core\development.lua
 
 ## auras

@@ -5,11 +5,11 @@ Other docs link here instead of repeating these facts.
 
 ## Supported clients
 
-A single `Tainted.toc` serves every supported client (`## Interface: 120100, 16001, 11509, 20506, 38002, 50504`):
+A single `Tainted.toc` serves every supported client (`## Interface: 11509, 20506, 38002, 50504, 120105, 16001`):
 
 | Client          | Interface | Game type  | Family     | oUF                |
 |:----------------|:----------|:-----------|:-----------|:-------------------|
-| Retail/Midnight | `120100`  | `standard` | `mainline` | `libs\oUF`         |
+| Retail/Midnight | `120105`  | `standard` | `mainline` | `libs\oUF`         |
 | Classic Forever | `16001`   | `camelot`  | `mainline` | `libs\oUF`         |
 | Classic Era     | `11509`   | `vanilla`  | `classic`  | `libs\oUF_Classic` |
 | Classic TBC     | `20506`   | `tbc`      | `classic`  | `libs\oUF_Classic` |
@@ -34,8 +34,10 @@ A single `Tainted.toc` serves every supported client (`## Interface: 120100, 160
 
 ## Current status
 
-- Retail is being revived. Bags and action bars load on all clients (bag bank and sort are
+- Every module loads on all 6 clients; the exceptions are tagged per line in `Tainted.toc` and
+  listed below. Bags and action bars load on all clients (bag bank and sort are
   `classic`-tagged).
+- Core: `core\keystone.lua` (keystone and weekly-reward tracking) is `standard`-tagged.
 - Chat loads on all clients (one shared implementation, no per-client files).
 - Datatexts load on all clients. An element's `Enable` returns `true` only if it can run on
   the client.
@@ -78,8 +80,9 @@ Flags in `core/init.lua` are named after the TOC game types and families
   (spells, talents, a single client's frames).
 - The oUF variant has no runtime flag: the TOC picks it. Code that depends on the oUF variant
   belongs in files tagged like the oUF line, or checks the game flags that match it.
-- Some call sites still use game flags where a family is meant (e.g. `E.isStandard` for
-  "mainline", `E.isVanilla` for "classic"); fix them as their rebuild item touches them.
+- The game flags left in the code are game content (Era vehicles, haste and pet happiness, MoP
+  stances and keyring, Retail nameplate distance and currencies, install CVar defaults), not
+  families.
 - TOC path variables (`[Game]`, `[Family]`) work on all supported clients but are not used:
   variants split by oUF variant, not by game or family, and inline branches still need flags.
 

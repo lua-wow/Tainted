@@ -20,8 +20,9 @@ Legend: **Observed** = seen in the code · **Recommended** = proposal, not yet a
   values on Retail/Forever, threat borders, short values) pending in-game verification.
   Blizzard tweaks: item 7 done (UI widgets and the final all-client check pending in-game
   verification). Bags (window on all clients, bank and sort on
-  Classic/MoP) pending in-game verification. Miscellaneous: item 10 done, pending in-game
-  verification.
+  Classic/MoP) pending in-game verification; Classic bag slots can't use items in combat (§4).
+  Miscellaneous: item 10 done, pending in-game verification. Final compatibility audit: item 11
+  done, pending in-game verification. Next: item 12.
 - Constraints: one TOC for 6 clients; Retail oUF is read-only; Midnight secret values
   (see compatibility.md).
 
@@ -1482,10 +1483,44 @@ steps = upstream commit + pointer bump by the maintainer):
 
 ### 11. Final compatibility audit
 
+**Status:** Done, pending in-game verification · **Priority:** Medium · **Depends on:** 0–10
+
 **Done when:**
 - Every module loads on every client it's meant for.
 - `make check` is clean of real bugs.
 - This plan is up to date.
+
+**Observed (code):**
+- `make check`: 0 warnings / 0 errors.
+- TOC and module XMLs: every listed file exists. Not loaded by anything: `modules/blizzard/event_trace.lua`
+  (dead stub, §5) and `locales/template.lua` (translation template, kept unloaded on purpose).
+- `core/development.lua` loads on all 6 and prints `loadDeprecationFallbacks`/`taintLog` to chat on
+  every load; the rest of the file is behind `if (true) then return end`.
+- `core/keystone.lua` is tagged `mainline` but returns at once unless `E.isStandard`, so it loads for
+  nothing on Forever. Auto keystone and dungeon portals are already `standard`-tagged.
+- Game flags where a family is meant: only the objective tracker (`E.isVanilla or E.isTBC or
+  E.isWrath or E.isMists` = `E.isClassic`). The other game flags are game content (§4).
+- compatibility.md lists Interface `120100`; the TOC has `120105`.
+- Load tags match the decisions of items 1–10: maps and auras per family, bag bank and sort
+  `classic`, ghost `mainline, mists`, talking head `mainline`, dispels and interrupts `classic`,
+  auto keystone and dungeon portals `standard`; everything else on all 6.
+
+**Steps:**
+1. **Dead stubs** · Done, pending in-game verification · Depends on: —
+   - Change: delete `core/development.lua` (TOC line and `.luacheckrc` exclude removed) and
+     `modules/blizzard/event_trace.lua`.
+   - Clients: all 6.
+2. **Keystone on Retail only** · Done, pending in-game verification · Depends on: —
+   - Change: `core\keystone.lua [AllowLoadGameType standard]`; its `E.isStandard` guard removed.
+   - Clients: Retail, Forever.
+3. **Objective tracker family flag** · Done · Depends on: —
+   - Change: `E.isClassic` instead of the four classic game flags (no behavior change).
+   - Clients: Era, TBC, WotLK, MoP.
+4. **Docs** · Done · Depends on: 1–3
+   - Change: compatibility.md Interface and "Current status"/game-flag notes; §1, §4, §5 of this plan.
+   - Test: `/reload` on all 6 with `loadDeprecationFallbacks` off: no errors and no CVar lines in
+     chat; Forever: no keystone errors; Retail: auto keystone still slots; Classic: objective
+     tracker still anchored, also after combat.
 
 ### 12. Extension by other addons
 
@@ -1524,7 +1559,12 @@ editing Tainted's files, and this contract is documented.
   `isMainline`/`isClassic` added. Items 1–9 moved their call sites to family flags or feature
   detection; the game flags left in unit frames are game content (nameplate max distance,
   `showPet` on Era, MoP layout and colors). Item 10: none left (merchant uses feature detection,
-  step 4).
+  step 4). Item 11: the objective tracker was the last call site using game flags for a family;
+  the rest are game content. Resolved.
+- **Classic bag slots blocked in combat.** Confirmed in-game on MoP: Tainted-created
+  `ContainerFrameItemButtonTemplate` buttons run their inline XML `OnClick` tainted, so
+  `UseContainerItem` is blocked in combat on Era, TBC, WotLK and MoP. Not fixed; proposed fix
+  in `docs/bag-fixes.md` (use Blizzard's container buttons on Classic).
 - **Implicit dependencies.** Modules find each other's frames by global name and rely on TOC
   order (chat/minimap → datatexts).
 - **Core does module work.** It triggers the chat reset (action-bar settings moved out in item 4).
@@ -1540,8 +1580,6 @@ editing Tainted's files, and this contract is documented.
 
 ## 5. Deferred work (don't fix early)
 
-- Dead stubs (`development.lua`, `event_trace.lua`): remove during
-  item 11.
 - Visual refinements outside design.md.
 
 ## 6. Decisions
@@ -1646,5 +1684,9 @@ editing Tainted's files, and this contract is documented.
   - [x] 8. Dungeon portals on Retail
   - [x] 9. Skyriding race (moved to standalone addon)
   - [x] 10. Done (pending in-game verification)
-- [ ] 11. Final compatibility audit
+- [x] 11. Final compatibility audit (pending in-game verification)
+  - [x] 1. Dead stubs (pending in-game verification)
+  - [x] 2. Keystone on Retail only (pending in-game verification)
+  - [x] 3. Objective tracker family flag
+  - [x] 4. Docs
 - [ ] 12. Extension by other addons

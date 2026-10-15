@@ -8,7 +8,6 @@ unused_secondaries = false -- e.g. local name, _, itemLevel = GetItemInfo(...)
 -- and https://luacheck.readthedocs.io/en/stable/cli.html#patterns
 exclude_files = {
     '.claude/**',
-    'core/development.lua', -- dead stub, removed in rebuild item 10
     'docs/**',
     'libs/**', -- submodules (oUF is read-only)
     'modules/miscellaneous/dispels/**', -- submodule

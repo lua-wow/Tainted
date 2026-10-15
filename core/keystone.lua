@@ -1,9 +1,6 @@
 local _, ns = ...
 local E = ns.E
 
--- mythic+ keystones only exist on Retail (Tainted.toc is also loaded by Forever)
-if not E.isStandard then return end
-
 -- Blizzard
 local BACKPACK_CONTAINER = _G.BACKPACK_CONTAINER or 0
 local NUM_BAG_SLOTS = _G.NUM_BAG_SLOTS or 4
