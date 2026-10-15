@@ -1,7 +1,11 @@
 # Unverified in-game
 
 -   Action bars on Retail and Forever (working on Classic clients); paging for druid/rogue forms on Forever.
--   Auras, tooltips, bags, Blizzard UI tweaks and miscellaneous modules on all clients.
--   Unit frames: Retail unit-frame and raid auras are verified on Retail; secret values on
-    Retail/Forever, threat borders, short values, rune order and absorbs on WotLK/MoP are not.
 -   House favor bar: tracked-house data.
+
+## Open
+
+-   Two startup models: registry `Init` vs ~15 modules with their own login frame (errors not
+    isolated). One model, or document both?
+-   Modules find each other by global frame name and TOC order (chat/minimap → datatexts).
+-   Pixel scale is computed at file load, before the UI scale is applied at login.

@@ -50,7 +50,8 @@ architecture win when they conflict.
 - Never guess about secret/restricted values: check the target client's generated Blizzard
   API docs before using a result in logic. If unsure, say so.
 - Never invent an API. Mark anything you can't verify as "unverified".
-- Supported clients, TOC rules, oUF variants, secret values: [docs/compatibility.md](docs/compatibility.md).
+- Supported clients, TOC rules, oUF variants, secret values, design decisions:
+  [docs/compatibility.md](docs/compatibility.md). Don't re-litigate a recorded decision.
 - Addon must work independent of `loadDeprecatedFallbacks` is enabled or disabled.
 
 ## References
