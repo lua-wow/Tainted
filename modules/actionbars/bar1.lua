@@ -58,7 +58,6 @@ do
 	end
 
 	function element_proto:OnEvent(event, ...)
-		local unit = ...
 		local element = self
 
 		for index, button in next, element._buttons do

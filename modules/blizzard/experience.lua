@@ -2,8 +2,6 @@ local _, ns = ...
 local E, C, A = ns.E, ns.C, ns.A
 
 -- Blizzard
-local MAX_REPUTATION_REACTION = _G.MAX_REPUTATION_REACTION or 8
-
 local GameLimitedMode_GetLevelLimit = _G.GameLimitedMode_GetLevelLimit
 local GameLimitedMode_IsBankedXPActive = _G.GameLimitedMode_IsBankedXPActive
 local GetMaxLevelForPlayerExpansion = _G.GetMaxLevelForPlayerExpansion
@@ -67,16 +65,6 @@ local BarsEnum = {
 	Rested = 0,
     Renown = 8,
 	HouseFavor = 9,
-}
-
-local BarPriorities = {
-	[BarsEnum.Experience] = 0,
-	[BarsEnum.Reputation] = 1,
-	[BarsEnum.Honor] = 2,
-	[BarsEnum.Azerite] = 3,
-	[BarsEnum.Artifact] = 4,
-	[BarsEnum.Anima] = 5,
-	[BarsEnum.PetExperience] = 6
 }
 
 local BarColors = {
@@ -205,11 +193,6 @@ local EnableBar = function(enum)
     end
 end
 
-local EnableBarCallback = function(value)
-    return function()
-    end
-end
-
 function element_proto:OnMouseUp(...)
     if MenuUtil then
         MenuUtil.CreateContextMenu(self, function(owner, rootDescription)
@@ -297,7 +280,7 @@ do
             if (self.isRested and self.restedXP > 0) then
                 local restedColor = BarColors[BarsEnum.Rested]
                 local restedPercentage = self:CalculatePercentage(self.restedXP, self.nextXP)
-                GameTooltip:AddDoubleLine(color:WrapTextInColorCode(RESTED .. ":"), RESTED_PATTERN:format(self.restedXP, restedPercentage))
+                tooltip:AddDoubleLine(restedColor:WrapTextInColorCode(RESTED .. ":"), RESTED_PATTERN:format(self.restedXP, restedPercentage))
             end
         end
     end

@@ -3,9 +3,7 @@ local E, C, A = ns.E, ns.C, ns.A
 local MODULE = E:GetModule("Blizzard")
 
 -- Blizzard
-local GetMirrorTimerProgress = _G.GetMirrorTimerProgress
 local MirrorTimerContainer = _G.MirrorTimerContainer
-local MirrorTimerAtlas = _G.MirrorTimerAtlas
 
 local MIRRORTIMER_NUMTIMERS = _G.MIRRORTIMER_NUMTIMERS
 

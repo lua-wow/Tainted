@@ -5,9 +5,6 @@ local MODULE = E:GetModule("ActionBars")
 -- Blizzard
 local NUM_PET_ACTION_SLOTS = _G.NUM_PET_ACTION_SLOTS or 10
 
--- Mine
-local StyleActionButton = MODULE.StyleActionButton
-
 local element_proto = {
 	name = "PetActionButton",
 	num = NUM_PET_ACTION_SLOTS,

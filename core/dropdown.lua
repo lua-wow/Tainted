@@ -70,7 +70,7 @@ function MODULE:SkinBackdrop(backdrop)
     end
 end
 
-local UIDropDownMenu_CreateFrames = function(level, index)
+local UIDropDownMenu_CreateFrames = function(level)
     -- read the global each time: UIDropDownMenu_CreateFrames increments it when adding levels
     for index = 1, (_G.UIDROPDOWNMENU_MAXLEVELS or 3) do
         MODULE:SkinBackdrop(_G["DropDownList" .. index .. "Backdrop"])

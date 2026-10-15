@@ -35,7 +35,7 @@ A single `Tainted.toc` serves every supported client (`## Interface: 120100, 160
 ## Current status
 
 - Retail is being revived. Bags and action bars load on all clients (bag bank and sort are
-  `classic`-tagged); miscellaneous loads only on Classic and MoP.
+  `classic`-tagged).
 - Chat loads on all clients (one shared implementation, no per-client files).
 - Datatexts load on all clients. An element's `Enable` returns `true` only if it can run on
   the client.
@@ -49,6 +49,12 @@ A single `Tainted.toc` serves every supported client (`## Interface: 120100, 160
   re-anchored from `SetPoint` hooks with `ClearAllPointsBase`/`SetPointBase` (durability,
   mainline objective tracker), never by replacing their methods. Wrath/MoP `WatchFrame` is
   reparented to `UIParent` to leave the right managed container.
+- Miscellaneous: merchant, screenshots and threat bar load on all clients. The threat bar hides
+  while threat values are secret (Retail, Forever); merchant sells junk with
+  `C_MerchantFrame.SellAllJunkItems` where it exists, the bag loop elsewhere. Dispels and
+  interrupts are `classic`-tagged: addons can't read the combat log on Retail/Forever. Auto
+  keystone and dungeon portals are `standard`-tagged (Retail `Blizzard_ChallengesUI`). Skyriding
+  race is the standalone `Skyriding` addon.
 
 ## oUF variants
 

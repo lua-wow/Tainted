@@ -34,7 +34,6 @@ do
 		local num = element.num
 		local size = element.size
 		local spacing = element.spacing
-		local horizontal = element.horizontal
 
 		local rows = 1
 		local cols = (num / 2)
@@ -67,7 +66,6 @@ do
         local element = self
 
 		local spacing = element.spacing or 5
-		local horizontal = element.horizontal or false
 
 		if index == 1 then
 			button:SetPoint("TOPLEFT", element.Left, "TOPLEFT", spacing, -spacing)

@@ -98,9 +98,7 @@ do
 	function actionbar_proto:UpdateButtonPosition(button, index)
 		local element = self
 	
-		local size = element.size
 		local spacing = element.spacing
-		local horizontal = element.horizontal
 	
 		if index == 1 then
 			button:SetPoint("TOPLEFT", element, "TOPLEFT", spacing, -spacing)

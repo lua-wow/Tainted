@@ -5,7 +5,6 @@ local E, C, L, A = ns.E, ns.C, ns.L, ns.A
 local GetGuildInfo = _G.GetGuildInfo
 local GetItemQualityColor = _G.C_Item.GetItemQualityColor
 local GetPetHappiness = _G.GetPetHappiness  -- only classic
--- local GetSpecialization = _G.GetSpecialization
 local UnitCanAttack = _G.UnitCanAttack
 local UnitClass = _G.UnitClass
 local UnitEffectiveLevel = _G.UnitEffectiveLevel
@@ -14,24 +13,18 @@ local UnitHealth = _G.UnitHealth
 local UnitHealthMax = _G.UnitHealthMax
 local UnitIsAFK = _G.UnitIsAFK
 local UnitIsBattlePet = _G.UnitIsBattlePet
-local UnitIsBattlePetCompanion = _G.UnitIsBattlePetCompanion
 local UnitIsConnected = _G.UnitIsConnected
 local UnitIsDead = _G.UnitIsDead
 local UnitIsDeadOrGhost = _G.UnitIsDeadOrGhost
 local UnitIsDND = _G.UnitIsDND
--- local UnitIsEnemy = _G.UnitIsEnemy
--- local UnitIsFriend = _G.UnitIsFriend
 local UnitIsGhost = _G.UnitIsGhost
-local UnitIsOtherPlayersBattlePet = _G.UnitIsOtherPlayersBattlePet
 local UnitIsPlayer = _G.UnitIsPlayer
-local UnitIsWildBattlePet = _G.UnitIsWildBattlePet
 local UnitLevel = _G.UnitLevel
 local UnitName = _G.UnitName
 local UnitPlayerControlled = _G.UnitPlayerControlled
 local UnitPVPName = _G.UnitPVPName
 local UnitRace = _G.UnitRace
 local UnitReaction = _G.UnitReaction
-local UnitRealmRelationship = _G.UnitRealmRelationship
 local TooltipDataProcessor = _G.TooltipDataProcessor
 local GetQuestDifficultyColor = _G.GetQuestDifficultyColor
 local FACTION_BAR_COLORS = _G.FACTION_BAR_COLORS
@@ -45,11 +38,7 @@ if not C.tooltips.enabled then return end
 
 
 
-local isInit = false
-
 local IN_BAG = E.colors.yellow:WrapTextInColorCode("In Bag") .. " %d"
-local SPELL_ID = E.colors.yellow:WrapTextInColorCode("SpellID") .. " %d"
-local SOURCE = E.colors.yellow:WrapTextInColorCode(_G.SOURCE) .. " %s"
 local TARGET = E.colors.yellow:WrapTextInColorCode(_G.TARGET .. ":") .. " %s"
 local STATUS = E.colors.gray:WrapTextInColorCode("<%s> ")
 local AFK = STATUS:format(_G.AFK or "AFK")
@@ -339,7 +328,6 @@ local UpdateUnitTooltip = function(tooltip, data)
     local scaledLevel = UnitIsBattlePet(unit) and UnitBattlePetLevel(unit) or UnitEffectiveLevel(unit)
     local creatureType = UnitCreatureType(unit)
     local classification = UnitClassification(unit)
-    local isShiftKeyDown = IsShiftKeyDown()
 
     -- name (UnitName has its own restriction, separate from unit identity)
     if not IsSecret(name) and not IsSecret(realm) then

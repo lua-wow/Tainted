@@ -12,14 +12,16 @@ Legend: **Observed** = seen in the code · **Recommended** = proposal, not yet a
 - Revived after a long maintenance gap. TOC, references and settings have been cleaned up.
 - **Observed:** on Retail and Forever, only core, unit frames, maps (minimap/worldmap), chat and datatexts
   load, plus tooltips, auras, action bars, bags and the Blizzard tweaks (all clients; ghost and
-  talking head where the frame exists). Miscellaneous only loads on Classic and MoP.
+  talking head where the frame exists) and miscellaneous (announcers Classic/MoP only, auto
+  keystone and dungeon portals Retail only).
 - **Observed:** working: minimap, chat and datatexts on all clients; action bars on Classic (Retail/Forever pending verification).
   Unit frames: item 9 done on all clients, one classic oUF (`libs\oUF_Classic`) on Era, TBC,
   WotLK and MoP; Retail auras, raid auras and drift fixes verified on Retail, the rest (secret
   values on Retail/Forever, threat borders, short values) pending in-game verification.
   Blizzard tweaks: item 7 done (UI widgets and the final all-client check pending in-game
   verification). Bags (window on all clients, bank and sort on
-  Classic/MoP) pending in-game verification.
+  Classic/MoP) pending in-game verification. Miscellaneous: item 10 done, pending in-game
+  verification.
 - Constraints: one TOC for 6 clients; Retail oUF is read-only; Midnight secret values
   (see compatibility.md).
 
@@ -1282,7 +1284,7 @@ secret `UnitThreatSituation` on raid units (step 17).
 
 ### 10. Miscellaneous
 
-**Status:** In progress (Classic/MoP only) · **Priority:** Low · **Depends on:** 0, 3 (threat bar anchor)
+**Status:** Done, pending in-game verification · **Priority:** Low · **Depends on:** 0, 3 (threat bar anchor)
 
 **Objective:** each mini-addon loads on every client where it can work, without the deprecation fallbacks, secret-safe on Retail.
 
@@ -1467,18 +1469,16 @@ steps = upstream commit + pointer bump by the maintainer):
    - Test: Tainted `/reload`, no errors. `Skyriding`: a TWW race (Normal, Advanced, Reverse), finish,
      fail, leave the start area; dungeon/M+ combat and PvP with it loaded (no secret errors); a race
      after leaving the instance.
-10. **Done** · Depends on: 1–9
+10. **Done** · Done, pending in-game verification · Depends on: 1–9
     - Change: §1, §4, §5, §6 and compatibility.md "Current status" (miscellaneous per client).
     - Test: `/reload` on all 6 with `loadDeprecationFallbacks` off; taint log clean after combat on
       Retail and MoP.
 
-**Needs confirmation:**
-- Submodules: fix upstream and bump pointers (proposed), or vendor them into Tainted?
-- Dispels on Era/TBC/Wrath: it never announces there (no data). Tag it `mists` only, add Classic
-  data, or keep as is?
-- Threat bar on Retail: hide while threat is secret (proposed), or render secret values (bar value
-  and text accept them; color would need a curve)?
-- Dungeon portals: accept the per-season data upkeep?
+**Decided:**
+- Submodules are fixed upstream, with pointer bumps in Tainted (steps 2, 3).
+- Dispels stay on all classic clients, with data per client (step 2).
+- Threat bar on Retail/Forever: hidden while threat is secret (step 6).
+- Dungeon portals: per-season data upkeep accepted (step 8).
 
 ### 11. Final compatibility audit
 
@@ -1523,8 +1523,8 @@ editing Tainted's files, and this contract is documented.
   `isVanilla`, `isMoP` → `isMists`, `isForever` → `isCamelot`), and family flags
   `isMainline`/`isClassic` added. Items 1–9 moved their call sites to family flags or feature
   detection; the game flags left in unit frames are game content (nameplate max distance,
-  `showPet` on Era, MoP layout and colors). Item 10: only merchant (`E.isStandard` for a feature
-  check), step 4.
+  `showPet` on Era, MoP layout and colors). Item 10: none left (merchant uses feature detection,
+  step 4).
 - **Implicit dependencies.** Modules find each other's frames by global name and rely on TOC
   order (chat/minimap → datatexts).
 - **Core does module work.** It triggers the chat reset (action-bar settings moved out in item 4).
@@ -1532,8 +1532,8 @@ editing Tainted's files, and this contract is documented.
   frame and initialize on login. Errors in the second group aren't isolated.
 - **Secret values / restricted APIs on Midnight.** Auras (item 5), tooltips (item 6) and unit-frame
   tags and elements (item 9) are handled. The combat log (CLEU) isn't readable by addons on
-  Retail/Forever, so dispels/interrupts stay Classic-only; the threat bar is item 10 step 6, and
-  skyriding race moved out of Tainted (step 9). Open unit-frame
+  Retail/Forever, so dispels/interrupts stay Classic-only; the threat bar hides while threat is
+  secret (item 10 step 6), and skyriding race moved out of Tainted (step 9). Open unit-frame
   cases are in item 9's Unverified list.
 - **Pixel scale timing.** It is computed at file load, before UI scale is applied at login.
   Unverified.
@@ -1556,11 +1556,12 @@ editing Tainted's files, and this contract is documented.
 - Item 1: Maps and Minimap stay two registry modules; `UpdateModules` is kept.
 - Item 8: real bag frames on all clients, plus a bank window and sort on Classic/MoP (see item 8 → Decided).
 - Item 10: skyriding race is dropped from Tainted and lives in the standalone `Skyriding` addon.
+- Item 10: submodules fixed upstream, dispels on all classic clients, threat bar hidden while
+  secret, portals data kept per season (see item 10 → Decided).
 
 **Needs confirmation:**
 - Item 0: one startup model for all modules, or keep both and document them?
 - Item 2 vs 4: which comes first on Retail, chat or action bars?
-- Item 10: submodules, dispels scope, threat bar on Retail, portals upkeep (see item 10).
 - Item 12: what to export, when `C` is read, and whether a separate in-game configuration addon is allowed (see item 12).
 
 ## Completed
@@ -1634,7 +1635,7 @@ editing Tainted's files, and this contract is documented.
   - [x] 16. Classic totems
   - [x] 17. Threat indicator (pending in-game verification)
   - [x] 18. Done (pending in-game verification)
-- [ ] 10. Miscellaneous
+- [x] 10. Miscellaneous (pending in-game verification)
   - [x] 1. TOC lines instead of XML (pending in-game verification)
   - [x] 2. Announcers: chat API and dead code (pending in-game verification)
   - [x] 3. Screenshots: fixes, all clients (pending in-game verification)
@@ -1644,6 +1645,6 @@ editing Tainted's files, and this contract is documented.
   - [x] 7. Auto keystone on Retail
   - [x] 8. Dungeon portals on Retail
   - [x] 9. Skyriding race (moved to standalone addon)
-  - [ ] 10. Done
+  - [x] 10. Done (pending in-game verification)
 - [ ] 11. Final compatibility audit
 - [ ] 12. Extension by other addons
