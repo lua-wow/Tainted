@@ -57,7 +57,7 @@ architecture win when they conflict.
 ## References
 
 - Reference repositories live in `../refs` and are read-only. Use targeted searches, not
-  broad exploration. Map: [docs/reference-repositories.md](docs/reference-repositories.md).
+  broad exploration. Map: [docs/references.md](docs/references.md).
 - Blizzard `wow-ui-source` is the API authority. `Tukui` is the visual/layout reference
   (understand, never copy). `ElvUI`, `ls_UI`, `idTip` are implementation references only.
 
