@@ -150,7 +150,6 @@ C["miscellaneous"] = {
         ["messages"] = true,                -- print a chat message for each screenshot event.
         ["tracer"] = false                  -- print "Screenshot Taken/Failed".
     },
-    ["skyriding_race"] = true,
     ["mythic"] = {
         ["autokeystone"] = true,
         ["portals"] = true

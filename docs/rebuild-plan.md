@@ -1367,7 +1367,7 @@ spells; Blizzard race widget content; MoP dispel instance IDs.
 | Dungeon portals | fix + enable on Retail (`standard`) | medium: secure buttons, data upkeep per season |
 | Interrupts | keep Classic-only, fix chat API | Retail/Forever impossible, no replacement (Blizzard damage meter counts interrupts, doesn't announce) |
 | Dispels | keep Classic-only, fix chat API; scope on Era/TBC/Wrath is a decision | same as interrupts |
-| Skyriding race | fix + enable on Retail, or drop (decision) | data upkeep each expansion; Blizzard overlap unverified |
+| Skyriding race | dropped from Tainted; moved to the standalone `Skyriding` addon (decided) | none in Tainted |
 
 Nothing is a forced drop. No Blizzard entry point is removed by any step.
 
@@ -1455,13 +1455,18 @@ steps = upstream commit + pointer bump by the maintainer):
    - Clients: Retail.
    - Test: Mythic+ tab opened out of combat and first opened in combat; click a known portal (casts),
      unknown portal (desaturated); cooldown sweep after use; sort by score; opening inside an M+ key.
-9. **Skyriding race** (decision below) · Depends on: 1
-   - Change (if kept): skip secret `spellId`, Midnight races added, dead stopwatch/`FilterAura`/`oUF`/`changed`
-     removed, TOC line `[AllowLoadGameType standard]`. If dropped: delete the file and
-     `C.miscellaneous.skyriding_race`.
-   - Clients: Retail.
-   - Test: start a TWW and a Midnight race (Normal, Advanced, Reverse), finish, fail, leave the start
-     area; combat in a dungeon with the tracker loaded (no secret errors).
+9. **Skyriding race** · Done · Depends on: 1
+   - Change: dropped from Tainted: `skyriding_race.lua`, `C.miscellaneous.skyriding_race` and the
+     `Stopwatch*` globals in `.luacheckrc` deleted. The tracker moved to the standalone `Skyriding`
+     addon (Retail TOC, TWW data only, no Midnight races). There Tainted is an optional dependency
+     (its texture, font and `CreateBackdrop` are used when loaded, plain fallbacks otherwise), the
+     race data is in `races.lua`, the frame is unnamed, and the dead stopwatch/`FilterAura`/`changed` code is gone. `UNIT_AURA` is
+     skipped while `C_Secrets.ShouldAurasBeSecret()` is true, with a full rescan on the next
+     readable update.
+   - Clients: Retail (Tainted: all 6, no file loaded it).
+   - Test: Tainted `/reload`, no errors. `Skyriding`: a TWW race (Normal, Advanced, Reverse), finish,
+     fail, leave the start area; dungeon/M+ combat and PvP with it loaded (no secret errors); a race
+     after leaving the instance.
 10. **Done** · Depends on: 1–9
     - Change: §1, §4, §5, §6 and compatibility.md "Current status" (miscellaneous per client).
     - Test: `/reload` on all 6 with `loadDeprecationFallbacks` off; taint log clean after combat on
@@ -1474,7 +1479,6 @@ steps = upstream commit + pointer bump by the maintainer):
 - Threat bar on Retail: hide while threat is secret (proposed), or render secret values (bar value
   and text accept them; color would need a curve)?
 - Dungeon portals: accept the per-season data upkeep?
-- Skyriding race: keep and maintain the race data, or drop?
 
 ### 11. Final compatibility audit
 
@@ -1528,8 +1532,8 @@ editing Tainted's files, and this contract is documented.
   frame and initialize on login. Errors in the second group aren't isolated.
 - **Secret values / restricted APIs on Midnight.** Auras (item 5), tooltips (item 6) and unit-frame
   tags and elements (item 9) are handled. The combat log (CLEU) isn't readable by addons on
-  Retail/Forever, so dispels/interrupts stay Classic-only; threat bar and skyriding race are item 10
-  steps 6 and 9. Open unit-frame
+  Retail/Forever, so dispels/interrupts stay Classic-only; the threat bar is item 10 step 6, and
+  skyriding race moved out of Tainted (step 9). Open unit-frame
   cases are in item 9's Unverified list.
 - **Pixel scale timing.** It is computed at file load, before UI scale is applied at login.
   Unverified.
@@ -1551,11 +1555,12 @@ editing Tainted's files, and this contract is documented.
 - Item 1: minimap size stays per family: 198 on mainline (Blizzard default), 180 on classic.
 - Item 1: Maps and Minimap stay two registry modules; `UpdateModules` is kept.
 - Item 8: real bag frames on all clients, plus a bank window and sort on Classic/MoP (see item 8 → Decided).
+- Item 10: skyriding race is dropped from Tainted and lives in the standalone `Skyriding` addon.
 
 **Needs confirmation:**
 - Item 0: one startup model for all modules, or keep both and document them?
 - Item 2 vs 4: which comes first on Retail, chat or action bars?
-- Item 10: submodules, dispels scope, threat bar on Retail, portals upkeep, skyriding race (see item 10).
+- Item 10: submodules, dispels scope, threat bar on Retail, portals upkeep (see item 10).
 - Item 12: what to export, when `C` is read, and whether a separate in-game configuration addon is allowed (see item 12).
 
 ## Completed
@@ -1638,7 +1643,7 @@ editing Tainted's files, and this contract is documented.
   - [x] 6. Threat bar on mainline
   - [x] 7. Auto keystone on Retail
   - [x] 8. Dungeon portals on Retail
-  - [ ] 9. Skyriding race
+  - [x] 9. Skyriding race (moved to standalone addon)
   - [ ] 10. Done
 - [ ] 11. Final compatibility audit
 - [ ] 12. Extension by other addons
