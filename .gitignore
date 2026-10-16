@@ -1,4 +1,10 @@
+# IDE
 .idea/
 .vscode/
 *.iml
+
+# files
+CLAUDE.local.md
+docs/analysis
+docs/issues
 *.zip

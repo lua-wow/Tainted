@@ -9,6 +9,50 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+-   Support for Retail (Midnight, 12.1) and `Classic Forever`
+-   One `Tainted.toc` for every client: Retail, Forever, Era, TBC, WotLK (Titan) and MoP
+-   Unified bag window on every client, with search, sort and free/total slots
+-   Classic bank window and Tainted's own bag sort on Classic clients (`C.bags.sort_bank` also sorts the bank)
+-   Retail player auras on Blizzard's `AuraContainer`; Retail unit-frame and raid auras with Blizzard filters
+-   Threat border on raid and party frames
+-   Specialization datatext
+-   House favor bar (Retail)
+-   Role commands `/tainted healer`, `/tainted tank`, `/tainted dps` and `/tainted auto`; healer role moves the raid frames to the centre
+-   Static analysis with `luacheck` (`make check`)
+
+### Changed
+
+-   Updated for Midnight secret values: tags, nameplates, castbar, class power, totems and threat bar
+-   Works with `loadDeprecationFallbacks` disabled (`C_*` APIs instead of deprecated globals)
+-   One classic oUF (`libs/oUF_Classic`) for Era, TBC, WotLK and MoP
+-   Action bars, Blizzard tweaks, merchant, screenshots and threat bar load on every client
+-   Auto keystone and dungeon portals updated for Midnight (Retail only)
+-   Dispel and interrupt announcers use `C_ChatInfo.SendChatMessage` (Classic only)
+-   Threat bar updates on events instead of polling
+-   Fix quest tracker not updating in MoP Classic ([#6](https://github.com/lua-wow/Tainted/issues/6))
+-   Fix player tooltips not showing class colors in MoP Classic ([#7](https://github.com/lua-wow/Tainted/issues/7))
+-   Fix spell tooltips not showing spell IDs in MoP Classic ([#8](https://github.com/lua-wow/Tainted/issues/8))
+-   Fix combat taint blocks on Classic auras and extra/zone ability buttons
+
+### Removed
+
+-   `Tainted_Classic.toc`, `Tainted_Mists.toc` and the `oUF_Mists` submodule. Existing git clones can delete the stale `libs/oUF_Mists` folder
+-   Skyriding race tracker (now the standalone `Skyriding` addon)
+-   Raid utility frame and `/tainted raid` (use Blizzard's `/wm`, `/readycheck` and keybinds)
+-   Meter and bags datatexts
+
+### Known limitations
+
+-   Bag items can't be used in combat on Classic clients ([#10](https://github.com/lua-wow/Tainted/issues/10))
+-   No way to customize Tainted from a separate addon yet ([#11](https://github.com/lua-wow/Tainted/issues/11))
+-   Dispel and interrupt announcers are Classic only: addons can't read the combat log on Retail and Forever
+-   Threat bar is hidden while threat values are secret (Retail, Forever)
+-   See [docs/limitations.md](./docs/limitations.md)
+
+## [1.3.5] - 2026-04-23
+
+### Added
+
 -   Support for Mists of Pandaria Classic - Patch 5.5.0
 
 ### Changed

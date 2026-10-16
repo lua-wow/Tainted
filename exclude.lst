@@ -5,6 +5,14 @@
 *.idea
 Makefile
 exclude.lst
+.luacheckrc
+mise.toml
+CLAUDE.md
+CLAUDE.local.md
+.editorconfig
+modules/blizzard/event_trace.lua
+docs/*
+.claude/*
 
 **/.git
 **/.github/*

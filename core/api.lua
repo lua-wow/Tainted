@@ -4,32 +4,10 @@ local E, C, A = ns.E, ns.C, ns.A
 -- Lua
 local getmetatable = getmetatable
 
--- Blizzard
-local GetCVar = C_CVar and C_CVar.GetCVar or _G.GetCVar
-local BackdropTemplateMixin = _G.BackdropTemplateMixin
-
 --------------------------------------------------
 -- API
 --------------------------------------------------
 E.API = {}
-
-E.Scale = function(size)
-	-- Ensure 'size' is a valid number, default to 1 if not
-	size = tonumber(size) or 1
-
-	-- Retrieve the UI scale value and ensure it is valid
-	-- Default to 1 if 'uiScale' is not a valid number
-	local uiScale = tonumber(GetCVar("uiScale"))
-	if not uiScale then
-		uiScale = 1
-	end
-
-	-- Calculate the scaling multiplier
-    local mult = E.pixelPerfectScale / uiScale
-
-	-- Return the scaled size, rounded to the nearest integer
-    return mult * math.floor(size / mult + 0.5)
-end
 
 E.API.Kill = function(self)
 	if self.UnregisterAllEvents then
@@ -55,12 +33,13 @@ end
 E.API.StripTextures = function(self, kill)
 	for _, region in next, { self:GetRegions() } do
 		if (region:GetObjectType() == "Texture") then
-			if (kill and type(kill) == "boolean") then
+			if (kill == true) then
 				region:Kill()
-			elseif (region:GetDrawLayer() == kill) then
-				region:SetTexture(nil)
-			elseif (kill and type(kill) == "string" and region:GetTexture() ~= kill) then
-				region:SetTexture(nil)
+			elseif (type(kill) == "string") then
+				-- a string is a draw layer: only strip textures on that layer
+				if (region:GetDrawLayer() == kill) then
+					region:SetTexture(nil)
+				end
 			else
 				region:SetTexture(nil)
 			end
@@ -120,7 +99,7 @@ E.API.CreateBackdrop = function(self, template)
 		backdropAlpha = template
 	end
 	
-	local borderTexture = C.general.border.texture or A.textures.blank
+	local borderTexture = A.textures.blank
 	local borderColor = C.general.border.color
 
 	local inset = E.Scale(C.general.border.size or 1)
@@ -139,6 +118,7 @@ E.API.CreateBackdrop = function(self, template)
 	self.Backdrop:SetPoint("BOTTOMRIGHT", inset, -inset)
 	self.Backdrop:SetBackdrop(backdrop)
 	self.Backdrop:SetBackdropColor(backdropColor.r, backdropColor.g, backdropColor.b, backdropAlpha)
+	self.Backdrop.__alpha = backdropAlpha
 	self.Backdrop:SetBackdropBorderColor(borderColor.r, borderColor.g, borderColor.b)
 
 	-- draw it below the element
@@ -148,13 +128,36 @@ E.API.CreateBackdrop = function(self, template)
 	end
 end
 
+-- Same look as CreateBackdrop, drawn with the frame's own textures. For AuraContainer buttons:
+-- Blizzard's backdrop mixin errors on buttons created while auras are secret.
+-- Returns the border texture.
+E.API.CreateTextureBackdrop = function(self)
+	local inset = E.Scale(C.general.border.size or 1)
+	local backdropColor = C.general.backdrop.color
+	local borderColor = C.general.border.color
+
+	local border = self:CreateTexture(nil, "BACKGROUND", nil, -8)
+	border:SetPoint("TOPLEFT", -inset, inset)
+	border:SetPoint("BOTTOMRIGHT", inset, -inset)
+	border:SetTexture(A.textures.blank)
+	border:SetVertexColor(borderColor.r, borderColor.g, borderColor.b)
+
+	local background = self:CreateTexture(nil, "BACKGROUND", nil, -7)
+	background:SetAllPoints()
+	background:SetTexture(C.general.backdrop.texture or A.textures.blank)
+	background:SetVertexColor(backdropColor.r, backdropColor.g, backdropColor.b)
+
+	return border
+end
+
 E.API.SkinButton = function(button)
+	if button.__skinned then return end
 	button:CreateBackdrop()
 	button:HookScript("OnEnter", function (self)
 		if (self.Backdrop) then
 			local backdropColor = C.general.backdrop.color
 			local highlightColor = C.general.highlight.color
-			self.Backdrop:SetBackdropColor(backdropColor.r, backdropColor.g, backdropColor.b, backdropColor.a or 1)
+			self.Backdrop:SetBackdropColor(backdropColor.r, backdropColor.g, backdropColor.b, self.Backdrop.__alpha or 1)
 			self.Backdrop:SetBackdropBorderColor(highlightColor.r, highlightColor.g, highlightColor.b, highlightColor.a or 1)
 		end
 	end)
@@ -162,10 +165,11 @@ E.API.SkinButton = function(button)
 		if (self.Backdrop) then
 			local backdropColor = C.general.backdrop.color
 			local borderColor = C.general.border.color
-			self.Backdrop:SetBackdropColor(backdropColor.r, backdropColor.g, backdropColor.b, backdropColor.a or 1)
+			self.Backdrop:SetBackdropColor(backdropColor.r, backdropColor.g, backdropColor.b, self.Backdrop.__alpha or 1)
 			self.Backdrop:SetBackdropBorderColor(borderColor.r, borderColor.g, borderColor.b, borderColor.a or 1)
 		end
 	end)
+	button.__skinned = true
 end
 
 E.API.GetCooldownTimer = function(self)
@@ -181,7 +185,7 @@ end
 
 E.API.SkinCloseButton = function(self, xOffset, yOffset, closeSize)
 	if self.SetNormalTexture then self:SetNormalTexture(0) end
-	if self.SetNormalTexture then self:SetPushedTexture(0) end
+	if self.SetPushedTexture then self:SetPushedTexture(0) end
 	if self.SetHighlightTexture then self:SetHighlightTexture(0) end
 	if self.SetDisabledTexture then self:SetDisabledTexture(0) end
 
@@ -189,11 +193,12 @@ E.API.SkinCloseButton = function(self, xOffset, yOffset, closeSize)
 
 	self.Texture = self:CreateTexture(nil, "OVERLAY")
 	self.Texture:SetPoint("CENTER", xOffset or 0, yOffset or 0)
-	self.Texture:SetSize(size or 12, size or 12)
+	self.Texture:SetSize(closeSize or 12, closeSize or 12)
 	self.Texture:SetTexture(A.textures.close)
 
-	self:SetScript("OnEnter", function(self) self.Texture:SetVertexColor(1, 0, 0) end)
-	self:SetScript("OnLeave", function(self) self.Texture:SetVertexColor(1, 1, 1) end)
+	-- hook to keep Blizzard's own tooltip/highlight handlers
+	self:HookScript("OnEnter", function(self) self.Texture:SetVertexColor(1, 0, 0) end)
+	self:HookScript("OnLeave", function(self) self.Texture:SetVertexColor(1, 1, 1) end)
 end
 
 --------------------------------------------------
@@ -217,9 +222,9 @@ Object = EnumerateFrames()
 
 while (Object) do
     local t = Object:GetObjectType()
-    if (not Object:IsForbidden() and not Handled[Object:GetObjectType()]) then
+    if (not Object:IsForbidden() and not Handled[t]) then
         AddAPI(Object)
-        Handled[Object:GetObjectType()] = true
+        Handled[t] = true
     end
     Object = EnumerateFrames(Object)
 end

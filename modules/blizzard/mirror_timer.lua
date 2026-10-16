@@ -3,15 +3,15 @@ local E, C, A = ns.E, ns.C, ns.A
 local MODULE = E:GetModule("Blizzard")
 
 -- Blizzard
-local GetMirrorTimerProgress = _G.GetMirrorTimerProgress
 local MirrorTimerContainer = _G.MirrorTimerContainer
-local MirrorTimerAtlas = _G.MirrorTimerAtlas
 
 local MIRRORTIMER_NUMTIMERS = _G.MIRRORTIMER_NUMTIMERS
 
 --------------------------------------------------
 -- Mirror Timers (Underwater Breath, etc.)
 --------------------------------------------------
+if not C.blizzard.mirrortimers then return end
+
 local texture = C.unitframes.texture
 local font = A.fonts.normal
 
@@ -48,7 +48,7 @@ function MirrorTimer:Skin(element)
         border:SetTexture(nil)
     end
     
-    local border = element.TextBorder or _G[element:GetName() .. "TextBorder"]
+    local textBorder = element.TextBorder or _G[element:GetName() .. "TextBorder"]
     if (textBorder) then
         textBorder:SetTexture(nil)
     end
@@ -56,7 +56,7 @@ function MirrorTimer:Skin(element)
     element.__skinned = true
 end
 
-if not E.isRetail then
+if not MirrorTimerContainer then
     MirrorTimer.MirrorTimer_Show = function(timer, value, maxvalue, scale, paused, label)
         for index = 1, MIRRORTIMER_NUMTIMERS, 1 do
             local frame = _G["MirrorTimer" .. index];

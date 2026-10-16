@@ -1,10 +1,19 @@
-## Interface: 110205
-## Author: Luaerror
+## Interface: 11509, 20506, 38002, 50504, 120105, 16001
 ## Version: 1.3.5
-## Title: |cffff8000Tainted|r
+## Author: Luaerror
+
 ## Notes: Minimalistic interface
-## SavedVariables: TaintedDatabase, TaintedChatHistory
+## Title: |cffff8000Tainted|r [AllowLoadGameType mainline]
+## Title: |cffff8000Tainted|r Classic [AllowLoadGameType vanilla]
+## Title: |cffff8000Tainted|r TBC [AllowLoadGameType tbc]
+## Title: |cffff8000Tainted|r Wrath [AllowLoadGameType wrath]
+## Title: |cffff8000Tainted|r Mists of Pandaria [AllowLoadGameType mists]
+
 ## IconTexture: Interface\ICONS\Spell_Shadow_Shadowform
+
+## SavedVariables: TaintedDatabase, TaintedChatHistory
+
+## OptionalDeps: Questie [AllowLoadGameType vanilla, tbc, wrath]
 
 ## X-Website: https://github.com/lua-wow/Tainted
 ## X-Maintainer: Luaerror
@@ -17,16 +26,18 @@ libs\TaintLess\TaintLess.xml
 libs\LibStub\LibStub.lua
 libs\LibDispel\LibDispel.xml
 libs\LibMobs\LibMobs.xml
-libs\oUF\oUF.xml
-libs\oUF_Atonement\oUF_Atonement.lua
-libs\oUF_AuraTrack\oUF_AuraTrack.xml
-libs\oUF_RaidDebuffs\oUF_RaidDebuffs.xml
-libs\oUF_TargetIndicator\oUF_TargetIndicator.lua
-libs\oUF_Tempest\oUF_Tempest.lua
+libs\oUF\oUF.xml [AllowLoadGameType mainline]
+libs\oUF_Classic\oUF.xml [AllowLoadGameType classic]
+libs\oUF_Atonement\oUF_Atonement.lua [AllowLoadGameType mainline]
+libs\oUF_AuraTrack\oUF_AuraTrack.xml [AllowLoadGameType classic]
+libs\oUF_RaidDebuffs\oUF_RaidDebuffs.xml [AllowLoadGameType classic]
+libs\oUF_TargetIndicator\oUF_TargetIndicator.lua [AllowLoadGameType classic]
+libs\oUF_Tempest\oUF_Tempest.lua [AllowLoadGameType mainline]
 
 ## assets
 core\assets.lua
 core\colors.lua
+core\curves.lua
 core\fonts.lua
 
 ## locales
@@ -36,51 +47,81 @@ locales\init.xml
 config\settings.lua
 
 ## core
+core\scaling.lua
 core\api.lua
 core\utils.lua
 core\core.lua
 core\database.lua
-core\scaling.lua
 core\install.lua
 core\dropdown.lua
 core\commands.lua
 core\talents.lua
-core\keystone.lua
+core\keystone.lua [AllowLoadGameType standard]
 core\development.lua
 
-### auras
-modules\auras\auras.lua
+## auras
+modules\auras\classic\aura.xml [AllowLoadGameType classic]
+modules\auras\classic\aura.lua [AllowLoadGameType classic]
+modules\auras\mainline\aura.lua [AllowLoadGameType mainline]
 
-### chat
+## chat
 modules\chat\chatframe.lua
 modules\chat\history.lua
 modules\chat\copy_text.lua
 modules\chat\copy_url.lua
 
-### maps
-modules\maps\init.xml
+## bags
+modules\bags\bags.lua
+modules\bags\bank.lua [AllowLoadGameType classic]
+modules\bags\sort.lua [AllowLoadGameType classic]
 
-### blizzard
-modules\blizzard\init.xml
+## maps
+modules\maps\init.xml [AllowLoadGameType mainline]
+modules\maps\init_classic.xml [AllowLoadGameType classic]
 
-### miscellaneous
-modules\miscellaneous\init.xml
+## blizzard
+modules\blizzard\core.lua
+modules\blizzard\durability.lua
+modules\blizzard\experience.lua
+modules\blizzard\framerate.lua
+modules\blizzard\ghost.lua [AllowLoadGameType mainline, mists]
+modules\blizzard\mirror_timer.lua
+modules\blizzard\objective_tracker.lua
+modules\blizzard\queue_status.lua
+modules\blizzard\talkinghead.lua [AllowLoadGameType mainline]
+modules\blizzard\ui_widgets.lua
 
-### actionbars
+## miscellaneous
+modules\miscellaneous\dispels\init.xml [AllowLoadGameType classic]
+modules\miscellaneous\dispels\data\vanilla.lua [AllowLoadGameType classic]
+modules\miscellaneous\dispels\data\tbc.lua [AllowLoadGameType tbc, wrath, mists]
+modules\miscellaneous\dispels\data\wrath.lua [AllowLoadGameType wrath, mists]
+modules\miscellaneous\dispels\data\cata.lua [AllowLoadGameType mists]
+modules\miscellaneous\dispels\data\mists.lua [AllowLoadGameType mists]
+modules\miscellaneous\interrupts\init.xml [AllowLoadGameType classic]
+modules\miscellaneous\screenshots\init.xml
+modules\miscellaneous\settings.lua
+modules\miscellaneous\merchant.lua
+modules\miscellaneous\threatbar.lua
+modules\miscellaneous\auto_keystone.lua [AllowLoadGameType standard]
+modules\miscellaneous\dungeon_portals.lua [AllowLoadGameType standard]
+
+## actionbars
 modules\actionbars\init.xml
 
-### datatexts
+## datatexts
 modules\datatexts\init.xml
 
-### tooltips
+## tooltips
 modules\tooltips\init.xml
 
-### unitframes
+## unitframes
 modules\unitframes\core.lua
 modules\unitframes\tags.lua
 
 modules\unitframes\elements\atonement.lua
-modules\unitframes\elements\auras.lua
+modules\unitframes\elements\auras.lua [AllowLoadGameType classic]
+modules\unitframes\elements\auras_mainline.lua [AllowLoadGameType mainline]
 modules\unitframes\elements\castbar.lua
 modules\unitframes\elements\classpower.lua
 modules\unitframes\elements\health.lua
@@ -92,7 +133,7 @@ modules\unitframes\elements\portrait.lua
 modules\unitframes\elements\runes.lua
 modules\unitframes\elements\stagger.lua
 modules\unitframes\elements\targetindicator.lua
-modules\unitframes\elements\threat.lua
+modules\unitframes\elements\threatindicator.lua
 modules\unitframes\elements\totems.lua
 
 modules\unitframes\classes\deathknight.lua

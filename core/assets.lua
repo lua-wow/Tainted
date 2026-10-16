@@ -12,6 +12,9 @@ local NotoSans_SemiCondensed_SemiBold = [[Interface\AddOns\Tainted\assets\fonts\
 A["fonts"] = {
     ["normal"]             = NotoSans_Condensed_SemiBold,
     -- alternatives
+    ["alternative_1"]      = NotoSans_Condensed_Bold,
+    ["alternative_2"]      = NotoSans_SemiCondensed_Bold,
+    ["alternative_3"]      = NotoSans_SemiCondensed_SemiBold,
     ["big_noogle_titling"] = [[Interface\AddOns\Tainted\assets\fonts\BigNoogleTitling.ttf]],
     ["expressway"]         = [[Interface\AddOns\Tainted\assets\fonts\Expressway.ttf]],
     ["invisible"]          = [[Interface\AddOns\Tainted\assets\fonts\invisible.ttf]],

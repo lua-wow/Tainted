@@ -1,5 +1,5 @@
 local _, ns = ...
-local E, C, L = ns.E, ns.c, ns.L
+local E, C, L = ns.E, ns.C, ns.L
 
 -- Blizzard
 local CanMerchantRepair = _G.CanMerchantRepair
@@ -7,11 +7,11 @@ local GetRepairAllCost = _G.GetRepairAllCost
 local RepairAllItems = _G.RepairAllItems
 local GetMoney = _G.GetMoney
 
-local GetContainerNumSlots = C_Container and C_Container.GetContainerNumSlots or _G.GetContainerNumSlots
-local GetContainerItemLink = C_Container and C_Container.GetContainerItemLink or _G.GetContainerItemLink
-local GetContainerItemInfo = C_Container and C_Container.GetContainerItemInfo or _G.GetContainerItemInfo
-local UseContainerItem = C_Container and C_Container.UseContainerItem or _G.UseContainerItem
-local GetItemInfo = _G.GetItemInfo
+local GetContainerNumSlots = C_Container.GetContainerNumSlots
+local GetContainerItemLink = C_Container.GetContainerItemLink
+local GetContainerItemInfo = C_Container.GetContainerItemInfo
+local UseContainerItem = C_Container.UseContainerItem
+local GetItemInfo = C_Item.GetItemInfo
 
 --------------------------------------------------
 -- Merchant
@@ -44,7 +44,7 @@ local function SellJunkRetail()
     local numJunkItems = C_MerchantFrame.GetNumJunkItems()
     if C_MerchantFrame.IsSellAllJunkEnabled() and (numJunkItems > 0) then
         C_MerchantFrame.SellAllJunkItems()
-        local message = string.format(L.merchant.junkSold, "")
+        local message = L.merchant.junkSold
         DEFAULT_CHAT_FRAME:AddMessage(message, 255, 255, 0)
     end
 end
@@ -55,9 +55,7 @@ local function SellJunkClassic()
         for slot = 1, GetContainerNumSlots(bag) do
             local itemLink = GetContainerItemLink(bag, slot)
             if itemLink then
-                local itemName, itemLink, itemQuality, itemLevel, itemMinLevel, itemType, itemSubType,
-                itemStackCount, itemEquipLoc, itemTexture, sellPrice, classID, subclassID, bindType,
-                expacID, setID, isCraftingReagent = GetItemInfo(itemLink)
+                local _, _, itemQuality, _, _, _, _, _, _, _, sellPrice = GetItemInfo(itemLink)
                 local containerItemInfo = GetContainerItemInfo(bag, slot)
                 local stackCount = containerItemInfo and containerItemInfo.stackCount or 0
                 if (itemQuality == 0) and (sellPrice > 0) then
@@ -68,12 +66,12 @@ local function SellJunkClassic()
         end
     end
     if (total > 0) then
-        local message = string.format(L.merchant.junkSold, " for " .. ToMoneyText(total))
+        local message = string.format(L.merchant.junkSoldFor, ToMoneyText(total))
         DEFAULT_CHAT_FRAME:AddMessage(message, 255, 255, 0)
     end
 end
 
-local SellJunk = E.isRetail and SellJunkRetail or SellJunkClassic
+local SellJunk = (C_MerchantFrame and C_MerchantFrame.SellAllJunkItems) and SellJunkRetail or SellJunkClassic
 
 local function OnMerchantShow()
     AutoRepair()

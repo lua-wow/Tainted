@@ -10,15 +10,9 @@ local Talents = E:GetModule("Talents")
 local NUM_BOSS_FRAMES = _G.NUM_BOSS_FRAMES or 8
 local NUM_ARENA_FRAMES = _G.NUM_ARENA_FRAMES or 5
 
-local SPEC_DRUID_RESTORATION = E.isRetail and 4 or 3
-local SPEC_PALADIN_HOLY = 1
-local SPEC_PRIEST_SHADOW = _G.SPEC_PRIEST_SHADOW or 3
-local SPEC_SHAMAN_RESTORATION = _G.SPEC_SHAMAN_RESTORATION or 3
-
 local CompactRaidFrameManager = _G.CompactRaidFrameManager
 local CompactRaidFrameContainer = _G.CompactRaidFrameContainer
-local GetSpecialization = _G.GetSpecialization
-local GetSpecializationRole = _G.GetSpecializationRole
+local GetNumGroupMembers = _G.GetNumGroupMembers
 local InCombatLockdown =_G.InCombatLockdown
 
 --------------------------------------------------
@@ -31,8 +25,6 @@ do
     local DEFAULT = "DEFAULT"
 
     local element_proto = {
-        unit = "player",
-        groupThreshold = 40,
         position = DEFAULT,
         positions = {
             [HEALER] = { "BOTTOM", UIParent, "BOTTOM", 0, 225 },
@@ -41,19 +33,19 @@ do
     }
 
     function element_proto:GetPosition()
-        local isHealer = Talents:IsHealer()
-        local groupSize = GetNumGroupMembers()
-        if isHealer and groupSize <= self.groupThreshold then
+        if Talents:IsHealer() and GetNumGroupMembers() <= C.unitframes.raid.healer.threshold then
             return HEALER
         end
         return DEFAULT
     end
 
     function element_proto:UpdatePosition()
-        -- you are not suppose to move stuff while in combat
-        if InCombatLockdown() then return end
+        -- the holder parents the secure raid headers: move it after combat
+        if InCombatLockdown() then
+            self:RegisterEvent("PLAYER_REGEN_ENABLED")
+            return
+        end
 
-        -- prevent event spam updates
         local position = self:GetPosition()
         if position ~= self.position then
             self:ClearAllPoints()
@@ -62,46 +54,19 @@ do
         end
     end
 
-    function element_proto:OnEvent(event, ...)
-        if event == "PLAYER_ENTERING_WORLD" then
-            local isLogin, isReload = ...
-            if not isLogin and not isReload then return end
-        
-        -- fires when player enter combat
-        -- so we need to disable events to prevent moving stuff while in combat
-        elseif event == "PLAYER_REGEN_DISABLED" then
-            self:UnregisterEvent("GROUP_ROSTER_UPDATE")
-            self:UnregisterEvent("PLAYER_TALENT_UPDATE")
-            self:UnregisterEvent("CHARACTER_POINTS_CHANGED")
-            self:UnregisterEvent("PLAYER_SPECIALIZATION_CHANGED")
-            return
-
-        -- fires when player leave combat
-        -- we can move stuff now
-        elseif event == "PLAYER_REGEN_ENABLED" then
-            self:RegisterEvent("GROUP_ROSTER_UPDATE")
-
-            if E.isRetail then
-                self:RegisterUnitEvent("PLAYER_SPECIALIZATION_CHANGED", self.unit)
-            else
-                self:RegisterEvent("CHARACTER_POINTS_CHANGED")
-                self:RegisterEvent("PLAYER_TALENT_UPDATE")
-            end
-            return
-        elseif event == "CHARACTER_POINTS_CHANGED" then
-            local changes = ...
-            if changes ~= -1 then return end
+    function element_proto:OnEvent(event)
+        if event == "PLAYER_REGEN_ENABLED" then
+            self:UnregisterEvent(event)
         end
-
-        Talents:Update()
         self:UpdatePosition()
     end
 
     function UnitFrames:CreateRaidHolder()
         local rows = 2
         local cols = C.unitframes.raid.unitsPerColumn
-        local colsSpacing = C.unitframes.raid.columnSpacing
-        local rowsSpacing = C.unitframes.raid.xOffset
+        -- point "LEFT": xOffset spaces units within a row, columnSpacing stacks the rows
+        local colsSpacing = C.unitframes.raid.xOffset
+        local rowsSpacing = C.unitframes.raid.columnSpacing
         local width = C.unitframes.raid.width
         local height = C.unitframes.raid.height
     
@@ -109,23 +74,25 @@ do
         element:SetWidth(cols * width + (cols - 1) * colsSpacing)
         element:SetHeight(rows * height + (rows - 1) * rowsSpacing)
         element:SetPoint(unpack(element.positions[DEFAULT]))
-        element:RegisterEvent("PLAYER_ENTERING_WORLD")
-        element:RegisterEvent("PLAYER_REGEN_ENABLED")
-        element:RegisterEvent("PLAYER_REGEN_DISABLED")
-        element:RegisterUnitEvent("PLAYER_SPECIALIZATION_CHANGED")
-        element:SetScript("OnEvent", element.OnEvent)
+
+        if C.unitframes.raid.healer.position then
+            element:RegisterEvent("GROUP_ROSTER_UPDATE")
+            element:SetScript("OnEvent", element.OnEvent)
+            -- the first role (at PLAYER_ENTERING_WORLD) also sets the initial position
+            Talents.OnRoleChanged = function() element:UpdatePosition() end
+        end
         return element
     end
 end
 
 function UnitFrames:DisableBlizzard()
 	local PartyFrame = PartyFrame
-	
-	if C.unitframes.raid.enabled then
-        if (PartyFrame) then
-            PartyFrame:SetParent(E.Hider)
-        end
 
+	if (PartyFrame and (C.unitframes.raid.enabled or C.unitframes.party.enabled)) then
+        PartyFrame:SetParent(E.Hider)
+    end
+
+	if C.unitframes.raid.enabled then
 		-- Disable Blizzard Raid Frames.
         if (CompactRaidFrameManager) then
             CompactRaidFrameManager:SetParent(E.Hider)
@@ -139,17 +106,37 @@ function UnitFrames:DisableBlizzard()
             CompactRaidFrameContainer:Hide()
         end
 		
-		if (E.isRetail) then
+		if (E.isMainline) then
 			UIParent:UnregisterEvent("GROUP_ROSTER_UPDATE")
 			CompactRaidFrameManager_SetSetting("IsShown", "0")
 		end
 
 		-- Hide Raid Interface Options.
-		-- if not E.isRetail then
+		-- if not E.isStandard then
 		-- 	InterfaceOptionsFrameCategoriesButton11:SetHeight(0.00001)
 		-- 	InterfaceOptionsFrameCategoriesButton11:SetAlpha(0)
 		-- end
 	end
+end
+
+-- Blizzard's UnitFrame_OnEnter reads frame.unit, which Retail oUF no longer sets,
+-- so read the secure unit attribute instead (works with every oUF version).
+local function UnitFrame_UpdateTooltip(self)
+    local unit = SecureButton_GetModifiedUnit(self)
+    if (not unit or GameTooltip:IsForbidden()) then
+        self.UpdateTooltip = nil
+        return
+    end
+
+    GameTooltip_SetDefaultAnchor(GameTooltip, self)
+    GameTooltip:SetUnit(unit)
+    GameTooltip:Show()
+
+    self.UpdateTooltip = UnitFrame_UpdateTooltip
+end
+
+local function UnitFrame_OnEnter(self)
+    UnitFrame_UpdateTooltip(self)
 end
 
 function UnitFrames:CreateUnitFrame(frame)
@@ -163,7 +150,6 @@ function UnitFrames:CreateUnitFrame(frame)
     frame.TextParent = textParent
 
     frame.Health = self:CreateHealth(frame, frame.TextParent)
-    frame.HealthPrediction = self:CreateHealthPrediction(frame)
     frame.Power = self:CreatePower(frame, frame.TextParent)
     frame.Name = self:CreateName(frame, frame.TextParent)
     
@@ -176,7 +162,7 @@ function UnitFrames:CreateUnitFrame(frame)
         frame.Debuffs = self:CreateDebuffs(frame)
     end
 
-    if frame.unit == "player" or frame.unit == "target" then
+    if frame.__key == "player" or frame.__key == "target" then
         frame.Portrait = self:CreatePortrait(frame)
     end
     
@@ -216,28 +202,54 @@ local function CreateUnit(unit, parent, num)
     return units[unit]
 end
 
+function UnitFrames:GetPartyAttributes()
+    return addon .. "Party",
+        nil,
+        "showParty", true,
+        "showPlayer", true,
+        "point", "TOP",
+        "yOffset", -C.unitframes.party.yOffset,
+        "initial-width", C.unitframes.party.width,
+        "initial-height", C.unitframes.party.height,
+        "oUF-initialConfigFunction", [[
+            local header = self:GetParent()
+            self:SetWidth(header:GetAttribute("initial-width"))
+            self:SetHeight(header:GetAttribute("initial-height"))
+        ]]
+end
+
+function UnitFrames:GetRaidVisibility()
+    local visibility = "custom [group:raid, @raid21, noexists] show; "
+    if not C.unitframes.party.enabled then
+        visibility = visibility .. "[group:party, nogroup:raid] show; "
+    end
+    if C.unitframes.raid.solo then
+        visibility = visibility .. "[@player, exists, nogroup:party] show; "
+    end
+    return visibility ..  "hide"
+end
+
 function UnitFrames:GetRaidAttributes()
     local name = addon .. "Raid"
     local showSolo = C.unitframes.raid.solo or nil
 
-    local visibility = "custom [group:raid, @raid21, noexists] show; [group:party, nogroup:raid] show; "
-    if C.unitframes.raid.solo then
-        visibility = visibility .. "[@player, exists, nogroup:party] show; "
-    end
-    visibility = visibility ..  "hide"
+    -- local visibility = "custom [group:raid, @raid21, noexists] show; [group:party, nogroup:raid] show; "
+    -- if C.unitframes.raid.solo then
+    --     visibility = visibility .. "[@player, exists, nogroup:party] show; "
+    -- end
+    -- visibility = visibility ..  "hide"
 
     return name,
         nil,
-        visibility,
+        -- visibility,
         -- http://wowprogramming.com/docs/secure_template/Group_Headers
         -- Set header attributes
         "showParty", true,
         "showRaid", true,
         "showPlayer", true,
         "showSolo", showSolo,
-        "showPet", E.isClassic,
+        "showPet", E.isVanilla,
         "xOffset", C.unitframes.raid.xOffset or 5,
-        "yOffset", C.unitframes.raid.yOffset or 5,
         "point", "LEFT",
         "groupFilter", "1,2,3,4,5,6,7,8",
         "groupingOrder", "1,2,3,4,5,6,7,8",
@@ -254,13 +266,17 @@ function UnitFrames:GetRaidAttributes()
             self:SetHeight(header:GetAttribute("initial-height"))
         ]]
 end
-    
+
+function UnitFrames:GetRaid40Visibilty()
+    return "custom [@raid21, exists] show; hide"
+end
+
 function UnitFrames:GetRaid40Attributes()
     local name = addon .. "Raid40"
-    local visibility = "custom [@raid21, exists] show; hide"
+    -- local visibility = "custom [@raid21, exists] show; hide"
     return name,
         nil,
-        visibility,
+        -- visibility,
         -- http://wowprogramming.com/docs/secure_template/Group_Headers
         -- Set header attributes
         "showParty", true,
@@ -268,7 +284,6 @@ function UnitFrames:GetRaid40Attributes()
         "showPlayer", true,
         "showPet", false,
         "xOffset", C.unitframes.raid.xOffset or 5,
-        "yOffset", C.unitframes.raid.yOffset or 5,
         "point", "LEFT",
         "groupFilter", "1,2,3,4,5,6,7,8",
         "groupingOrder", "1,2,3,4,5,6,7,8",
@@ -297,10 +312,12 @@ function UnitFrames:Init()
     self.RaidHolder = RaidHolder
 
     oUF:RegisterStyle(addon, function(frame, unit)
-        frame.__unit = unit:gsub("%d+", "")
-        frame.__config = C.unitframes[frame.__unit]
+        -- Retail oUF owns frame.__unit, so the style key needs its own field.
+        frame.__key = unit:gsub("%d+", "")
+        frame.__config = C.unitframes[frame.__key]
 
-        if frame.__unit ~= "raid" then
+        -- header children are sized by oUF-initialConfigFunction
+        if frame.__key ~= "raid" and frame.__key ~= "party" then
             local width = frame.__config.width or 200
             local height = frame.__config.height or 32
             frame:SetSize(width, height)
@@ -322,6 +339,8 @@ function UnitFrames:Init()
             UnitFrames:CreateFocusTargetFrame(frame)
         elseif (unit == "pet") then
             UnitFrames:CreatePetFrame(frame)
+        elseif (unit == "party") then
+            UnitFrames:CreatePartyFrame(frame)
         elseif (unit == "raid") then
             UnitFrames:CreateRaidFrame(frame)
         elseif (unit:match("^arena%d")) then
@@ -368,22 +387,57 @@ function UnitFrames:Init()
             end
         end
 
-        local boss = CreateUnit("boss", holder, NUM_BOSS_FRAMES)
+        CreateUnit("boss", holder, NUM_BOSS_FRAMES)
         
-        local arena = CreateUnit("arena", holder, NUM_ARENA_FRAMES)
+        CreateUnit("arena", holder, NUM_ARENA_FRAMES)
+
+        if (C.unitframes.party.enabled) then
+            local party = self:SpawnHeader(UnitFrames:GetPartyAttributes())
+            party:SetVisibility("custom [group:party, nogroup:raid] show; hide")
+            party:SetParent(holder)
+            party:SetPoint("LEFT", holder, "LEFT", 28, 0)
+        end
 
         if (C.unitframes.raid.enabled) then
             local raid = self:SpawnHeader(UnitFrames:GetRaidAttributes())
+            raid:SetVisibility(UnitFrames:GetRaidVisibility())
             raid:SetParent(RaidHolder)
             raid:SetPoint("BOTTOMLEFT", 0, 0)
 
             local raid40 = self:SpawnHeader(UnitFrames:GetRaid40Attributes())
+            raid40:SetVisibility(UnitFrames:GetRaid40Visibilty())
             raid40:SetParent(RaidHolder)
             raid40:SetPoint("BOTTOMLEFT", 0, 0)
         end
 
         if (C.unitframes.nameplate.enabled) then
-            self:SpawnNamePlates(addon, UnitFrames.NameplateCallback, UnitFrames.NameplateCVars)
+            for k, v in next, UnitFrames.Nameplates.cvars do
+                local value, _, _, _, _, isSecure, isReadOnly = C_CVar.GetCVarInfo(k)
+                if (not value) then
+                    E:error("CVar " .. k .. " is not accessible.")
+                    UnitFrames.Nameplates.cvars[k] = nil
+                end
+            end
+
+            local nameplates = self:SpawnNamePlates(addon)
+            nameplates:SetSize(200, 20)
+
+            nameplates:SetCVars(UnitFrames.Nameplates.cvars or {})
+
+            if UnitFrames.Nameplates.SetAddedCallback then
+                nameplates:SetAddedCallback(UnitFrames.Nameplates.SetAddedCallback)
+            end
+
+            if UnitFrames.Nameplates.SetRemovedCallback then
+                nameplates:SetRemovedCallback(UnitFrames.Nameplates.SetRemovedCallback)
+            end
+
+            if UnitFrames.Nameplates.SetTargetCallback then
+                nameplates:SetTargetCallback(UnitFrames.Nameplates.SetTargetCallback)
+            end
+
+            -- nameplates:SetEnemyInteractible(state)
+            -- nameplates:SetFriendlyInteractible(state)
         end
     end)
 end
@@ -393,11 +447,14 @@ function UnitFrames:RunTest()
         local length = #frame
         if (length > 0) then
             for i = 1, length do
+                -- Retail oUF reads __unit, Classic/MoP oUF read unit
+                frame[i].__unit = "player"
                 frame[i].unit = "player"
                 frame[i].Hide = function() end
                 frame[i]:Show()
             end
         else
+            frame.__unit = "player"
             frame.unit = "player"
             frame.Hide = function() end
             frame:Show()

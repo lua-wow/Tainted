@@ -3,13 +3,30 @@ local E, C = ns.E, ns.C
 local CHAT = E:CreateModule("Chat")
 
 -- Blizzard
-local NUM_CHAT_WINDOWS = _G.NUM_CHAT_WINDOWS
+local MAX_CHAT_WINDOWS = _G.Constants.ChatFrameConstants.MaxChatWindows
 local CHAT_FRAME_TEXTURES = _G.CHAT_FRAME_TEXTURES
+local CHAT_FRAMES = _G.CHAT_FRAMES
 local GetChannelName = _G.GetChannelName
-local ChatEdit_ChooseBoxForSend = _G.ChatEdit_ChooseBoxForSend
-local FCF_GetCurrentChatFrame = _G.FCF_GetCurrentChatFrame
+local GetChannelList = _G.GetChannelList
+local ActivateChat = _G.ChatFrameUtil.ActivateChat
+local DeactivateChat = _G.ChatFrameUtil.DeactivateChat
+local IsSecureCmd = _G.IsSecureCmd
+local AutoCompleteBox = _G.AutoCompleteBox
+
+-- Lua
+local strmatch = string.match
+local tinsert = table.insert
+local tremove = table.remove
 
 -- Mine
+local RESET_ATTEMPTS = 10
+local SENT_HISTORY_SIZE = 32 -- same as Blizzard's edit box historyLines
+
+-- Session-only, shared by every edit box. 'sentIndex' 0 is the line being typed ('draft').
+local sentHistory = {}
+local sentIndex = 0
+local draft
+
 local TAB_TEXTURES = {
 	"ChatFrame%sTabLeft",
 	"ChatFrame%sTabMiddle",
@@ -79,9 +96,7 @@ local CHAT_CONFIG = {
 		name = _G.COMBAT_LOG or "Combat Log",
 		default = true,
 	},
-	[3] = {
-		default = true
-	},
+	[3] = false, -- Voice window, left to Blizzard
 	[4] = {
 		name = _G.OTHER or "Others",
 		position = "RIGHT",
@@ -120,33 +135,37 @@ local CHAT_CONFIG = {
 	}
 }
 
-function CHAT:SetupChatFrame(frame, config)
-	if not config then return end
-
-	if not config.default then
-		FCF_OpenNewWindow(config.name)
-	else
+function CHAT:SetupChatFrame(index, config, channels)
+	local frame
+	if config.default then
+		frame = _G["ChatFrame" .. index]
 		if config.name then
 			FCF_SetWindowName(frame, config.name)
 		end
+	else
+		frame = FCF_OpenNewWindow(config.name)
+		if not frame then return end
 	end
 
 	FCF_SetChatWindowFontSize(nil, frame, 12)
 
 	if config.position == "RIGHT" then
 		FCF_UnDockFrame(frame)
+
+		local tab = frame.Tab or _G[frame:GetName() .. "Tab"]
+		tab:ClearAllPoints()
+
+		FCF_RestorePositionAndDimensions(frame)
+		FCF_SetTabPosition(frame, 0)
 	else
 		FCF_DockFrame(frame)
 		FCF_SetLocked(frame, 1)
 	end
 
 	if config.channels then
-		if E.isRetail then
-			local channels = { EnumerateServerChannels() }
-			for k, channel in next, channels do
-				-- dont know why, but this works
-				C_Timer.After(1, function() ChatFrame_SetChannelEnabled(frame, channel, true) end)
-			end
+		-- still joined after FCF_ResetChatWindows, only the windows lost them
+		for _, channel in next, channels do
+			frame:AddChannel(channel)
 		end
 
 		-- Adjust Chat Colors
@@ -158,26 +177,38 @@ function CHAT:SetupChatFrame(frame, config)
 		ChangeChatColor("CHANNEL6", 0.00, 0.89, 0.00)
 	else
 		-- remove channels like Trade, Looking For Group, etc.
-		ChatFrame_RemoveAllChannels(frame)
+		frame:RemoveAllChannels()
 	end
 
 	if config.groups then
-		ChatFrame_RemoveAllMessageGroups(frame)
+		frame:RemoveAllMessageGroups()
 
 		for k, group in next, config.groups do
-			ChatFrame_AddMessageGroup(frame, group)
+			frame:AddMessageGroup(group)
 		end
 	else
 		-- remove channels like Trade, Looking For Group, etc.
-		ChatFrame_RemoveAllMessageGroups(frame)
+		frame:RemoveAllMessageGroups()
 	end
 end
 
-function CHAT:Reset()
-	local channels = { EnumerateServerChannels() }
-	if channels and (#channels == 0) then
-		-- restart this function until we are able to query public channels
-		C_Timer.After(1, CHAT.Reset)
+function CHAT:Reset(attempt)
+	attempt = attempt or 1
+
+	-- joined channels: Retail's EnumerateServerChannels misses Trade/Services and lists unjoined ones
+	local list = { GetChannelList() } -- id, name, disabled, ...
+	local channels = {}
+	for i = 2, #list, 3 do
+		channels[#channels + 1] = list[i]
+	end
+
+	if (#channels == 0) then
+		-- channels are not joined yet right after login
+		if (attempt < RESET_ATTEMPTS) then
+			C_Timer.After(1, function() CHAT:Reset(attempt + 1) end)
+		else
+			E:print("Chat reset postponed: no joined channels found.")
+		end
 		return
 	end
 
@@ -185,67 +216,102 @@ function CHAT:Reset()
 	FCF_ResetChatWindows()
 	DEFAULT_CHAT_FRAME:SetUserPlaced(true)
 
-	for index = 1, NUM_CHAT_WINDOWS do
-		local frame = _G["ChatFrame" .. index]
+	-- in order: FCF_OpenNewWindow hands out the next free frame
+	for index = 1, MAX_CHAT_WINDOWS do
 		local config = CHAT_CONFIG[index]
-		CHAT:SetupChatFrame(frame, config)
-
-		if (index == 4) then
-			local tab = frame.Tab or _G[frame:GetName() .. "Tab"]
-			tab:ClearAllPoints()
-
-			FCF_RestorePositionAndDimensions(frame)
-			FCF_SetTabPosition(frame, 0)
+		if config then
+			CHAT:SetupChatFrame(index, config, channels)
 		end
 	end
 
 	local ChatFrame1 = _G["ChatFrame1"]
 	local ChatFrame1EditBox = _G["ChatFrame1EditBox"]
 
-	CHAT.SetChatFramePosition(ChatFrame1)
+	CHAT.PositionChat(ChatFrame1)
 
 	FCF_SelectDockFrame(ChatFrame1)
 
 	-- fix a editbox texture
-	ChatEdit_ActivateChat(ChatFrame1EditBox)
-	ChatEdit_DeactivateChat(ChatFrame1EditBox)
+	ActivateChat(ChatFrame1EditBox)
+	DeactivateChat(ChatFrame1EditBox)
+
+	E.db.chat = true
 end
 
-local Dock = function(frame)
-	FCF_DockFrame(frame, #FCFDock_GetChatFrames(GENERAL_CHAT_DOCK) + 1, true)
+-- A post-hook can't see FCF_OpenTemporaryWindow's return value, so style whatever is new.
+-- Reused temporary frames are already styled.
+function CHAT.StyleTemporaryChatFrames()
+	for _, name in next, CHAT_FRAMES do
+		local frame = _G[name]
+		if frame and (not frame.__styled) then
+			CHAT:Style(frame)
+		end
+	end
 end
 
-local Undock = function(frame)
-	FCF_UnDockFrame(frame)
-	FCF_SetTabPosition(frame, 0)
-end
-
-function CHAT:StyleTemporaryChatFrame()
-	local frame = FCF_GetCurrentChatFrame()
-	CHAT:Style(frame)
+-- Keep tabs fully visible: Blizzard fades tabs towards these values.
+function CHAT.UpdateTabAlpha(frame)
+	local tab = _G[frame:GetName() .. "Tab"]
+	tab.mouseOverAlpha = 1
+	tab.noMouseAlpha = 1
+	tab:SetAlpha(1)
 end
 
 -- Update editbox border color
-function CHAT:UpdateEditBoxBorderColor()
-	local editBox = ChatEdit_ChooseBoxForSend()
+function CHAT.UpdateEditBoxBorderColor(editBox)
 	local chatType = editBox:GetAttribute("chatType")
-	local channel = editBox:GetAttribute("channelTarget")
+	if (not chatType) or (not editBox.Backdrop) then return end
 
-	if editBox.Backdrop then
-		if (chatType == "CHANNEL") then
-			local id = GetChannelName(channel)
-			if (id == 0) then
-				local color = unpack(C.general.border.color)
-				editBox.Backdrop:SetBackdropBorderColor(color.r, color.g, color.b, color.a or 1)
-			else
-				local info = ChatTypeInfo[chatType .. id]
-				editBox.Backdrop:SetBackdropBorderColor(info.r, info.g, info.b, 1)
-			end
-		else
-			local info = ChatTypeInfo[chatType]
-			editBox.Backdrop:SetBackdropBorderColor(info.r, info.g, info.b, 1)
+	local info
+	if (chatType == "CHANNEL") then
+		local id = GetChannelName(editBox:GetAttribute("channelTarget"))
+		if (id ~= 0) then
+			info = ChatTypeInfo[chatType .. id]
 		end
+	else
+		info = ChatTypeInfo[chatType]
 	end
+
+	if info then
+		editBox.Backdrop:SetBackdropBorderColor(info.r, info.g, info.b, 1)
+	else
+		local color = C.general.border.color
+		editBox.Backdrop:SetBackdropBorderColor(color.r, color.g, color.b, color.a or 1)
+	end
+end
+
+-- Blizzard adds every sent line (with its header, e.g. "/s hi") through AddHistoryLine.
+function CHAT.AddSentHistory(_, text)
+	-- secure commands set by an addon would be blocked; Alt+Up still recalls them natively
+	local command = strmatch(text, "^/%S+")
+	if command and IsSecureCmd(command) then return end
+	if (text == sentHistory[#sentHistory]) then return end
+
+	tinsert(sentHistory, text)
+	if (#sentHistory > SENT_HISTORY_SIZE) then
+		tremove(sentHistory, 1)
+	end
+end
+
+-- Up/Down walk sent lines; Alt+arrows (native history) and the autocomplete list are left to Blizzard.
+function CHAT.OnEditBoxArrowPressed(editBox, key)
+	if IsAltKeyDown() or AutoCompleteBox:IsShown() then return end
+
+	local count = #sentHistory
+	if (key == "UP") then
+		if (sentIndex == count) then return end
+		if (sentIndex == 0) then
+			draft = editBox:GetText()
+		end
+		sentIndex = sentIndex + 1
+	elseif (key == "DOWN") then
+		if (sentIndex == 0) then return end
+		sentIndex = sentIndex - 1
+	else
+		return
+	end
+
+	editBox:SetText((sentIndex == 0) and draft or sentHistory[count - sentIndex + 1])
 end
 
 function CHAT:OnMouseWheel(delta)
@@ -268,62 +334,52 @@ function CHAT:OnMouseWheel(delta)
 	end
 end
 
-function CHAT:SetChatFramePosition()
-	local frame = self
-	local id = frame:GetID()
-	local name = frame:GetName()
-	
-	local Tab = frame.Tab or _G[name .. "Tab"]
-	local IsMovable = frame:IsMovable()
-
-	if Tab:IsShown() then
-		if IsRightChatFound and not frame.isDocked then
-			Dock(frame)
+-- Right chat: first undocked, shown window after ChatFrame1. Temporary windows have IDs above
+-- MAX_CHAT_WINDOWS, so they are never picked.
+local GetRightChatFrame = function()
+	for i = 2, MAX_CHAT_WINDOWS do
+		local frame = _G["ChatFrame" .. i]
+		if (not frame.isDocked) and _G["ChatFrame" .. i .. "Tab"]:IsShown() then
+			return frame
 		end
-
-		if id == 1 then
-			local anchor = _G["TaintedChatLeft"]
-			frame:SetParent(anchor)
-			frame:SetMovable(false)
-			frame:SetUserPlaced(true)
-			frame:ClearAllPoints()
-			frame:SetPoint("TOP", anchor.Tab, "BOTTOM", 0, -5)
-			frame:SetPoint("LEFT", anchor, "LEFT", C.chat.margin, 0)
-			frame:SetPoint("RIGHT", anchor, "RIGHT", -16, 0)
-			frame:SetPoint("BOTTOM", anchor.DataText, "TOP", 0, 8)
-
-			if E.isRetail then
-				hooksecurefunc(frame, "SetPoint", function(f)
-					frame:SetPointBase("TOP", anchor.Tab, "BOTTOM", 0, -5)
-					frame:SetPointBase("LEFT", anchor, "LEFT", C.chat.margin, 0)
-					frame:SetPointBase("RIGHT", anchor, "RIGHT", -16, 0)
-					frame:SetPointBase("BOTTOM", anchor.DataText, "TOP", 0, 8)
-				end)
-			end
-		elseif (id == 4) then
-			local anchor = _G["TaintedChatRight"]
-			frame:SetParent(anchor)
-			frame:ClearAllPoints()
-			frame:SetPoint("TOP", anchor.Tab, "BOTTOM", 0, -5)
-			frame:SetPoint("LEFT", anchor, "LEFT", C.chat.margin, 0)
-			frame:SetPoint("RIGHT", anchor, "RIGHT", -16, 0)
-			frame:SetPoint("BOTTOM", anchor.DataText, "TOP", 0, 8)
-			frame:SetMovable(true) -- the frame needs to be movable to use 'SetUserPlaced'
-			frame:SetUserPlaced(true)
-			frame:SetMovable(false)
-
-			-- if E.isRetail then
-			-- 	hooksecurefunc(frame, "SetPoint", function(f)
-			-- 		frame:SetPointBase("TOP", anchor.Tab, "BOTTOM", 0, -5)
-			-- 		frame:SetPointBase("LEFT", anchor, "LEFT", C.chat.margin, 0)
-			-- 		frame:SetPointBase("RIGHT", anchor, "RIGHT", -16, 0)
-			-- 		frame:SetPointBase("BOTTOM", anchor.DataText, "TOP", 0, 8)
-			-- 	end)
-			-- end
-		end
-
-		FCF_SavePositionAndDimensions(frame)
 	end
+end
+
+-- ChatFrame1 is an Edit Mode system: its SetPoint/ClearAllPoints are overrides, the originals
+-- are kept as *Base. Calling the originals skips Edit Mode snapping and our own SetPoint hook.
+local SetPanelPoints = function(frame, anchor)
+	local ClearAllPoints = frame.ClearAllPointsBase or frame.ClearAllPoints
+	local SetPoint = frame.SetPointBase or frame.SetPoint
+	ClearAllPoints(frame)
+	SetPoint(frame, "TOP", anchor.Tab, "BOTTOM", 0, -5)
+	SetPoint(frame, "LEFT", anchor, "LEFT", C.chat.margin, 0)
+	SetPoint(frame, "RIGHT", anchor, "RIGHT", -16, 0)
+	SetPoint(frame, "BOTTOM", anchor.DataText, "TOP", 0, 8)
+end
+
+-- Blizzard re-anchors ChatFrame1 through its SetPoint override: Edit Mode (ApplySystemAnchor)
+-- and, on Classic, UIParentManageFramePositions while chat is in its default position.
+function CHAT.OnChatFrame1SetPoint(frame)
+	SetPanelPoints(frame, CHAT.Left)
+end
+
+function CHAT.PositionChat(frame)
+	local anchor
+	if (frame == _G.ChatFrame1) then
+		anchor = CHAT.Left
+	elseif (frame == GetRightChatFrame()) then
+		anchor = CHAT.Right
+	else
+		return
+	end
+
+	frame:SetParent(anchor)
+	SetPanelPoints(frame, anchor)
+	frame:SetMovable(true) -- the frame needs to be movable to use 'SetUserPlaced'
+	frame:SetUserPlaced(true)
+	frame:SetMovable(false)
+
+	FCF_SavePositionAndDimensions(frame)
 end
 
 -- TESTING CMD : /run BNToastFrame:AddToast(BN_TOAST_TYPE_ONLINE, 1)
@@ -362,8 +418,6 @@ function CHAT:HideTextures(frame)
 		if obj and obj:GetObjectType() == "Texture" then
 			obj:SetTexture(nil)
 			obj:Hide()
-		else
-			E.error(name .. "." .. texture .. "  is not a texture.")
 		end
 	end
 
@@ -390,16 +444,7 @@ function CHAT:Style(frame)
 	local fontObject = E.GetFont(C.chat.font)
 	local font, fontSize, fontFlag = fontObject:GetFont()
 	
-	local id = frame:GetID()
 	local name = frame:GetName()
-
-	-- local Tab = _G[name .. "Tab"]
-	-- local Scroll = frame.ScrollBar
-	-- local ScrollBottom = frame.ScrollToBottomButton
-	-- local ScrollTex = _G[name .."ThumbTexture"]
-	-- local TabFont, TabFontSize, TabFontFlags = GetTabFont:GetFont()
-	
-	local anchor = self.Left
 
 	frame:SetClampRectInsets(0, 0, 0, 0)
 	frame:SetClampedToScreen(false)
@@ -410,14 +455,11 @@ function CHAT:Style(frame)
 	if Tab then
 		-- remove default tab textures
 		Tab:StripTextures()
-		Tab:SetAlpha(1)
-		Tab.SetAlpha = UIFrameFadeRemoveFrame
-		
+		self.UpdateTabAlpha(frame)
+
 		local TabText = Tab.Text or _G[name .."TabText"]
 		if TabText then
 			TabText:SetFont(font, fontSize, fontFlag)
-			TabText.SetFont = function() end
-			TabText.SetFontObject = function() end
 		end
 		
 		local ConversationIcon = Tab.conversationIcon or _G[name .. "TabConversationIcon"]
@@ -444,31 +486,41 @@ function CHAT:Style(frame)
 	EditBox:Hide() -- hide editbox on login
 	EditBox:StripTextures()
 	EditBox:CreateBackdrop()
+	hooksecurefunc(EditBox, "UpdateHeader", self.UpdateEditBoxBorderColor)
+	hooksecurefunc(EditBox, "AddHistoryLine", self.AddSentHistory)
+	EditBox:HookScript("OnArrowPressed", self.OnEditBoxArrowPressed)
 
 	-- hide editbox instead of fading
 	EditBox:HookScript("OnEditFocusLost", function(self)
 		self:Hide()
+		sentIndex = 0
 	end)
 
 	self:HideTextures(frame)
-	self.SetChatFramePosition(frame)
+	self.PositionChat(frame)
 
-	-- Mouse Wheel
+	-- Mouse Wheel: replaces Blizzard's 1-line scroll on purpose; hooking would scroll both
 	frame:SetScript("OnMouseWheel", self.OnMouseWheel)
 
 	frame.__styled = true
 end
 
+local ShowCopyButton = function()
+	CHAT.CopyButton:SetAlpha(1)
+end
+
+local HideCopyButton = function()
+	CHAT.CopyButton:SetAlpha(0)
+end
+
 function CHAT:Setup()
 	local frameLevel = self.Left.Tab:GetFrameLevel()
 
-	for i = 1, NUM_CHAT_WINDOWS do
+	for i = 1, MAX_CHAT_WINDOWS do
 		local frame = _G["ChatFrame" .. i]
 		local tab = _G["ChatFrame" .. i .. "Tab"]
 
-		tab:SetAlpha(0)
 		tab:SetFrameLevel(frameLevel + 1)
-		tab.noMouseAlpha = 0
 
 		-- frame.BaseAddMessage = frame.AddMessage;
 		-- frame.AddMessage = ChatFrame_AddMessage;
@@ -481,13 +533,8 @@ function CHAT:Setup()
 			end
 		end
 
-		frame:SetScript("OnEnter", function(x)
-			self.CopyButton:SetAlpha(1)
-		end)
-	
-		frame:SetScript("OnLeave", function(x)
-			self.CopyButton:SetAlpha(0)
-		end)
+		frame:HookScript("OnEnter", ShowCopyButton)
+		frame:HookScript("OnLeave", HideCopyButton)
 	end
 
 	-- local ChatConfigFrameDefaultButton = _G.ChatConfigFrameDefaultButton
@@ -539,17 +586,6 @@ function CHAT:Setup()
 		-- 	texture:SetVertexColor(1, 1, 1)
 		-- end
     end
-
-	local VoiceChatPromptActivateChannel = _G.VoiceChatPromptActivateChannel
-	if VoiceChatPromptActivateChannel then
-		-- VoiceChatPromptActivateChannel:ClearAllPoints()
-		-- VoiceChatPromptActivateChannel:SetPoint(unpack(Chat.VoiceAlertPosition))
-		-- VoiceChatPromptActivateChannel:CreateBackdrop()
-		-- VoiceChatPromptActivateChannel.AcceptButton:SkinButton()
-		-- VoiceChatPromptActivateChannel.CloseButton:SkinCloseButton()
-		-- VoiceChatPromptActivateChannel.ClearAllPoints = function() end
-		-- VoiceChatPromptActivateChannel.SetPoint = function() end
-	end
 end
 
 function CHAT:CreateBackground(side)
@@ -599,13 +635,18 @@ function CHAT:Init()
 	self:Setup()
 	self:EnableHiperlinkFilter()
 
-	-- Set default position for Voice Activation Alert
-	self.VoiceAlertPosition = { "BOTTOMLEFT", self.Left, "TOPLEFT", 0, 12 }
-
-	hooksecurefunc("ChatEdit_UpdateHeader", self.UpdateEditBoxBorderColor)
-	hooksecurefunc("FCF_OpenTemporaryWindow", self.StyleTemporaryChatFrame)
-	hooksecurefunc("FCF_RestorePositionAndDimensions", self.SetChatFramePosition)
-	-- hooksecurefunc("FCF_SavePositionAndDimensions", Chat.SaveChatFramePositionAndDimensions)
-	-- hooksecurefunc("FCFTab_UpdateAlpha", Chat.NoMouseAlpha)
+	hooksecurefunc("FCF_OpenTemporaryWindow", self.StyleTemporaryChatFrames)
+	hooksecurefunc("FCF_RestorePositionAndDimensions", self.PositionChat)
+	hooksecurefunc(_G.ChatFrame1, "SetPoint", self.OnChatFrame1SetPoint)
+	hooksecurefunc("FCFTab_UpdateAlpha", self.UpdateTabAlpha)
 	hooksecurefunc(BNToastFrame, "AddToast", self.AddToast)
+
+	if not E.db.chat then
+		local frame = CreateFrame("Frame")
+		frame:RegisterEvent("PLAYER_ENTERING_WORLD")
+		frame:SetScript("OnEvent", function(f)
+			f:UnregisterAllEvents()
+			CHAT:Reset()
+		end)
+	end
 end

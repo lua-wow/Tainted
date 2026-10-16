@@ -18,7 +18,6 @@ function UnitFrames:CreatePlayerFrame(frame)
 
     frame.AdditionalPower = self:CreateAdditionalPower(frame)
     frame.AlternativePower = self:CreateAlternativePower(frame)
-    frame.PowerPrediction = self:CreatePowerPrediction(frame)
 
     -- indicators
     frame.AssistantIndicator = self:CreateAssistantIndicator(frame)
@@ -46,9 +45,7 @@ function UnitFrames:CreatePlayerFrame(frame)
     -- MONK -> STATUES
     -- PALADIN -> CONSACRATION
     -- PRIEST -> MIND BINDER
-    if E.isRetail then
-        frame.Totems = self:CreateTotems(frame)
-    end
+    frame.Totems = self:CreateTotems(frame)
 
     -- RUNES (DEATHKNIGHT)
     -- STAGGER (MONK)

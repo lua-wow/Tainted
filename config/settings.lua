@@ -5,14 +5,14 @@ local blankTex = A.textures.blank
 
 C["general"] = {
     ["uiScale"] = 0.64, -- 0.52,
+    ["taintLog"] = true, -- enable taint.log on install (development)
     ["backdrop"] = {
         ["color"] = E:CreateColor(0.15, 0.15, 0.15),
         ["texture"] = blankTex
     },
     ["border"] = {
         ["size"] = 1,
-        ["color"] = E:CreateColor(0, 0, 0),
-        ["texture"] = blankTex
+        ["color"] = E:CreateColor(0, 0, 0)
     },
     ["background"] = {
         ["multiplier"] = 0.30
@@ -60,7 +60,9 @@ C["auras"] = {
 }
 
 C["bags"] = {
-    ["enabled"] = false,
+    ["enabled"] = true,
+    ["font"] = "Tainted Outlined",
+    ["sort_bank"] = true, -- classic: the sort button also sorts the open bank
     ["buttons"] = {
         ["size"] = 32,
         ["spacing"] = 5,
@@ -69,12 +71,11 @@ C["bags"] = {
 }
 
 C["blizzard"] = {
-    ["font"] = "Tainted",
-    ["ghost"] = E.isRetail,
+    ["durability"] = true,
+    ["ghost"] = true,
     ["mirrortimers"] = true,
-    ["talkinghead"] = E.isRetail,
-    ["uiwidgets"] = true,
-    ["raid_utility"] = E.isRetail
+    ["talkinghead"] = true,
+    ["uiwidgets"] = true
 }
 
 C["chat"] = {
@@ -82,6 +83,7 @@ C["chat"] = {
 	["width"] = 450,
 	["height"] = 205,
 	["font"] = "Tainted",
+	["ScrollByX"] = 3,
 	["text"] = {
 		["fading"] = {
 			["enabled"] = false,
@@ -100,18 +102,14 @@ C["chat"] = {
 
 C["datatexts"] = {
     ["enabled"] = true,
+    ["debug"] = false, -- shows every element in a panel at the screen center
 	["font"] = "Tainted",
 	["colors"] = {
         ["class"] = true,
 		["text"] = E:CreateColor(1.00, 1.00, 1.00),
-		["value"] = E:CreateColor(1.00, 1.00, 1.00),
-        ["highlight"] = E:CreateColor(1.00, 1.00, 0.00)
+		["value"] = E:CreateColor(1.00, 1.00, 1.00)
 	},
     ["clock"] = {
-        ["values"] = {
-            ["military"] = "24-hour format",
-            ["civilian"] = "12-hour format"
-        },
         ["format"] = "military",
         ["timezone"] = "local" -- "local" or "server"
     },
@@ -122,7 +120,7 @@ C["datatexts"] = {
 		[3] = "Friends",
         -- right chat
 		[4] = "System",
-		[5] = "MicroMenu",
+		[5] = "Specialization",
 		[6] = "Gold",
         -- minimap
 		[7] = "Time",
@@ -144,18 +142,14 @@ C["miscellaneous"] = {
     ["texture"] = blankTex,
     ["threatbar"] = true,
     ["screenshots"] = {
-        ["enabled"] = true,                 -- enables plugin.
         ["achievements"] = true,            -- enables screenshots of earned achievements.
         ["boss_kills"] = true,              -- enables screenshots of successful boss encounters.
         ["challenge_mode"] = true,          -- enables screenshots of successful challenge modes / mythic keys.
         ["levelup"] = true,                 -- enables screenshots when player level up.
         ["dead"] = false,                   -- enables screenshots when player dies.
-        ["messages"] = {
-            ["enabled"] = true,
-            ["tracer"] = false
-        }
+        ["messages"] = true,                -- print a chat message for each screenshot event.
+        ["tracer"] = false                  -- print "Screenshot Taken/Failed".
     },
-    ["skyriding_race"] = true,
     ["mythic"] = {
         ["autokeystone"] = true,
         ["portals"] = true
@@ -174,16 +168,16 @@ C["unitframes"] = {
     ["texture"] = blankTex,
     ["monochrome"] = true,
     ["color"] = E:CreateColor(0.10, 0.10, 0.10),
+    ["rangeAlpha"] = 0.30,
     ["health"] = {
         ["temploss"] = {
             ["texture"] = A.textures.reduction
         },
         ["prediction"] = {
             ["colors"] = {
-                ["self"] = E:CreateColor(0.31, 0.45, 0.63, 0.40),
-                ["other"] = E:CreateColor(0.31, 0.45, 0.63, 0.40),
+                ["healing"] = E:CreateColor(0.31, 0.45, 0.63, 0.40),
                 ["absorb"] = E:CreateColor(0.82, 0.71, 0.23, 0.35),
-                ["healAbsorb"] = E:CreateColor(0.82, 0.71, 0.23, 0.35)
+                -- ["healAbsorb"] = E:CreateColor(0.82, 0.71, 0.23, 0.35)
             }
         }
     },
@@ -196,9 +190,6 @@ C["unitframes"] = {
     ["auras"] = {
         ["size"] = 27,
         ["spacing"] = 3
-    },
-    ["debuffs"] = {
-        ["desaturate"] = true
     },
     ["portrait"] = {
         ["enabled"] = false,
@@ -213,12 +204,9 @@ C["unitframes"] = {
         ["anchor"] = { "CENTER", UIParent, "CENTER", 0, -308 }
     },
     ["totems"] = {
-        ["icons"] = true,
+        ["icons"] = false,
         ["size"] = 32,
-        ["spacing"] = 5,
-        ["width"] = 235,
-        ["height"] = 16,
-        ["anchor"] = { "CENTER", UIParent, "CENTER", 0, -200 }
+        ["spacing"] = 5
     },
     -- castbar
     ["castbar"] = {
@@ -241,7 +229,6 @@ C["unitframes"] = {
         ["auras"] = false,
         ["castbar"] = {
             ["mode"] = "detached",
-            ["width"] = 350,
             ["height"] = 20,
             ["icon"] = true,
             ["latency"] = true
@@ -262,7 +249,6 @@ C["unitframes"] = {
         ["auras"] = true,
         ["castbar"] = {
             ["mode"] = "detached",
-            ["width"] = 350,
             ["height"] = 20,
             ["icon"] = true
         },
@@ -362,9 +348,21 @@ C["unitframes"] = {
             ["health"] = "[healthcolor][perhp]%|r"
         },
         ["minAlpha"] = 0.30,
-        ["notSelectedAlpha"] = 0.50,
         ["selectedAlpha"] = 1.0,
         ["selectedScale"] = 1.2
+    },
+    -- false: party members are shown by the raid frames
+    ["party"] = {
+        ["enabled"] = false,
+        ["width"] = 180,
+        ["height"] = 24,
+        ["auras"] = true,
+        ["tags"] = {
+            ["name"] = "[namecolor][namemedium]|r",
+            ["health"] = "[healthcolor][perhp]%|r"
+        },
+        -- room for the aura row above each frame
+        ["yOffset"] = 35
     },
     ["raid"] = {
         ["enabled"] = true,
@@ -374,16 +372,24 @@ C["unitframes"] = {
         ["tags"] = {
             ["name"] = "[raidcolor][nameshort]|r"
         },
-        ["debuffs"] = true,
-        ["auratrack"] = {
+        -- num, size: Retail only, a centred row of one debuff per priority group
+        -- (dispellable, boss, crowd control, important). One large icon: num = 1, size = 36
+        -- (dispellable only; the groups can't pick the best debuff across categories)
+        ["debuffs"] = {
             ["enabled"] = true,
-            ["icons"] = true,
-            ["spellTextures"] = true
+            ["num"] = 3,
+            ["size"] = 27
+        },
+        ["auratrack"] = {
+            ["enabled"] = true
+        },
+        -- healer role and at most `threshold` group members: raid frames move to the centre
+        ["healer"] = {
+            ["position"] = true,
+            ["threshold"] = 20
         },
         ["solo"] = false,
-        ["rangeAlpha"] = 0.30,
         ["xOffset"] = 5,
-        ["yOffset"] = 5,
         ["unitsPerColumn"] = 5,
         ["columnSpacing"] = 5
     }

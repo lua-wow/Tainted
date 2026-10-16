@@ -36,15 +36,10 @@ do
     function element_proto:PostCreate()
         local element = self
 
-        local frame = _G.MultiBar5
+        local frame = _G.MultiBar6
         if frame then
-            if not E.isRetail then
-                frame:SetShown(true)
-                frame:EnableMouse(false)
-            end
             frame:SetParent(element)
-            frame.ignoreFramePositionManager = true
-            frame.ignoreInLayout = true
+            element:FollowBar(frame)
         end
     end
 end

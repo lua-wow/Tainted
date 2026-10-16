@@ -16,6 +16,7 @@ do
         local ref = textParent or frame.Health
         local texture = C.unitframes.texture
         local font = E.GetFont(C.unitframes.font)
+        local color = C.unitframes.power.prediction.color
 
         local element = Mixin(CreateFrame("StatusBar", frame:GetName() .. "Power", frame), element_proto)
         element:SetStatusBarTexture(texture)
@@ -26,11 +27,14 @@ do
         element:SetPoint("BOTTOM", frame, "BOTTOM", 0, 0)
         element:SetClipsChildren(false)
         
-        local bg = element:CreateTexture(nil, "BACKGROUND")
-        bg:SetAllPoints(element)
-        bg:SetTexture(texture)
-        bg.multiplier = C.general.background.multiplier or 0.15
-        element.bg = bg
+        local prediction = CreateFrame("StatusBar", nil, element)
+        prediction:SetReverseFill(true)
+        prediction:SetPoint("TOP")
+        prediction:SetPoint("BOTTOM")
+        prediction:SetPoint("RIGHT", element:GetStatusBarTexture(), "RIGHT")
+        prediction:SetStatusBarTexture(texture)
+        prediction:SetStatusBarColor(color:GetRGBA())
+        element.CostPrediction = prediction
 
         local tag = frame.__config.tags.power
         if (tag) then
@@ -45,11 +49,6 @@ do
             element.Value = value
         end
 
-        if (frame.__unit == "nameplate") then
-            element.isHidden = true
-            element.PostUpdate = UnitFrames.PostUpdateNameplatePower
-        end
-
         return element
     end
 end
@@ -60,19 +59,16 @@ end
 --------------------------------------------------
 do
     local element_proto = {
+        -- smoothing = Enum.StatusBarInterpolation.ExponentialEaseOut,
         frequentUpdates = true,
         colorPower = true,
-        colorClass = false,
-        colorSmooth = false
+        colorPowerSmooth = false
     }
         
     function UnitFrames:CreateAdditionalPower(frame)
-        if not E.isRetail then
-            return nil
-        end
-        
         local height = (C.unitframes.power.height or 5) - 1
         local texture = C.unitframes.texture
+        local color = C.unitframes.power.prediction.color
 
         local element = Mixin(CreateFrame("StatusBar", frame:GetName() .. "AdditionalPower", frame), element_proto)
         element:SetPoint("TOPLEFT", frame, "BOTTOMLEFT", 0, -3)
@@ -81,11 +77,14 @@ do
         element:SetStatusBarTexture(texture)
         element:CreateBackdrop()
 
-        local bg = element:CreateTexture(nil, "BACKGROUND")
-        bg:SetAllPoints(element)
-        bg:SetTexture(texture)
-        bg.multiplier = C.general.background.multiplier or 0.15
-        element.bg = bg
+        local prediction = CreateFrame("StatusBar", nil, element)
+        prediction:SetReverseFill(true)
+        prediction:SetPoint("TOP")
+        prediction:SetPoint("BOTTOM")
+        prediction:SetPoint("RIGHT", element:GetStatusBarTexture(), "RIGHT")
+        prediction:SetStatusBarTexture(texture)
+        prediction:SetStatusBarColor(color:GetRGBA())
+        element.CostPrediction = prediction
 
         return element
     end
@@ -98,24 +97,33 @@ end
 do
     local GetUnitPowerBarStrings = _G.GetUnitPowerBarStrings
     local GetUnitPowerBarStringsByID = _G.GetUnitPowerBarStringsByID
-    
+    local UnitPowerBarID = _G.UnitPowerBarID
+
     local element_proto = {
-        colorPower = true
+        -- smoothing = Enum.StatusBarInterpolation.ExponentialEaseOut,
+        colorPower = true,
+        colorPowerSmooth = false
     }
 
     function element_proto:PostUpdate(unit, cur, min, max)
-        -- if (not cur) then cur = 0 end
-        -- if (not min) then min = 0 end
-        -- if (not max) then max = 0 end
+        -- bar is hidden / no alternative power
+        if (not cur) then
+            return
+        end
 
-        local name, tooltip, cost = GetUnitPowerBarStringsByID(self.__barID) or GetUnitPowerBarStrings(unit)
+        -- retail oUF keeps barID internal; classic oUF still exposes __barID
+        local barID = self.__barID or UnitPowerBarID(unit)
+        local name = GetUnitPowerBarStringsByID(barID) or GetUnitPowerBarStrings(unit)
 
         if (self.Text) then
             self.Text:SetText(name)
         end
 
         if (self.Value) then
-            if (max and max ~= 0) then
+            -- UnitPower/UnitPowerMax are secret when power is restricted (Retail)
+            if (issecretvalue(cur) or issecretvalue(max)) then
+                self.Value:SetText("")
+            elseif (max and max ~= 0) then
                 local perc = 100 * ((cur - min) / (max - min))
                 self.Value:SetFormattedText("%d%%", perc)
             else
@@ -125,24 +133,19 @@ do
     end
         
     function UnitFrames:CreateAlternativePower(frame)
-        if E.isClassic then
+        -- Retail/Forever and MoP only (classic oUF has the element on every classic client)
+        if not (E.isMainline or E.isMists) then
             return nil
         end
 
         local texture = C.unitframes.texture
-        
+
         local element = Mixin(CreateFrame("StatusBar", frame:GetName() .. "AlternativePower", frame), element_proto)
         element:SetStatusBarTexture(texture)
         element:CreateBackdrop()
         element:EnableMouse(true)
         
-        local bg = element:CreateTexture(nil, "BACKGROUND")
-        bg:SetAllPoints(element)
-        bg:SetTexture(texture)
-        bg.multiplier = C.general.background.multiplier or 0.15
-        element.bg = bg
-        
-        if (frame.unit == "player") then
+        if (frame.__key == "player") then
             local font = A.fonts.normal
 
             element:SetPoint("TOP", E.PetHider, "TOP", 0, -10)
@@ -166,44 +169,5 @@ do
         end
         
         return element
-    end
-end
-
---------------------------------------------------
--- Power Prediction
---------------------------------------------------
-do
-    local element_proto = {}
-
-    function UnitFrames:CreatePowerPrediction(frame)
-        local parent = frame.Power
-        local width = frame.__config.width or 200
-        local texture = C.unitframes.texture
-        local color = C.unitframes.power.prediction.color
-
-        local mainBar = CreateFrame("StatusBar", nil, parent)
-        mainBar:SetPoint("TOP")
-        mainBar:SetPoint("BOTTOM")
-        mainBar:SetPoint("RIGHT", parent:GetStatusBarTexture(), "RIGHT")
-        mainBar:SetWidth(width)
-        mainBar:SetStatusBarTexture(texture)
-        mainBar:SetStatusBarColor(color.r, color.g, color.b, color.a or 0.30)
-        mainBar:SetReverseFill(true)
-
-        if frame.AdditionalPower then
-            local altBar = CreateFrame("StatusBar", nil, frame.AdditionalPower)
-            altBar:SetPoint("TOP")
-            altBar:SetPoint("BOTTOM")
-            altBar:SetPoint("RIGHT", frame.AdditionalPower:GetStatusBarTexture(), "RIGHT")
-            altBar:SetWidth(width)
-            altBar:SetStatusBarTexture(texture)
-            altBar:SetStatusBarColor(color.r, color.g, color.b, color.a or 0.30)
-            altBar:SetReverseFill(true)
-        end
-
-        return Mixin({
-            mainBar = mainBar,
-            altBar = altBar
-        }, element_proto)
     end
 end

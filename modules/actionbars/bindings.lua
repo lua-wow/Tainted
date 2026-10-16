@@ -7,8 +7,6 @@ local ACCOUNT_BINDINGS  = _G.ACCOUNT_BINDINGS or 1
 local CHARACTER_BINDINGS = _G.CHARACTER_BINDINGS or 2
 
 local SetBinding = _G.SetBinding
-local GetBinding = _G.GetBinding
-local GetNumBindings = _G.GetNumBindings
 local SaveBindings = _G.SaveBindings
 local GetCurrentBindingSet = _G.GetCurrentBindingSet
 
@@ -64,7 +62,7 @@ local SetupKeyBindings = function()
     
     SetBinding("SHIFT-Y", "TOGGLEACHIEVEMENT", 1) -- default: Y
     
-    if E.isClassic then
+    if E.isVanilla then
         SetBinding("B", "OPENALLBAGS", 1)
         SetBinding("SHIFT-B", "TOGGLEBACKPACK", 1)
     end

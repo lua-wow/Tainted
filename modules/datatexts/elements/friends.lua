@@ -3,11 +3,10 @@ local E, L = ns.E, ns.L
 local MODULE = E:GetModule("DataTexts")
 
 -- Blizzard
-local IsInGuild = _G.BNGetNumFriends
 local InCombatLockdown = _G.InCombatLockdown
 
 -- Mine
-local WORLD_OF_WARCRAFT_STRING = "Worlf of Warcraft"
+local WORLD_OF_WARCRAFT_STRING = "World of Warcraft"
 local BATTLENET_STRING = "Battle.net"
 local COUNT_STRING = "%d / %d"
 
@@ -219,7 +218,6 @@ function friends_proto:CreateTooltip(tooltip)
 end
 
 function friends_proto:OnEvent(event, ...)
-    local numFriends = C_FriendList.GetNumFriends() -- friends (no battle.net tag)
     local numOnlineFriends = C_FriendList.GetNumOnlineFriends() -- online friends (no battle.net tag)
     local numBNetTotal, numBNetOnline, numBNetFavorite, numBNetFavoriteOnline = BNGetNumFriends() -- battle.net tags
 
@@ -247,7 +245,7 @@ function friends_proto:Enable()
 	self:SetScript("OnLeave", self.OnLeave)
 	self:SetScript("OnMouseDown", self.OnMouseDown)
     self:Update()
-    self:Show()
+    return true
 end
 
 function friends_proto:Disable()

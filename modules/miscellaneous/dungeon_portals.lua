@@ -4,8 +4,9 @@ local E, C = ns.E, ns.C
 --------------------------------------------------
 -- Dungeon Portals
 --------------------------------------------------
-if not C.miscellaneous.mythic.autokeystone then return end
+if not C.miscellaneous.mythic.portals then return end
 
+-- keyed by challenge mode map ID; the raid entries (string keys) are reference only, never shown
 local portals = {
     -- Cataclysm
     [438] = { spells = { default = 410080 }, mapID = 657 }, -- The Vortex Pinnacle
@@ -34,30 +35,23 @@ local portals = {
     [169] = { spells = { default = 159896 }, mapID = 1195 }, -- Iron Docks (Path of the Iron Prow)
     
     -- Legion
-    [197] = { spells = nil, mapID = 1456}, -- Eye of Azshara
     [198] = { spells = { default = 424163 }, mapID = 1466 }, -- Darkheart Thicket
     [199] = { spells = { default = 424153 }, mapID = 1501 }, -- Black Rook Hold
     [200] = { spells = { default = 393764 }, mapID = 1477 }, -- Halls of Valor
     [206] = { spells = { default = 410078 }, mapID = 1458 }, -- Neltharion's Lair
-    [207] = { spells = nil, mapID = 1493 }, -- Vault of the Wardens
-    [208] = { spells = nil, mapID = 1492 }, -- Maw of Souls
-    [209] = { spells = nil, mapID = 1516 }, -- The Arcway
     [210] = { spells = { default = 393766 }, mapID = 1571 }, -- Court of Stars
     [227] = { spells = { default = 373262 }, mapID = 1651 }, -- Return of Karazhan: Lower
-    [233] = { spells = nil, mapID = 1677 }, -- Catheral of Eternal Night
     [234] = { spells = { default = 373262 }, mapID = 1651 }, -- Return of Karazhan: Upper
-    [239] = { spells = nil, mapID = 1753 }, -- Seat of the Triumvirate
+    [239] = { spells = { default = 1254551 }, mapID = 1753 }, -- Seat of the Triumvirate
     
     -- Battle for Azeroth
     [244] = { spells = { default = 424187 }, mapID = 1763 }, -- Atal'Dazar
     [245] = { spells = { default = 410071 }, mapID = 1754 }, -- Freehold
-    [246] = { spells = nil, mapID = 1771 }, -- Tol Dagor
     [247] = { spells = { Alliance = 467553, Horde = 467555 }, mapID = 1594 }, -- The MOTHERLODE!!
     [248] = { spells = { default = 424167 }, mapID = 1862 }, -- Waycrest Manor
-    [249] = { spells = nil, mapID = 1762 }, -- Kings' Rest
-    [250] = { spells = nil, mapID = 1877 }, -- Temple of Sethraliss
+    [249] = { spells = { default = 1286831 }, mapID = 1762 }, -- Kings' Rest
+    [250] = { spells = { default = 1286828 }, mapID = 1877 }, -- Temple of Sethraliss
     [251] = { spells = { default = 410074 }, mapID = 1841 }, -- The Underrot
-    [252] = { spells = nil, mapID = 1864 }, -- Temple of the Storm
     [353] = { spells = { Alliance = 445418, Horde = 464256 }, mapID = 1822 }, -- Siege of Boralus
     [369] = { spells = { default = 373274 }, mapID = 2097 }, -- Operation: Mechagon - Junkyard
     [370] = { spells = { default = 373274 }, mapID = 2097 }, -- Operation: Mechagon - Workshop
@@ -75,7 +69,7 @@ local portals = {
     [382] = { spells = { default = 354467 }, mapID = 2293 }, -- Theater of Pain (Path of the Undefeated)
     [391] = { spells = { default = 367416 }, mapID = 2441 }, -- Tazavesh: Streets of Wonder (Path of the Streetwise Merchant)
     [392] = { spells = { default = 367416 }, mapID = 2441 }, -- Tazavesh: So'leash's Gambit (Path of the Streetwise Merchant)
-    
+
     -- Shadowlands Raids
     ["Nathria"] = { spells = { default = 373190 }, mapID = 0 }, -- Castle Nathria (Path of the Sire)
     ["Sanctum"] = { spells = { default = 373191 }, mapID = 0 }, -- Sanctum of Domination (Path of the Tormented Soul)
@@ -92,12 +86,12 @@ local portals = {
     [406] = { spells = { default = 393283 }, mapID = 2527 }, -- Halls of Infusion
     [463] = { spells = { default = 424197 }, mapID = 2579 }, -- Dawn of the Infinite: Galakrond's Fall
     [464] = { spells = { default = 424197 }, mapID = 2579 }, -- Dawn of the Infinite: Murozond's Rise
-        
+
     -- Dragonflight Raids
     ["Vault"] = { spells = { default = 432254 }, mapID = 0 }, -- Vault of the Incarnates
     ["Aberrus"] = { spells = { default = 432257 }, mapID = 0 }, -- Aberrus, the Shadowed Crucible
     ["Amirdrassil"] = { spells = { default = 432258 }, mapID = 0 }, -- Amirdrassil, the Dream's Hope
-
+        
     -- The War Within
     [499] = { spells = { default = 445444 }, mapID = 2649 }, -- Priory of the Sacred Flame
     [500] = { spells = { default = 445443 }, mapID = 2648 }, -- The Rookery
@@ -109,11 +103,23 @@ local portals = {
     [506] = { spells = { default = 445440 }, mapID = 2661 }, -- Cinderbrew Meadery (Path of the Flaming Brewery)
     [525] = { spells = { default = 1216786 }, mapID = 2773 }, -- Operation: Floodgate
     [542] = { spells = { default = 1237215 }, mapID = 2830 }, -- Eco'Dome Al'dani
-    
+
     -- The War Within Raids
     ["Nerub-ar Palace"] = { spells = { default = 0}, mapID = 2657 }, -- Liberation of Undermine (Path of the Full House)
     ["Undermine"] = { spells = { default = 1226482 }, mapID = 2769 }, -- Liberation of Undermine (Path of the Full House)
     ["Manaforge Omega"] = { spells = { default = 1239155 }, mapID = 0 }, -- Manaforge Omega (Path of the All-Devouring)
+
+    -- Midnight
+    [556] = { spells = { default = 1254555 }, mapID = 658 }, -- Pit of Saron
+    [557] = { spells = { default = 1254400 }, mapID = 2805 }, -- Windrunner Spire
+    [558] = { spells = { default = 1254572 }, mapID = 585 }, -- Magisters' Terrace
+    [559] = { spells = { default = 1254563 }, mapID = 2915 }, -- Nexus-Point Xenas
+    [560] = { spells = { default = 1254559 }, mapID = 2874 }, -- Maisara Caverns
+    [584] = { spells = { default = 1286801 }, mapID = 2859 }, -- The Blinding Vale
+    [585] = { spells = { default = 1286804 }, mapID = 2923 }, -- Voidscar Arena
+    [586] = { spells = { default = 1286807 }, mapID = 2825 }, -- Den of Nalorakk
+    [587] = { spells = { default = 1286809 }, mapID = 2813 }, -- Murder Row
+    [588] = { spells = { default = 1286812 }, mapID = 2993 }, -- Altar of Fangs
 }
 
 local button_proto = {}
@@ -134,7 +140,7 @@ do
     end
 
     function button_proto:UpdateVisibility()
-        self.isKnown = (self.spellID and IsSpellKnown(self.spellID) or false)
+        self.isKnown = (self.spellID and C_SpellBook.IsSpellKnown(self.spellID) or false)
         local texture = self:GetNormalTexture()
         if texture then
             texture:SetDesaturated(not self.isKnown)
@@ -144,9 +150,10 @@ do
     function button_proto:UpdateCooldown()
         if not self.Cooldown then return end
         if self.spellID and self.spellName then
-            local info = C_Spell.GetSpellCooldown(self.spellID)
-            if info and info.isEnabled then
-                self.Cooldown:SetCooldown(info.startTime, info.duration)
+            -- duration object: GetSpellCooldown's times are secret while cooldowns are restricted
+            local duration = C_Spell.GetSpellCooldownDuration(self.spellID, true)
+            if duration then
+                self.Cooldown:SetCooldownFromDurationObject(duration)
             end
         end
     end
@@ -190,26 +197,18 @@ do
         local faction, _ = UnitFactionGroup("player")
         local mapName, _, _, mapTexture, mapBackgroundTexture = C_ChallengeMode.GetMapUIInfo(mapID)
         
+        -- dungeons without a teleport (or not in the table yet) get no button
         local spellID = self:GetPortalSpell(mapID, faction)
-        if not spellID then
-            E:error("Dungeon " .. mapName .. " (" .. mapID .. ") is missing the portal spellID")
-            return nil
-        end
-        
-        local spellName = C_Spell.GetSpellName(spellID)
+        local spellName = spellID and C_Spell.GetSpellName(spellID)
+        if not spellName then return nil end
 
-        -- Create button for each known spell
-        local button = Mixin(CreateFrame("Button", self:GetName() .. mapID, self, "SecureActionButtonTemplate"), button_proto)
+        local button = Mixin(CreateFrame("Button", nil, self, "SecureActionButtonTemplate"), button_proto)
         button:SetSize(30, 30)
         button:SetNormalTexture(mapTexture)
         button:EnableMouse(true)
-        if spellName then
-            button:RegisterForClicks("LeftButtonDown", "RightButtonDown")
-            button:SetAttribute("type", "macro")
-            button:SetAttribute("macrotext", "/cast " .. spellName)
-        else
-            E:error("Dungeon " .. mapName .. " (" .. mapID .. ") portal spell " .. spellID .. " do not exists")
-        end
+        button:RegisterForClicks("LeftButtonDown", "RightButtonDown")
+        button:SetAttribute("type", "macro")
+        button:SetAttribute("macrotext", "/cast " .. spellName)
         button:SetScript("OnEnter", button.OnEnter)
         button:SetScript("OnLeave", button.OnLeave)
         button:HookScript("OnShow", button.OnShow)
@@ -220,9 +219,9 @@ do
         button.mapName = mapName
         button.spellID = spellID
         button.spellName = spellName
-        button.isKnown = IsSpellKnown(spellID)
-        
-        local cd = CreateFrame("Cooldown", "$parentCooldown", button, "CooldownFrameTemplate")
+        button.isKnown = C_SpellBook.IsSpellKnown(spellID)
+
+        local cd = CreateFrame("Cooldown", nil, button, "CooldownFrameTemplate")
         cd:SetAllPoints(button)
         -- cd:SetReverse(true)
         button.Cooldown = cd
@@ -264,39 +263,49 @@ do
     end
 end
 
-local frame = CreateFrame("Frame")
-frame:RegisterEvent("ADDON_LOADED")
-frame:SetScript("OnEvent", function(_self, event, ...)
-    if event ~= "ADDON_LOADED" then return end
-    
-    local addon = ...
-    if addon ~= "Blizzard_ChallengesUI" then return end
-
+local Hook = function()
     local ChallengesFrame = _G.ChallengesFrame
     if not ChallengesFrame then return end
-    
+
     hooksecurefunc(ChallengesFrame, "Update", function(self)
+        -- secure buttons can't be created in combat; Blizzard calls Update again on the next OnShow
+        if InCombatLockdown() then return end
+
         if not self.Portals then
-            local element = Mixin(CreateFrame("Frame", self:GetName() .. "Portals", self), portal_proto)
+            local element = Mixin(CreateFrame("Frame", nil, self), portal_proto)
             element:SetPoint("TOPRIGHT", self, "TOPRIGHT", -10, -30)
             element:SetSize(30, 200)
             element:SetFrameLevel(self:GetFrameLevel() + 10)
 
-            element.buttons = table.wipe(element.buttons or {})
+            element.buttons = {}
 
-            for index, mapID in next, self.maps do
+            for _, mapID in next, self.maps do
+                local index = #element.buttons + 1
                 local button = element:CreateButton(index, mapID)
-                table.insert(element.buttons, button)
+                if button then
+                    element.buttons[index] = button
+                end
             end
 
             element:RegisterEvent("SPELLS_CHANGED")
             element:SetScript("OnEvent", element.OnEvent)
-            
+
             self.Portals = element
         end
 
-        if self.Portals then
-            self.Portals:Update()
-        end
+        self.Portals:Update()
     end)
-end)
+end
+
+-- load-on-demand: another addon may have loaded it before us
+if C_AddOns.IsAddOnLoaded("Blizzard_ChallengesUI") then
+    Hook()
+else
+    local frame = CreateFrame("Frame")
+    frame:RegisterEvent("ADDON_LOADED")
+    frame:SetScript("OnEvent", function(self, _, addon)
+        if addon ~= "Blizzard_ChallengesUI" then return end
+        Hook()
+        self:UnregisterEvent("ADDON_LOADED")
+    end)
+end

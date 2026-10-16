@@ -2,43 +2,14 @@ local _, ns = ...
 local E, C = ns.E, ns.C
 local UnitFrames = E:GetModule("UnitFrames")
 
--- Blizzard
-local GetRuneType = _G.GetRuneType
-local GetRuneCooldown = _G.GetRuneCooldown
-
 --------------------------------------------------
 -- Runes
 --------------------------------------------------
 local MAX_RUNES = _G.MAX_RUNES or 6
 
 local element_proto = {
-    colorSpec = false
+    colorSpec = true
 }
-
--- function element_proto:PostUpdate(runemap)
---     local element = self
---     for index, runeID in next, runemap do
---         local rune = element[index]
---         local start, duration, runeReady = GetRuneCooldown(runeID)
---         if (runeReady) then
---             rune:SetAlpha(1)
---         else
---             rune:SetAlpha(0.5)
---         end
---     end
--- end
-
-if (E.isCata) then
-    function element_proto:UpdateColor(...)
-        local element = self.Runes
-        for i = 1, #element do
-            local type = GetRuneType(i)
-            local color = E.colors.runes[type]
-            local bar = element[i]
-            bar:SetStatusBarColor(color.r, color.g, color.b)
-        end
-    end
-end
 
 function UnitFrames:CreateRunes(frame)
     local texture = C.unitframes.texture

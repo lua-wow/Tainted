@@ -14,7 +14,6 @@ local variables = {
 	["scriptErrors"] = 1,
 	["scriptWarnings"] = 1,
 	["luaErrorExceptions"] = 1,
-	["taintLog"] = 1,						-- enable taint log
 
 	-- system
 	["screenshotQuality"] = 10,
@@ -44,12 +43,12 @@ local variables = {
 	-- bags
 	["combinedBags"] = 1,
 	["expandBagBar"] = 1,
-	["displayFreeBagSlots"] = E.isClassic and 1 or 0,
+	["displayFreeBagSlots"] = E.isVanilla and 1 or 0,
 	
 	-- chat
 	["chatMouseScroll"] = 1,
 	["chatStyle"] = "classic",				-- values: "classic" or "im"
-	["whisperMode"] = E.isRetail and "popout" or "inline", -- values: "popout", "inline", "popout_and_inline"
+	["whisperMode"] = E.isStandard and "popout" or "inline", -- values: "popout", "inline", "popout_and_inline"
 	["removeChatDelay"] = 1,
 	["profanityFilter"] = 0,
 	["chatClassColorOverride"] = 0,
@@ -90,8 +89,7 @@ local variables = {
 	-- ["showVKeyCastbarOnlyOnTarget"] = 0,
 	-- ["showVKeyCastbarSpellName"] = 1,
 
-	-- action bars
-	["alwaysShowActionBars"] = 1,
+	-- cooldowns
 	["countdownForCooldowns"] = 1,
 
 	-- auras
@@ -120,7 +118,15 @@ local variables = {
 
 function E:SetupDefaultsCVars()
 	for name, value in next, variables do
-		SetCVar(name, value)
+		-- not every cvar exists on every game version
+		if (GetCVar(name) ~= nil) then
+			SetCVar(name, value)
+		end
+	end
+
+	-- writes taint.log continuously, so it is opt-in
+	if C.general.taintLog then
+		SetCVar("taintLog", 1)
 	end
 
 	if SetAutoDeclineGuildInvites then

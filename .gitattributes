@@ -1,14 +1,15 @@
 # Auto detect text files and perform LF normalization
 * text=auto eol=lf
 
-# Treat common binary files as binary
-*.blp binary
-*.mp3 binary
-*.tga binary
-*.ttf binary
+# Explicitly declare text files you want to always be normalized and converted
+# to native line endings on checkout.
+*.yaml text
+*.yml text
+*.json text
 
-# Exclude from release archives
-docs/ export-ignore
-.luacheckrc export-ignore
-.gitignore export-ignore
-.gitattributes export-ignore
+# Force shell scripts to ues LF
+*.sh text eol=lf
+
+# Windows batch scripts use CRLF
+*.bat text eol=crlf
+*.ps1 text eol=crlf

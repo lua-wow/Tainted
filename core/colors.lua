@@ -23,14 +23,6 @@ oUF.colors.health = oUF:CreateColor(0.29, 0.68, 0.30)
 
 oUF.colors.disconnected = oUF:CreateColor(0.1, 0.1, 0.1)
 
-oUF.colors.runes = {
-	[1] = oUF:CreateColor(0.69, 0.31, 0.31),
-	[2] = oUF:CreateColor(0.41, 0.80, 1.00),
-	[3] = oUF:CreateColor(0.65, 0.63, 0.35),
-	[4] = oUF:CreateColor(0.53, 0.53, 0.93),
-	[5] = oUF:CreateColor(0.55, 0.57, 0.61), -- unspec, new char
-}
-
 oUF.colors.reaction = {
 	[1] = oUF:CreateColor(0.78, 0.25, 0.25), -- Hated
 	[2] = oUF:CreateColor(0.78, 0.25, 0.25), -- Hostile
@@ -131,7 +123,7 @@ do
 end
 
 -- classes
-if E.isClassic then
+if E.isVanilla then
 	oUF.colors.class["SHAMAN"] = oUF:CreateColor(0.00, 0.44, 0.87)
 end
 
@@ -230,10 +222,21 @@ oUF.colors.pvp = {
 
 oUF.colors.quality = {}
 
+local GetItemQualityColor = C_Item and C_Item.GetItemQualityColor or _G.GetItemQualityColor
 for k, v in next, Enum.ItemQuality do
-	oUF.colors.quality[k] = color
-	oUF.colors.quality[v] = color
+	local r, g, b = GetItemQualityColor(v)
+	if r then
+		local color = oUF:CreateColor(r, g, b)
+		oUF.colors.quality[k] = color
+		oUF.colors.quality[v] = color
+	end
 end
+
+oUF.colors.stealable = oUF:CreateColor(0.93, 0.91, 0.55)
+
+-- keyed by dispel name
+oUF.colors.dispel.Bleed = oUF:CreateColor(0.90, 0.10, 0.10)
+oUF.colors.dispel.Enrage = oUF:CreateColor(0.78, 0.25, 0.25)
 
 E.colors = oUF.colors
 E.CreateColor = oUF.CreateColor
@@ -241,14 +244,19 @@ E.CreateColor = oUF.CreateColor
 --------------------------------------------------
 -- Functions
 --------------------------------------------------
+-- shared result; overwritten on the next call, so callers must not keep a reference
+local gradient = CreateColor(0, 0, 0)
+
 -- https://wowpedia.fandom.com/wiki/ColorGradient
 local function ColorGradient(perc, ...)
 	if perc >= 1 then
 		local r, g, b = select(select('#', ...) - 2, ...)
-		return E:CreateColor(r, g, b)
+		gradient:SetRGB(r, g, b)
+		return gradient
 	elseif perc <= 0 then
 		local r, g, b = ...
-		return E:CreateColor(r, g, b)
+		gradient:SetRGB(r, g, b)
+		return gradient
 	end
 
 	local num = select('#', ...) / 3
@@ -259,23 +267,8 @@ local function ColorGradient(perc, ...)
 	local r = r1 + (r2 - r1) * relperc
 	local g = g1 + (g2 - g1) * relperc
 	local b = b1 + (b2 - b1) * relperc
-	return E:CreateColor(r, g, b)
-end
-
-local function ColorGradient_9(perc, r1, g1, b1, r2, g2, b2, r3, g3, b3)
-	if perc >= 1 then
-		return E:CreateColor(r3, g3, b3)
-	elseif perc <= 0 then
-		return E:CreateColor(r1, g1, b1)
-	end
-
-	local segment, relperc = math.modf(perc * 2)
-	local rr1, rg1, rb1, rr2, rg2, rb2 = select((segment * 3) + 1, r1, g1, b1, r2, g2, b2, r3, g3, b3)
-
-	local r = rr1 + (rr2 - rr1) * relperc
-	local g = rg1 + (rg2 - rg1) * relperc
-	local b = rb1 + (rb2 - rb1) * relperc
-	return E:CreateColor(r, g, b)
+	gradient:SetRGB(r, g, b)
+	return gradient
 end
 
 local function ColorGradient_3(perc, c1, c2, c3)
@@ -291,37 +284,15 @@ local function ColorGradient_3(perc, c1, c2, c3)
 	local r = r1 + (r2 - r1) * relperc
 	local g = g1 + (g2 - g1) * relperc
 	local b = b1 + (b2 - b1) * relperc
-	return E:CreateColor(r, g, b)
+	gradient:SetRGB(r, g, b)
+	return gradient
 end
 
 function E.ColorGradient(perc, ...)
-	local args = select("#", ...)
-	if (args == 3) then
+	if (select("#", ...) == 3) then
 		return ColorGradient_3(perc, ...)
-	elseif (args == 9) then
-		return ColorGradient_9(perc, ...)
 	end
 	return ColorGradient(perc, ...)
-end
-
--- https://wowpedia.fandom.com/wiki/RGBToHex
-function E.RGBToHex(r, g, b)
-	r = (r <= 255 and r >= 0) and r or 0
-	g = (g <= 255 and g >= 0) and g or 0
-	b = (b <= 255 and b >= 0) and b or 0
-	return string.format("%02x%02x%02x", r, g, b)
-end
-
--- https://wowpedia.fandom.com/wiki/HexToRGB
-function E.HexToRGB(hex)
-    if type(hex) == "string" then
-         local m = #hex == 3 and 17 or (#hex == 6 and 1 or 0)
-         local rhex, ghex, bhex = hex:match('^(%x%x?)(%x%x?)(%x%x?)$')
-         if rhex and m > 0 then
-              return tonumber(rhex, 16) * m, tonumber(ghex, 16) * m, tonumber(bhex, 16) * m
-         end
-    end
-    return 0, 0, 0
 end
 
 local UnitPlayerControlled = _G.UnitPlayerControlled
@@ -338,6 +309,8 @@ function E.GetUnitColor(unit)
 			-- hostile players are red
 			if UnitCanAttack("player", unit) then
 				return E.colors.reaction[2]
+			else
+				return E.colors.white
 			end
 		elseif UnitCanAttack("player", unit) then
 			-- players we can attack but which are not hostile are yellow
@@ -347,7 +320,7 @@ function E.GetUnitColor(unit)
 			return E.colors.reaction[6]
 		else
 			local class = select(2, UnitClass(unit))
-			return E.colors.class[class]
+			return E.colors.class[class] or E.colors.white
 		end
 	else
 		local reaction = UnitReaction(unit, "player");

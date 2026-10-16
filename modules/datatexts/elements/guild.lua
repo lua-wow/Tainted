@@ -6,6 +6,8 @@ local MODULE = E:GetModule("DataTexts")
 local IsInGuild = _G.IsInGuild
 local GetGuildInfo = _G.GetGuildInfo
 local GetNumGuildMembers = _G.GetNumGuildMembers
+local GetGuildRosterInfo = _G.GetGuildRosterInfo
+local Ambiguate = _G.Ambiguate
 local InCombatLockdown = _G.InCombatLockdown
 
 -- Mine
@@ -37,13 +39,14 @@ function guild_proto:CreateTooltip(tooltip)
         tooltip:AddDoubleLine(MEMBERS, ("%d / %d"):format(numOnlineGuildMembers, numTotalGuildMembers), 1.0, 1.0, 1.0, 1.0, 1.0, 1.0)
 	    tooltip:AddLine(" ")
 
-        for index = 1, numOnlineGuildMembers do
+        -- online members are not guaranteed to come first in the roster
+        for index = 1, numTotalGuildMembers do
             local name, rankName, rankIndex, level, classDisplayName, zone, publicNote, officerNote, isOnline,
             status, class, achievementPoints, achievementRank, isMobile, canSoR, repStanding, guid = GetGuildRosterInfo(index)
-            if guid ~= self.guid then
+            if isOnline and guid ~= self.guid then
 				local classColor = E.colors.class[class]
 				local difficultyColor = E.GetRelativeDifficultyColor(UnitLevel(self.unit), level)
-				GameTooltip:AddDoubleLine(name, ("%s (%s)"):format(difficultyColor:WrapTextInColorCode(level), zone), classColor.r, classColor.g, classColor.b, 1.0, 1.0, 1.0)
+				tooltip:AddDoubleLine(Ambiguate(name, "guild"), ("%s (%s)"):format(difficultyColor:WrapTextInColorCode(level), zone), classColor.r, classColor.g, classColor.b, 1.0, 1.0, 1.0)
             end
         end
     end
@@ -71,7 +74,7 @@ function guild_proto:Enable()
 	self:SetScript("OnLeave", self.OnLeave)
 	self:SetScript("OnMouseDown", self.OnMouseDown)
     self:Update()
-    self:Show()
+    return true
 end
 
 function guild_proto:Disable()

@@ -6,6 +6,9 @@ local E, C = ns.E, ns.C
 --------------------------------------------------
 if not C.chat.history.enabled then return end
 
+-- Blizzard
+local hasanysecretvalues = _G.hasanysecretvalues
+
 local database = TaintedChatHistory
 
 local frame_proto = {
@@ -38,13 +41,17 @@ function frame_proto:Print()
 
     for index = #TaintedChatHistory, 1, -1 do
         local tmp = TaintedChatHistory[index]
-        local result = pcall(_G.ChatFrame_MessageEventHandler, _G["ChatFrame1"], tmp.event, unpack(tmp.args))
+        local chatFrame = _G["ChatFrame1"]
+        pcall(chatFrame.MessageEventHandler, chatFrame, tmp.event, unpack(tmp.args))
     end
 
     self.isPrinting = false
 end
 
 function frame_proto:Save(event, ...)
+    -- secret payloads (chat lockdown) can't be stored or replayed
+    if hasanysecretvalues(...) then return end
+
     local text = select(1, ...)
     if not text then return end
 
@@ -58,8 +65,8 @@ function frame_proto:Save(event, ...)
     table.insert(database, 1, tmp)
 
     -- remove old entries, keeping only a limited number of entries
-    for index = self.threshold, #database do
-        table.remove(database, self.threshold)
+    while #database > self.threshold do
+        table.remove(database)
     end
 end
 
@@ -89,6 +96,6 @@ function frame_proto:OnEvent(event, ...)
     end
 end
 
-local history = Mixin(CreateFrame("Frame", "TaintedChatHistory"), frame_proto)
+local history = Mixin(CreateFrame("Frame", "TaintedChatHistoryFrame"), frame_proto)
 history:RegisterEvent("PLAYER_LOGIN")
 history:SetScript("OnEvent", history.OnEvent)

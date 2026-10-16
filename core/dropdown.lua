@@ -2,8 +2,7 @@ local _, ns = ...
 local E = ns.E
 local MODULE = E:CreateModule("DropDown")
 
--- Blizzard
-local UIDROPDOWNMENU_MAXLEVELS = _G.UIDROPDOWNMENU_MAXLEVELS or 3
+local defaultMenuFrame
 
 -- Initialize the dropdown menu items
 local function Initialize(frame, level, menuList)
@@ -20,8 +19,13 @@ end
 -- Create a dropdown menu
 function E:CreateDropDown(menuList, menuFrame, anchor, x, y, displayMode, autoHideDelay)
 	-- Set default values for optional parameters
-	displayMode = displayMode or "MENU"
-	menuFrame = menuFrame or CreateFrame("Frame")
+	-- Blizzard only matches "MENU" (uppercase)
+	displayMode = (displayMode or "MENU"):upper()
+	if not menuFrame then
+		-- "MENU" mode hides the template's Left/Middle/Right/Button children, so the frame needs the template
+		defaultMenuFrame = defaultMenuFrame or CreateFrame("Frame", "TaintedDropDownMenu", UIParent, "UIDropDownMenuTemplate")
+		menuFrame = defaultMenuFrame
+	end
 
 	-- Set the display mode of the menu frame
 	menuFrame.displayMode = displayMode
@@ -33,14 +37,26 @@ function E:CreateDropDown(menuList, menuFrame, anchor, x, y, displayMode, autoHi
 	ToggleDropDownMenu(1, nil, menuFrame, anchor, x, y, menuList, nil, autoHideDelay)
 end
 
+-- the menu compositor discards keys set on the frame when it closes,
+-- so track the backdrop outside of it
+local backdrops = {}
+
 function MODULE:Skin(...)
-    local manager = self
     local dropdown = self:GetOpenMenu()
-    if dropdown and not dropdown.__skinned then
-        dropdown:StripTextures()
+    if not dropdown then return end
+
+    -- the menu style re-attaches its background texture on every open
+    dropdown:StripTextures()
+
+    local backdrop = backdrops[dropdown]
+    if not backdrop then
         dropdown:CreateBackdrop(0.90)
-        dropdown.__skinned = true
+        backdrop = dropdown.Backdrop
+        backdrops[dropdown] = backdrop
     end
+
+    -- menu frames are pooled and Blizzard re-levels them on every open
+    backdrop:SetFrameLevel(math.max(0, dropdown:GetFrameLevel() - 1))
 end
 
 function MODULE:SkinBackdrop(backdrop)
@@ -54,8 +70,9 @@ function MODULE:SkinBackdrop(backdrop)
     end
 end
 
-local UIDropDownMenu_CreateFrames = function(level, index)
-    for index = 1, UIDROPDOWNMENU_MAXLEVELS do
+local UIDropDownMenu_CreateFrames = function(level)
+    -- read the global each time: UIDropDownMenu_CreateFrames increments it when adding levels
+    for index = 1, (_G.UIDROPDOWNMENU_MAXLEVELS or 3) do
         MODULE:SkinBackdrop(_G["DropDownList" .. index .. "Backdrop"])
         MODULE:SkinBackdrop(_G["DropDownList" .. index .. "MenuBackdrop"])
     end

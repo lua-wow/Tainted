@@ -1,5 +1,3 @@
-local _, ns = ...
-
 --[[ DO NOT LOAD, IT DRASTICALLY INCREASES MEMORY USAGE ]]--
 
 -- Allow event COMBAT_LOG_EVENT_UNFILTERED to be logged in the blizzard EventTrace tool.

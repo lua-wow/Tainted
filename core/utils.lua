@@ -3,27 +3,29 @@ local E, C, A = ns.E, ns.C, ns.A
 
 -- Lua
 local floor = math.floor
-local modf = math.modf
 local infinity = math.huge
 
--- constants
-local CLASSIFICATION = "|c%s%s |r"
-local MILLION = 1E6
-local THOUSAND = 1E3
+-- Blizzard
+local issecretvalue = _G.issecretvalue
+local AbbreviateNumbers = _G.AbbreviateNumbers
+local CreateAbbreviateConfig = _G.CreateAbbreviateConfig
 
 local round = function(value)
 	return floor(value + 0.5)
 end
 
--- return short value of a number!
+-- b/m/k with one decimal (significandDivisor * fractionDivisor = breakpoint), built once
+local SHORT = {
+	config = CreateAbbreviateConfig({
+		{ breakpoint = 1E9, abbreviation = "b", significandDivisor = 1E8, fractionDivisor = 10, abbreviationIsGlobal = false },
+		{ breakpoint = 1E6, abbreviation = "m", significandDivisor = 1E5, fractionDivisor = 10, abbreviationIsGlobal = false },
+		{ breakpoint = 1E3, abbreviation = "k", significandDivisor = 1E2, fractionDivisor = 10, abbreviationIsGlobal = false },
+	})
+}
+
+-- return short value of a number; a secret value (Midnight) returns a secret string, same format
 E.ShortValue = function(value)
-	local v = math.abs(value)
-	if (v >= 1E6) then
-		return ("%.1fm"):format(value / 1E6):gsub("%.?0+([km])$", "%1")
-	elseif (v >= 1E3) then
-		return ("%.1fk"):format(value / 1E3):gsub("%.?0+([km])$", "%1")
-	end
-	return value
+	return AbbreviateNumbers(value, SHORT)
 end
 
 -- format seconds to minutes, hours or days
@@ -48,6 +50,11 @@ end
 E.UTF8Sub = function(value, i, dots)
 	if not value then return end
 
+	-- secret strings (Midnight) can't be measured or sliced; return them untruncated
+	if (issecretvalue and issecretvalue(value)) then
+		return value
+	end
+
 	local bytes = value:len()
 	if (bytes <= i) then
 		return value
@@ -64,6 +71,9 @@ E.UTF8Sub = function(value, i, dots)
 				position = position + 3
 			elseif (c >= 240 and c <= 247) then
 				position = position + 4
+			else
+				-- malformed byte: skip it so the scan keeps advancing
+				position = position + 1
 			end
 			if (length == i) then break end
 		end
@@ -122,6 +132,14 @@ E.CalcSegmentsNumber = function(width, size, spacing)
 	return floor((width + spacing) / (size + spacing))
 end
 
+local CLASSIFICATION_SYMBOLS = {
+	worldboss = "B",
+	rareelite = "R+",
+	elite = "+",
+	rare = "R",
+	minus = "-",
+}
+
 --[[ Function: E.GetClassification(value)
     Returns a classification symbol based on unit classification.
 
@@ -131,18 +149,11 @@ end
 --]]
 E.GetClassification = function(value)
 	local color = E.colors.classification[value]
-	if (value == "worldboss") then
-		return CLASSIFICATION:format(color.hex, "B") -- "|cffff0000B |r"
-	elseif (value == "rareelite") then
-		return CLASSIFICATION:format(color.hex, "R+") -- "|cffff4500R+ |r"
-	elseif (value == "elite") then
-		return CLASSIFICATION:format(color.hex, "+") -- "|cffffa500+ |r"
-	elseif (value == "rare") then
-		return CLASSIFICATION:format(color.hex, "R") -- "|cffffff00R |r"
-	elseif (value == "minus") then
-		return CLASSIFICATION:format(color.hex, "-") -- "|cff888888- |r"
+	local symbol = CLASSIFICATION_SYMBOLS[value] or ""
+	if (color) then
+		return color:WrapTextInColorCode(symbol) .. " "
 	end
-	return ""
+	return symbol ~= "" and symbol .. " " or ""
 end
 
 E.Round = round

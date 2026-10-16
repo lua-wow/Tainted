@@ -8,7 +8,7 @@ local UnitFrames = E:GetModule("UnitFrames")
 function UnitFrames:CreateRange(frame)
     return {
         insideAlpha = 1,
-        outsideAlpha = C.unitframes.raid.rangeAlpha or 0.50,
+        outsideAlpha = C.unitframes.rangeAlpha,
     }
 end
 

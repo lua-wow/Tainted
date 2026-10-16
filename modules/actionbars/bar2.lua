@@ -23,13 +23,8 @@ do
 
         local frame = _G.MultiBarBottomLeft
         if frame then
-            if not E.isRetail then
-                frame:SetShown(true)
-                frame:EnableMouse(false)
-            end
             frame:SetParent(element)
-            frame.ignoreFramePositionManager = true
-            frame.ignoreInLayout = true
+            element:FollowBar(frame)
         end
     end
 
@@ -39,7 +34,6 @@ do
 		local num = element.num
 		local size = element.size
 		local spacing = element.spacing
-		local horizontal = element.horizontal
 
 		local rows = 1
 		local cols = (num / 2)
@@ -63,13 +57,16 @@ do
         self.Right = right
     end
 
+    function element_proto:SetBackgroundShown(shown)
+        self.Left:SetShown(shown)
+        self.Right:SetShown(shown)
+    end
+
     function element_proto:UpdateButtonPosition(button, index)
         local element = self
 
 		local spacing = element.spacing or 5
-		local horizontal = element.horizontal or false
 
-        element:ClearAllPoints()
 		if index == 1 then
 			button:SetPoint("TOPLEFT", element.Left, "TOPLEFT", spacing, -spacing)
         elseif index == 7 then

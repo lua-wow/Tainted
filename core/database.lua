@@ -26,68 +26,43 @@ function E:InitDatabase()
     self.db = TaintedDatabase[realm][name]
 end
 
-function E:GetDatabase()
-    return TaintedDatabase
-end
-
 function E:ResetDatabase()
     TaintedDatabase[realm][name] = {}
     TaintedChatHistory = {}
-end
-
-function E:IsInstalled()
-	return TaintedDatabase[realm][name].installed
-end
-
-function E:MarkAsInstalled()
-    TaintedDatabase[realm][name].installed = true
-end
-
--- chat
-function E:MarkAsChatInstalled()
-    TaintedDatabase[realm][name].chat = true
-end
-
-function E:MarkAsNotInstalled()
-    TaintedDatabase[realm][name].installed = false
-    TaintedDatabase[realm][name].chat = false
-end
-
-function E:IsChatInstalled()
-	return TaintedDatabase[realm][name].chat
+    self.db = TaintedDatabase[realm][name]
 end
 
 -- experience bar
 function E:GetExperienceBarIndex()
-	return TaintedDatabase[realm][name].experience
+	return self.db.experience
 end
 
 function E:SetExperienceBarIndex(index)
-	TaintedDatabase[realm][name].experience = index
+	self.db.experience = index
 end
 
 -- Gold
 function E:GetMoney()
-    return TaintedDatabase[realm][name].money
+    return self.db.money
 end
 
 function E:SetMoney(value)
-    TaintedDatabase[realm][name].money = value
+    self.db.money = value
 end
 
 -- KeyStone
 function E:GetKeyStone()
-    return TaintedDatabase[realm][name].keystone
+    return self.db.keystone
 end
 
 function E:SetKeyStone(value)
-    TaintedDatabase[realm][name].keystone = value
+    self.db.keystone = value
 end
 
 function E:GetVault()
-    return TaintedDatabase[realm][name].vault
+    return self.db.vault
 end
 
 function E:SetVault(value)
-    TaintedDatabase[realm][name].vault = value
+    self.db.vault = value
 end

@@ -14,7 +14,7 @@ local UpdateDisplayedZoneAbilities = function(self)
         button:ClearAllPoints()
         button:SetPoint("TOPLEFT", container, "TOPLEFT", xOffset, 0)
         button:SetSize(size, size)
-        MODULE:StyleActionButton(button)
+        MODULE.StyleActionButton(button)
 
         index = index + 1
     end
@@ -37,8 +37,6 @@ function MODULE:CreateZoneAbilityButton(holder)
     frame:ClearAllPoints()
     frame:SetAllPoints()
     frame:EnableMouse(false)
-    frame.ignoreFramePositionManager = true
-    frame.ignoreInLayout = true
 
     -- remove artwork
     local style = frame.Style
@@ -51,8 +49,18 @@ function MODULE:CreateZoneAbilityButton(holder)
     container:SetFixedSize(size, size)
     container.spacing = spacing
     
+    -- ExtraAbilityContainer:AddFrame parents the frame back to the container;
+    -- SetParent is blocked in combat, so that one waits for combat to end
+    holder:SetScript("OnEvent", function(self, event)
+        self:UnregisterEvent(event)
+        frame:SetParent(self)
+    end)
+
     hooksecurefunc(frame, "SetParent", function(self, parent)
-        if parent ~= holder then
+        if parent == holder then return end
+        if InCombatLockdown() then
+            holder:RegisterEvent("PLAYER_REGEN_ENABLED")
+        else
             self:SetParent(holder)
         end
     end)

@@ -2,8 +2,9 @@ local addon, ns = ...
 local E, C = ns.E, ns.C
 
 -- Blizzard
-local BUFF_MAX_DISPLAY = _G.BUFF_MAX_DISPLAY or 32;
-local DEBUFF_MAX_DISPLAY = _G.DEBUFF_MAX_DISPLAY or 16;
+local GetTemporaryEnchantmentInfo = C_PaperDollInfo and C_PaperDollInfo.GetTemporaryEnchantmentInfo
+
+local debuffColors = E.colors.dispel
 
 --------------------------------------------------
 -- Auras
@@ -14,66 +15,73 @@ local isInit = false
 local auras = {}
 
 local function UpdateAura(button, index)
-    local filter = button:GetParent():GetAttribute("filter")
+    local header = button:GetParent()
+    local filter = header:GetAttribute("filter")
     if not auras[filter][button] then return end
 
-    local aura = C_UnitAuras.GetAuraDataByIndex("player", index, filter)
+    -- mainline: aura data is secret while auras are restricted (combat, encounter, M+, PvP)
+    local unit = header:GetAttribute("unit")
+    local aura = C_UnitAuras.GetAuraDataByIndex(unit, index, filter)
 
     if aura then
-        local count = aura.applications or 0
-        local duration = aura.duration or 0
-        local dispelName = aura.dispelName or "none"
-        
-        button.duration = aura.duration
-        button.expirationTime = aura.expirationTime or (GetTime() + duration)
+        local id = aura.auraInstanceID
+
+        button.duration = C_UnitAuras.GetAuraDuration(unit, id)
+        button.expirationTime = nil
 
         if button.Icon then
-            if aura.icon then
-                button.Icon:SetTexture(aura.icon)
-            end
+            button.Icon:SetTexture(aura.icon)
         end
 
         if button.Count then
-            button.Count:SetText((count > 1) and count or "")
+            button.Count:SetText(C_UnitAuras.GetAuraApplicationDisplayCount(unit, id, 2))
         end
 
         if button.Duration then
-            if (duration and duration > 0) then
-                button.elapsed = 0
-                button:SetScript("OnUpdate", button.OnUpdate)
-                button.Duration:Show()
-            else
-                button:SetScript("OnUpdate", nil)
-                button.Duration:SetText("")
-            end
+            -- refresh on the next frame; it also clears the text of auras without a duration
+            button.elapsed = 0.1
+            button:SetScript("OnUpdate", button.OnUpdate)
+            button.Duration:Show()
         end
 
         if button.Backdrop then
+            local color = C.general.backdrop.color
             if (filter == "HARMFUL") then
-                local color = E.colors.debuff[dispelName]
-                button.Backdrop:SetBackdropBorderColor(color.r, color.g, color.b)
-            else
-                local color = C.general.backdrop.color
-                button.Backdrop:SetBackdropBorderColor(color.r, color.g, color.b)
+                local dispelName = aura.dispelName
+                if issecretvalue(dispelName) then
+                    color = C_UnitAuras.GetAuraDispelTypeColor(unit, id, E.curves.auras.dispel)
+                else
+                    color = debuffColors[dispelName or "None"] or debuffColors.None
+                end
             end
+            button.Backdrop:SetBackdropBorderColor(color.r, color.g, color.b)
         end
     end
+end
+
+-- slot = 16 (main-hand), 17 (off-hand), 18 (ranged)
+local function GetTempEnchant(slot)
+    if GetTemporaryEnchantmentInfo then
+        local info = GetTemporaryEnchantmentInfo(slot)
+        if info then
+            return true, info.remainingTimeMs, info.chargesRemaining
+        end
+        return
+    end
+    return select((slot - 16) * 4 + 1, GetWeaponEnchantInfo())
 end
 
 local function UpdateTempEnchant(button, slot)
     local filter = button:GetParent():GetAttribute("filter")
     if not auras[filter][button] then return end
 
-    -- slot = 16 (main-hand)
-    -- slot = 17 (off-hand)
-    local offset = (slot == 16) and 1 or 5
-    local enchant, expiration, charges = select(offset, GetWeaponEnchantInfo())
+    local enchant, expiration, charges = GetTempEnchant(slot)
 
     local count = charges or 0
     local duration = (expiration or 0) / 1000
 
     if enchant then
-        button.duration = duration
+        button.duration = nil
         button.expirationTime = GetTime() + duration
 
         if button.Icon then
@@ -100,7 +108,7 @@ local function UpdateTempEnchant(button, slot)
         end
 
         if button.Backdrop then
-            local color = E.colors.debuff["Curse"]
+            local color = debuffColors.Curse
             button.Backdrop:SetBackdropBorderColor(color.r, color.g, color.b)	
         end
     end
@@ -113,7 +121,12 @@ do
         if GameTooltip:IsForbidden() then return end
 
 		GameTooltip:SetOwner(self, "ANCHOR_BOTTOMLEFT", -5, -5)
+        self:UpdateTooltip()
+    end
 
+    -- GameTooltip_OnUpdate calls this every TOOLTIP_UPDATE_TIME while the button owns the tooltip,
+    -- so content rebuilt after the first set (e.g. uncached spell data) gets the SpellID line again
+    function button_proto:UpdateTooltip()
         if self:GetAttribute("index") then
             GameTooltip:SetUnitAura(self:GetParent():GetAttribute("unit"), self:GetID(), self:GetAttribute("filter"))
         else
@@ -129,8 +142,19 @@ do
     function button_proto:OnUpdate(elapsed)
         self.elapsed = (self.elapsed or 0) + elapsed
         if (self.elapsed >= 0.1) then
-            local remaining = (self.expirationTime or 0) - GetTime()
-            if (remaining > 0) then
+            local remaining
+            if self.duration then
+                remaining = self.duration:GetRemainingDuration()
+            else
+                remaining = (self.expirationTime or 0) - GetTime()
+            end
+
+            if issecretvalue(remaining) then
+                -- can't compare or format a secret: raw seconds, empty for permanent auras
+                local color = self.duration:EvaluateRemainingDuration(E.curves.auras.timer)
+                self.Duration:SetText(C_StringUtil.TruncateWhenZero(remaining))
+                self.Duration:SetTextColor(color.r, color.g, color.b)
+            elseif (remaining > 0) then
                 self.Duration:SetText(E.FormatTime(remaining))
 
                 if (remaining < 60) then
@@ -162,14 +186,13 @@ end
 local header_proto = {}
 
 do
-    function UpdateButton(button, header)
+    local function UpdateButton(button, header)
         local fontObject = E.GetFont(C.auras.font)
 
         Mixin(button, button_proto)
         button:HookScript("OnAttributeChanged", button.OnAttributeChanged)
         button:SetScript("OnEnter", button.OnEnter)
         button:SetScript("OnLeave", button.OnLeave)
-        button:RegisterForClicks("RightButtonDown", "RightButtonUp")
         button:CreateBackdrop()
 
         local icon = button:CreateTexture(nil, "BORDER")
@@ -231,7 +254,7 @@ local function CreateHeader(filter)
     header:HookScript("OnAttributeChanged", header.OnAttributeChanged)
     header:SetAttribute("unit", "player")
     header:SetAttribute("filter", filter)
-    header:SetAttribute("template", "SecureActionButtonTemplate")
+    header:SetAttribute("template", "TaintedAuraTemplate")
     header:SetAttribute("maxWraps", rows)
     header:SetAttribute("minHeight", rows * size + (rows - 1) * spacing)
     header:SetAttribute("minWidth", cols * size + (cols - 1) * spacing)
@@ -252,7 +275,7 @@ local function CreateHeader(filter)
     
     if (filter == "HELPFUL") then
         header:SetAttribute("includeWeapons", 1)
-        header:SetAttribute("weaponTemplate", "SecureActionButtonTemplate")
+        header:SetAttribute("weaponTemplate", "TaintedAuraTemplate")
     end
     
     -- register the header with the attribute driver

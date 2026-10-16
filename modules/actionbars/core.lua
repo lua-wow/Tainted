@@ -217,8 +217,12 @@ function MODULE:Hide(obj, events)
     -- some frame dependency issues
     -- we then follow it up with a SetPoint to handle the cases of bits of the
     -- UI code assuming that this element has a position
+    local width, height = obj:GetSize()
     obj:ClearAllPoints()
     obj:SetPoint("CENTER")
+    -- frames sized only by anchors (Classic Era MainMenuBarArtFrame, which Edit Mode anchors
+    -- MicroMenuContainer to) would otherwise lose their rect
+    obj:SetSize(width, height)
 
     if obj.EnableMouse then
 		obj:EnableMouse(false)
@@ -260,19 +264,15 @@ function MODULE:DisableBlizzard()
     self:Hide(_G.MainMenuBar, true)
     self:Hide(_G.MainMenuBarArtFrame, true)
     self:Hide(_G.OverrideActionBar, true)
-    self:Hide(_G.PossessBarFrame, true)
-    self:Hide(_G.ShapeshiftBarLeft, true)
-    self:Hide(_G.ShapeshiftBarMiddle, true)
-    self:Hide(_G.ShapeshiftBarRight, true)
 
     -- Retail
     self:Hide(_G.StatusTrackingBarManager, true)
     self:Hide(_G.MainStatusTrackingBarContainer, true)
     self:Hide(_G.SecondaryStatusTrackingBarContainer, true)
 
-    if not E.isRetail then
-        MultiActionBar_Update = function() end
-        BeginActionBarTransition = function() end
+    -- reparent only: MultiActionBar_Update hides every multi-bar while MainActionBar:IsShown() is false
+    if _G.MainActionBar then
+        _G.MainActionBar:SetParent(E.Hider)
     end
 
     local MicroMenu = _G.MicroMenu
@@ -293,32 +293,19 @@ end
 function MODULE:Init()
     if not C.actionbars.enabled then return end
 
-    -- diplay action bar grid
-    local actionbars = nil
-    if E.isRetail then
-        actionbars = {
-            true, -- bar 2
-            true, -- bar 3
-            true, -- bar 4
-            true, -- bar 5
-            C.actionbars.bar6 and true or false, -- bar 6
-            C.actionbars.bar7 and true or false, -- bar 7
-            C.actionbars.bar8 and true or false, -- bar 8
-            true -- always show action bars
-        }
-    else
-        SetCVar("alwaysShowActionBars", 1)
-        actionbars = {
-            true, -- bar 2
-            true, -- bar 3
-            true, -- bar 4
-            true, -- bar 5
-            true -- always show action bars
-        }
-    end
-
-    -- sets the visible state for each action bar
-    SetActionBarToggles(unpack(actionbars))
+    -- sets the visible state of bars 2-8, written every login: GetActionBarToggles can be stale before
+    -- the server mirrors it, so it can't detect a change. Starting from its values (as Blizzard's settings
+    -- panel does) keeps any value past bar 8 untouched. Settings.SetValue is not used: it runs Blizzard's
+    -- proxy and callbacks from addon code.
+    local toggles = { GetActionBarToggles() }
+    toggles[1] = true -- bar 2
+    toggles[2] = true -- bar 3
+    toggles[3] = true -- bar 4
+    toggles[4] = true -- bar 5
+    toggles[5] = C.actionbars.bar6 and true or false -- bar 6
+    toggles[6] = C.actionbars.bar7 and true or false -- bar 7
+    toggles[7] = C.actionbars.bar8 and true or false -- bar 8
+    SetActionBarToggles(unpack(toggles))
 
     -- hide blizzard frames
     self:DisableBlizzard()
@@ -330,13 +317,11 @@ function MODULE:Init()
     self:CreateActionBar4()
     self:CreateActionBar5()
 
-    if E.isRetail then
-        self:CreateActionBar6()
-        self:CreateActionBar7()
-        self:CreateActionBar8()
-    end
+    self:CreateActionBar6()
+    self:CreateActionBar7()
+    self:CreateActionBar8()
 
-    if not E.isClassic then
+    if not E.isVanilla then
         do
             local holder = CreateFrame("Frame", "TaintedExtraAbilityHolder", UIParent)
             holder:SetPoint("BOTTOM", UIParent, "BOTTOM", 0, 80)

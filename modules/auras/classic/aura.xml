@@ -1,0 +1,4 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/">
+	<!-- RegisterForClicks is blocked in combat, when the aura header creates new buttons -->
+	<Button name="TaintedAuraTemplate" inherits="SecureActionButtonTemplate" registerForClicks="RightButtonDown, RightButtonUp" virtual="true"/>
+</Ui>

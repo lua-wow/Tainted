@@ -1,12 +1,10 @@
 local _, ns = ...
-local E, C, L = ns.E, ns.C, ns.L
+local E, C, L, A = ns.E, ns.C, ns.L, ns.A
 
 -- Blizzard
-local GetDifficultyColor = _G.GetDifficultyColor
 local GetGuildInfo = _G.GetGuildInfo
-local GetItemQualityColor = _G.GetItemQualityColor
+local GetItemQualityColor = _G.C_Item.GetItemQualityColor
 local GetPetHappiness = _G.GetPetHappiness  -- only classic
--- local GetSpecialization = _G.GetSpecialization
 local UnitCanAttack = _G.UnitCanAttack
 local UnitClass = _G.UnitClass
 local UnitEffectiveLevel = _G.UnitEffectiveLevel
@@ -15,28 +13,23 @@ local UnitHealth = _G.UnitHealth
 local UnitHealthMax = _G.UnitHealthMax
 local UnitIsAFK = _G.UnitIsAFK
 local UnitIsBattlePet = _G.UnitIsBattlePet
-local UnitIsBattlePetCompanion = _G.UnitIsBattlePetCompanion
 local UnitIsConnected = _G.UnitIsConnected
 local UnitIsDead = _G.UnitIsDead
 local UnitIsDeadOrGhost = _G.UnitIsDeadOrGhost
 local UnitIsDND = _G.UnitIsDND
--- local UnitIsEnemy = _G.UnitIsEnemy
--- local UnitIsFriend = _G.UnitIsFriend
 local UnitIsGhost = _G.UnitIsGhost
-local UnitIsOtherPlayersBattlePet = _G.UnitIsOtherPlayersBattlePet
 local UnitIsPlayer = _G.UnitIsPlayer
-local UnitIsPVP = _G.UnitIsPVP
-local UnitIsWildBattlePet = _G.UnitIsWildBattlePet
 local UnitLevel = _G.UnitLevel
 local UnitName = _G.UnitName
 local UnitPlayerControlled = _G.UnitPlayerControlled
 local UnitPVPName = _G.UnitPVPName
-local UnitQuestTrivialLevelRange = _G.UnitQuestTrivialLevelRange
 local UnitRace = _G.UnitRace
 local UnitReaction = _G.UnitReaction
-local UnitRealmRelationship = _G.UnitRealmRelationship
 local TooltipDataProcessor = _G.TooltipDataProcessor
 local GetQuestDifficultyColor = _G.GetQuestDifficultyColor
+local FACTION_BAR_COLORS = _G.FACTION_BAR_COLORS
+local issecretvalue = _G.issecretvalue
+local ShouldUnitIdentityBeSecret = C_Secrets and C_Secrets.ShouldUnitIdentityBeSecret
 
 --------------------------------------------------
 -- Tooltips
@@ -45,11 +38,7 @@ if not C.tooltips.enabled then return end
 
 
 
-local isInit = false
-
-local IN_BAG = E.colors.yellow:WrapTextInColorCode("In Bag") .. " %d"
-local SPELL_ID = E.colors.yellow:WrapTextInColorCode("SpellID") .. " %d"
-local SOURCE = E.colors.yellow:WrapTextInColorCode(_G.SOURCE) .. " %s"
+local IN_BAG = E.colors.yellow:WrapTextInColorCode(L.IN_BAG) .. " %d"
 local TARGET = E.colors.yellow:WrapTextInColorCode(_G.TARGET .. ":") .. " %s"
 local STATUS = E.colors.gray:WrapTextInColorCode("<%s> ")
 local AFK = STATUS:format(_G.AFK or "AFK")
@@ -62,26 +51,29 @@ local PLAYER_LEVEL = "%s %s (" .. _G.PLAYER .. ")"
 local BATTLE_PET_LEVEL = "%s %s%s"
 local CREATURE_LEVEL = "%s %s"
 
-local function GetRelativeDifficultyColor(unitLevel, challengeLevel)
-    local diff = challengeLevel - unitLevel
-    if diff >= 5 then
-        return E.colors.difficulty["impossible"]
-    elseif diff >= 3 then
-        return E.colors.difficulty["very_difficult"]
-    elseif diff >= -4 then
-        return E.colors.difficulty["difficult"]
-    elseif -diff <= UnitQuestTrivialLevelRange("player") then
-        return E.colors.difficulty["standard"]
-    else
-        return E.colors.difficulty["trivial"]
-    end
+local function IsSecret(value)
+    return issecretvalue and issecretvalue(value)
+end
+
+-- name, class, race and GUID are secret together; the token itself can be secret on mainline
+local function IsSecretUnit(unit)
+    return IsSecret(unit) or (ShouldUnitIdentityBeSecret and ShouldUnitIdentityBeSecret(unit))
 end
 
 local function GetTooltipLine(tooltip, offset, pattern)
     for i = offset, tooltip:NumLines() do
         local text = _G["GameTooltipTextLeft" .. i]:GetText()
-        if text and text:match(pattern) then
+        if text and not IsSecret(text) and text:match(pattern) then
             return _G["GameTooltipTextLeft" .. i], i + 1
+        end
+    end
+end
+
+-- mainline: tooltip data lines carry their type and the index they were added at
+local function GetDataLine(data, lineType)
+    for _, line in ipairs(data.lines) do
+        if line.type == lineType and line.lineIndex then
+            return _G["GameTooltipTextLeft" .. line.lineIndex], line.lineIndex + 1
         end
     end
 end
@@ -101,25 +93,18 @@ local tooltip_proto = {}
 do
     local statusbar_proto = {}
 
-    function statusbar_proto:OnValueChanged(value, smooth)
+    function statusbar_proto:OnValueChanged()
         local _, unit = self:GetParent():GetUnit()
-        if unit then
-            if UnitIsDeadOrGhost(unit) then
-                if self.Text then
-                    self.Text:SetText(DEAD)
-                end
-            else
-                local cur, max = UnitHealth(unit), UnitHealthMax(unit)
-                local text = (cur and max and E.ShortValue(cur) .. " / " .. E.ShortValue(max)) or "???"
-                if self.Text then
-                    self.Text:SetText(text)
+        -- a secret token can't be passed to unit APIs by addon code; health is secret on mainline,
+        -- so it's only formatted, never tested or concatenated
+        if not unit or IsSecret(unit) or not self.Text then return end
 
-                    if not self.Text:IsShown() then
-                        self.Text:Show()
-                    end
-                end
-            end
+        if UnitIsDeadOrGhost(unit) then
+            self.Text:SetText(DEAD)
+        else
+            self.Text:SetFormattedText("%s / %s", E.ShortValue(UnitHealth(unit)), E.ShortValue(UnitHealthMax(unit)))
         end
+        self.Text:Show()
     end
 
     function tooltip_proto:UpdateStatusBar()
@@ -143,34 +128,33 @@ do
     end
 end
 
+local function SetUnitColor(color)
+    local GameTooltip = _G.GameTooltip
+    if GameTooltip.Backdrop then
+        GameTooltip.Backdrop:SetBackdropBorderColor(color.r, color.g, color.b)
+    end
+
+    local GameTooltipStatusBar = _G.GameTooltipStatusBar
+    GameTooltipStatusBar:SetStatusBarColor(color.r, color.g, color.b)
+    if GameTooltipStatusBar.Backdrop then
+        GameTooltipStatusBar.Backdrop:SetBackdropBorderColor(color.r, color.g, color.b)
+    end
+end
+
 local GameTooltip_UnitColor = function(unit)
+    -- a secret token can only be passed to unit APIs by untainted code: keep the default border
+    if IsSecret(unit) then return end
+
     local color = E.colors.white
 
-    local isPlayer = UnitIsPlayer(unit)
-    local isFriend = UnitIsFriend("player", unit)
-
     if UnitPlayerControlled(unit) then
-        if UnitCanAttack(unit, "player") then
+        if UnitCanAttack(unit, "player") and UnitCanAttack("player", unit) then
             -- hostile players are red
-            if UnitCanAttack("player", unit) then
-                color = E.colors.reaction[2]
-            else
-                local _, class = UnitClass(unit)
-                if class then
-                    color = E.colors.class[class]
-                end
-            end
+            color = E.colors.reaction[2]
         elseif UnitCanAttack("player", unit) then
             -- players we can attack but which are not hostile are yellow
             color = E.colors.reaction[4]
-        elseif UnitIsPVP(unit) then
-            -- players we can assist but are PvP flagged are green
-            -- color = E.colors.reaction[6]
-            local _, class = UnitClass(unit)
-            if class then
-                color = E.colors.class[class]
-            end
-        else
+        elseif not IsSecretUnit(unit) then
             local _, class = UnitClass(unit)
             if class then
                 color = E.colors.class[class]
@@ -185,23 +169,34 @@ local GameTooltip_UnitColor = function(unit)
         end
     end
 
-    local GameTooltip = _G.GameTooltip
-    if GameTooltip.Backdrop then
-        GameTooltip.Backdrop:SetBackdropBorderColor(color.r, color.g, color.b)
-    end
-
-    local GameTooltipStatusBar = _G.GameTooltipStatusBar
-    GameTooltipStatusBar:SetStatusBarColor(color.r, color.g, color.b)
-    if GameTooltipStatusBar.Backdrop then
-        GameTooltipStatusBar.Backdrop:SetBackdropBorderColor(color.r, color.g, color.b)
-    end
+    SetUnitColor(color)
 
     return color.r, color.g, color.b;
 end
 
-local GameTooltip_ClearMoney = function(self)
-    local tooltip = self
+-- secret token: Blizzard's GameTooltip_UnitColor ran untainted and left a FACTION_BAR_COLORS
+-- entry (or white, no reaction) on the name line; map it back to our reaction colors
+local function GetSecretUnitColor(data)
+    for _, line in ipairs(data.lines) do
+        if line.type == Enum.TooltipDataLineType.UnitName then
+            local color = line.leftColor
+            if not color then return end
 
+            -- usually the color itself is secret: it can't be mapped, only passed to the color setters
+            if IsSecret(color.r) then return color end
+
+            for reaction, factionColor in ipairs(FACTION_BAR_COLORS) do
+                if color:IsRGBEqualTo(factionColor) then
+                    return E.colors.reaction[reaction]
+                end
+            end
+            -- white: no reaction, keep the cleared colors
+            return
+        end
+    end
+end
+
+local OnTooltipCleared = function(tooltip)
     local borderColor = C.general.border.color
     local statusbarColor = E:CreateColor(0, 1, 0)
 
@@ -209,8 +204,9 @@ local GameTooltip_ClearMoney = function(self)
         tooltip.Backdrop:SetBackdropBorderColor(borderColor.r, borderColor.g, borderColor.b)
     end
 
+    -- the health bar belongs to GameTooltip only
     local GameTooltipStatusBar = _G.GameTooltipStatusBar
-    if GameTooltipStatusBar then
+    if tooltip == _G.GameTooltip and GameTooltipStatusBar then
         GameTooltipStatusBar:SetStatusBarColor(statusbarColor.r, statusbarColor.g, statusbarColor.b)
         
         if GameTooltipStatusBar.Text then
@@ -267,53 +263,74 @@ local SetCraftingReagentsQuantityInBag = function(tooltip, id)
     end
 end
 
+-- mainline: the Item post-call fires for every tooltip, ShoppingTooltips included
 local UpdateItemTooltip = function(tooltip, data)
-    if tooltip == _G.GameTooltip or tooltip == _G.ItemRefTooltip then
-        -- on Retail, tooltip:GetItem() returns (name, link, id)
-        -- on Classic, tooltip:GetItem() returns (name, link)
-        local link, id, guid
+    local link
+    if data then
+        -- C_Item APIs reject secret arguments from tainted code
+        if IsSecret(data.hyperlink) or IsSecret(data.guid) then return end
+        link = data.hyperlink or (data.guid and C_Item.GetItemLinkByGUID(data.guid))
+    else
+        _, link = tooltip:GetItem()
+    end
+    if not link then return end
 
-        if data then
-            guid = data.guid
-            id = data.id
-            if data.hiperlink then
-                link = data.hyperlink
-            elseif guid then
-                link = C_Item.GetItemLinkByGUID(guid)
-            end
-        else
-            _, link, id = tooltip:GetItem()
-        end
-        
-        if link then
-            local _, _, quality, itemLevel, _, itemType, itemSubtype, _, _, _, _, _, _, _, _, _, isCraftingReagent = C_Item.GetItemInfo(link)
+    local _, _, quality, _, _, _, _, _, _, _, _, _, _, _, _, _, isCraftingReagent = C_Item.GetItemInfo(link)
 
-            SetItemBorderColor(tooltip, quality)
+    SetItemBorderColor(tooltip, quality)
 
-            if isCraftingReagent then
-                SetCraftingReagentsQuantityInBag(tooltip, link)
-            end
-        end
+    if isCraftingReagent and (tooltip == _G.GameTooltip or tooltip == _G.ItemRefTooltip) then
+        SetCraftingReagentsQuantityInBag(tooltip, link)
     end
 end
 
 local UpdateUnitTooltip = function(tooltip, data)
+    -- this writes GameTooltip's font strings; post-calls fire for every tooltip with unit data
+    if tooltip ~= _G.GameTooltip then return end
     if C_PetBattles.IsInBattle() then return end
     
     local name, unit, guid = tooltip:GetUnit()
     if not unit then return end
 
+    -- classic: Blizzard only colors the "mouseover" unit; unit frames set others (e.g. "target")
+    if not data and not tooltip:IsUnit("mouseover") then
+        GameTooltip_UnitColor(unit)
+    end
+
+    -- SetUnit cleared the tooltip (hiding the text); an unchanged health value won't fire OnValueChanged
+    _G.GameTooltipStatusBar:OnValueChanged()
+
+    if IsSecret(unit) and data then
+        -- the plain mouseover token stays readable while the tooltip's token is secret (checked in a
+        -- Retail dungeon), so world tooltips get our own colors; else fall back to Blizzard's
+        if UnitExists("mouseover") then
+            local r, g, b = GameTooltip_UnitColor("mouseover")
+            -- Blizzard colored the name from its own (sometimes white) result
+            local line = GetDataLine(data, Enum.TooltipDataLineType.UnitName)
+            if line then
+                line:SetTextColor(r, g, b)
+            end
+        else
+            local color = GetSecretUnitColor(data)
+            if color then
+                SetUnitColor(color)
+            end
+        end
+    end
+
+    -- restricted identity: keep Blizzard's text
+    if IsSecretUnit(unit) then return end
+
     guid = guid or UnitGUID(unit)
     local _, realm = UnitName(unit)
-    local _, class = UnitClass(unit)
+    local classText, class = UnitClass(unit)
     local level = UnitIsBattlePet(unit) and UnitBattlePetLevel(unit) or UnitLevel(unit)
     local scaledLevel = UnitIsBattlePet(unit) and UnitBattlePetLevel(unit) or UnitEffectiveLevel(unit)
     local creatureType = UnitCreatureType(unit)
     local classification = UnitClassification(unit)
-    local isShiftKeyDown = IsShiftKeyDown()
 
-    -- name
-    do
+    -- name (UnitName has its own restriction, separate from unit identity)
+    if not IsSecret(name) and not IsSecret(realm) then
         local line = _G.GameTooltipTextLeft1
 
         if UnitIsPlayer(unit) then
@@ -336,6 +353,9 @@ local UpdateUnitTooltip = function(tooltip, data)
                 -- end
             end
 
+            -- secret during chat messaging lockdown
+            local isAFK, isDND = UnitIsAFK(unit), UnitIsDND(unit)
+
             local status = ""
             if not UnitIsConnected(unit) then
                 status = OFFLINE
@@ -343,9 +363,9 @@ local UpdateUnitTooltip = function(tooltip, data)
                 status = GHOST
             elseif UnitIsDead(unit) then
                 status = DEAD
-            elseif UnitIsAFK(unit) then
+            elseif not IsSecret(isAFK) and isAFK then
                 status = AFK
-            elseif UnitIsDND(unit) then
+            elseif not IsSecret(isDND) and isDND then
                 status = DND
             end
             
@@ -368,24 +388,32 @@ local UpdateUnitTooltip = function(tooltip, data)
 
     -- guild
     do
+        -- GetGuildInfo is undocumented on mainline: secret status unverified
         local guildName, _, _, guildRealm = GetGuildInfo(unit)
-        if guildName then
+        if guildName and not IsSecret(guildName) and not IsSecret(guildRealm) then
             local line, _offset = GetTooltipLine(tooltip, offset, guildName) -- offset = 3
-            offset = _offset
+            if line then
+                offset = _offset
 
-            local guildText = guildName
-            if guildRealm and guildRealm ~= "" and guildRealm ~= realm then
-                guildText = guildName .. " - " .. guildRealm
+                local guildText = guildName
+                if guildRealm and guildRealm ~= "" and guildRealm ~= realm then
+                    guildText = guildName .. " - " .. guildRealm
+                end
+
+                line:SetText(E.colors.lawngreen:WrapTextInColorCode(guildText))
+                line:SetTextColor(1, 1, 1)
             end
-            
-            line:SetText(E.colors.lawngreen:WrapTextInColorCode(guildText))
-            line:SetTextColor(1, 1, 1)
         end
     end
 
     -- level
     do
-        local line, _offset = GetTooltipLine(tooltip, offset, (scaledLevel > 0) and scaledLevel or "%?%?")
+        local line, _offset
+        if data then
+            line, _offset = GetDataLine(data, Enum.TooltipDataLineType.UnitLevel)
+        else
+            line, _offset = GetTooltipLine(tooltip, offset, (scaledLevel > 0) and scaledLevel or "%?%?")
+        end
         offset = _offset
 
         if line then
@@ -401,9 +429,10 @@ local UpdateUnitTooltip = function(tooltip, data)
 
                 -- specialization
                 local specLine = _G["GameTooltipTextLeft" .. offset]
-                if specLine then
-                    local specText = string.trim(specLine:GetText() or "")
-                    if specText and specText ~= "" then
+                local specText = specLine and specLine:GetText()
+                if specText and not IsSecret(specText) then
+                    specText = string.trim(specText)
+                    if specText ~= "" then
                         specLine:SetTextColor(color.r, color.g, color.b)
                     end
                 end
@@ -412,7 +441,7 @@ local UpdateUnitTooltip = function(tooltip, data)
                 
                 local teamLevel = C_PetJournal.GetPetTeamAverageLevel() or 0
                 if teamLevel then
-                    difficultyColor = GetRelativeDifficultyColor(teamLevel, scaledLevel)
+                    difficultyColor = E.GetRelativeDifficultyColor(teamLevel, scaledLevel)
                 end
 
                 line:SetText(BATTLE_PET_LEVEL:format(difficultyColor:WrapTextInColorCode(levelText), (creatureType or ""), " (" .. _G["BATTLE_PET_NAME_" .. petType] .. ")"))
@@ -428,20 +457,22 @@ local UpdateUnitTooltip = function(tooltip, data)
     -- target
     do
         local target = unit .. "target"
-        if UnitExists(target) then
-            local color = E.GetUnitColor(target)
-            local name = color:WrapTextInColorCode(UnitName(target))
-            tooltip:AddLine(TARGET:format(name), 1, 1, 1)
+        if UnitExists(target) and not IsSecretUnit(target) then
+            local targetName = UnitName(target)
+            if not IsSecret(targetName) then
+                local color = E.GetUnitColor(target)
+                tooltip:AddLine(TARGET:format(color:WrapTextInColorCode(targetName)), 1, 1, 1)
+            end
         end
     end
 
     -- hunter
-    if E.isClassic and E.class == "HUNTER" and unit == "pet" and GetPetHappiness then
+    if E.isVanilla and E.class == "HUNTER" and unit == "pet" and GetPetHappiness then
         local happiness, damagePercentage, loyaltyRate = GetPetHappiness()
         if happiness then
             local color = E.colors.happiness[happiness]
-            local happy = ({ "Unhappy", "Content", "Happy" })[happiness]
-            local loyalty = (loyaltyRate > 0) and "gaining" or "losing"
+            local happy = L.PET_HAPPINESS_STATES[happiness]
+            local loyalty = (loyaltyRate > 0) and L.PET_LOYALTY_GAINING or L.PET_LOYALTY_LOSING
 
             tooltip:AddLine(" ")
             tooltip:AddLine(L.PET_HAPINESS:format(color:WrapTextInColorCode(happy)), 1, 1, 1)
@@ -450,104 +481,10 @@ local UpdateUnitTooltip = function(tooltip, data)
         end
     end
     
-    do
+    if guid and not IsSecret(guid) then
         local guidType, _, _, _, _, guidID, _ = string.split("-", guid)
         if IsShiftKeyDown() and guidType == "Creature" then
             tooltip:AddDoubleLine("NPC ID", guidID, nil, nil, nil, 1.0, 1.0, 1.0)
-        end
-    end
-end
-
-local GameTooltip_AnchorComparisonTooltips = function(tooltip, anchorFrame, primaryTooltip, secondaryTooltip, primaryShown, secondaryShown)
-    primaryTooltip:SetShown(primaryShown);
-    secondaryTooltip:SetShown(secondaryShown);
-
-    local sideAnchorFrame = anchorFrame;
-    if anchorFrame and anchorFrame.IsEmbedded then
-        sideAnchorFrame = anchorFrame:GetParent():GetParent();
-    end
-
-    local leftPos = sideAnchorFrame:GetLeft();
-    local rightPos = sideAnchorFrame:GetRight();
-
-    local selfLeftPos = tooltip:GetLeft();
-    local selfRightPos = tooltip:GetRight();
-
-    -- if we get the Left, we have the Right
-    if leftPos and selfLeftPos then
-        leftPos = math.min(selfLeftPos, leftPos);-- get the left most bound
-        rightPos = math.max(selfRightPos, rightPos);-- get the right most bound
-    else
-        leftPos = leftPos or selfLeftPos or 0;
-        rightPos = rightPos or selfRightPos or 0;
-    end
-
-    -- sometimes the sideAnchorFrame is an actual tooltip, and sometimes it's a script region, so make sure we're getting the actual anchor type
-    local anchorType = sideAnchorFrame.GetAnchorType and sideAnchorFrame:GetAnchorType() or tooltip:GetAnchorType();
-
-    local totalWidth = 0;
-    if primaryShown then
-        totalWidth = totalWidth + primaryTooltip:GetWidth();
-    end
-    if secondaryShown then
-        totalWidth = totalWidth + secondaryTooltip:GetWidth();
-    end
-
-    local rightDist = 0;
-    local screenWidth = GetScreenWidth();
-    rightDist = screenWidth - rightPos;
-
-    -- find correct side
-    local side;
-    if anchorType and (totalWidth < leftPos) and (anchorType == "ANCHOR_LEFT" or anchorType == "ANCHOR_TOPLEFT" or anchorType == "ANCHOR_BOTTOMLEFT") then
-        side = "left";
-    elseif anchorType and (totalWidth < rightDist) and (anchorType == "ANCHOR_RIGHT" or anchorType == "ANCHOR_TOPRIGHT" or anchorType == "ANCHOR_BOTTOMRIGHT") then
-        side = "right";
-    elseif rightDist < leftPos then
-        side = "left";
-    else
-        side = "right";
-    end
-
-    -- see if we should slide the tooltip
-    if totalWidth > 0 and (anchorType and anchorType ~= "ANCHOR_PRESERVE") then --we never slide a tooltip with a preserved anchor
-        local slideAmount = 0;
-        if ( (side == "left") and (totalWidth > leftPos) ) then
-            slideAmount = totalWidth - leftPos;
-        elseif ( (side == "right") and (rightPos + totalWidth) >  screenWidth ) then
-            slideAmount = screenWidth - (rightPos + totalWidth);
-        end
-
-        if slideAmount ~= 0 then -- if we calculated a slideAmount, we need to slide
-            if sideAnchorFrame.SetAnchorType then
-                sideAnchorFrame:SetAnchorType(anchorType, slideAmount, 0);
-            else
-                tooltip:SetAnchorType(anchorType, slideAmount, 0);
-            end
-        end
-    end
-
-    local offset = 5
-    if secondaryShown then
-        primaryTooltip:SetPoint("TOP", anchorFrame, 0, 0);
-        secondaryTooltip:SetPoint("TOP", anchorFrame, 0, 0);
-        if side and side == "left" then
-            primaryTooltip:SetPoint("RIGHT", sideAnchorFrame, "LEFT", -offset, 0);
-        else
-            secondaryTooltip:SetPoint("LEFT", sideAnchorFrame, "RIGHT", offset, 0);
-        end
-
-        if side and side == "left" then
-            secondaryTooltip:SetPoint("TOPRIGHT", primaryTooltip, "TOPLEFT", -offset, 0);
-        else
-            primaryTooltip:SetPoint("TOPLEFT", secondaryTooltip, "TOPRIGHT", offset, 0);
-        end
-    else
-        primaryTooltip:SetPoint("TOP", anchorFrame, 0, 0);
-        if side and side == "left" then
-            primaryTooltip:SetPoint("RIGHT", sideAnchorFrame, "LEFT", -offset, 0);
-        else
-            primaryTooltip:SetPoint("LEFT", sideAnchorFrame, "RIGHT", offset, 0);
         end
     end
 end
@@ -558,14 +495,6 @@ local GameTooltip_ShowCompareItem = function(tooltip, anchorFrame)
     end
 end
 
-local TooltipComparisonManager_AnchorShoppingTooltips = function(self, primaryShown, secondaryShown)
-    local tooltip = self.tooltip
-    local anchorFrame = self.anchorFrame
-    local primaryTooltip = tooltip.shoppingTooltips[1];
-    local secondaryTooltip = tooltip.shoppingTooltips[2];
-    GameTooltip_AnchorComparisonTooltips(tooltip, anchorFrame, primaryTooltip, secondaryTooltip, primaryShown, secondaryShown)
-end
-
 function tooltip_proto:SetupHooks(owner)
     hooksecurefunc("GameTooltip_SetDefaultAnchor", function(tooltip, parent)
         tooltip:ClearAllPoints()
@@ -574,65 +503,32 @@ function tooltip_proto:SetupHooks(owner)
 
     -- update tooltip colors
     hooksecurefunc("GameTooltip_UnitColor", GameTooltip_UnitColor)
-    hooksecurefunc("GameTooltip_ClearMoney", GameTooltip_ClearMoney)
 
-    -- update comparison tooltip anchors
-    local TooltipComparisonManager = _G.TooltipComparisonManager
-    if TooltipComparisonManager then
-        hooksecurefunc(TooltipComparisonManager, "AnchorShoppingTooltips", TooltipComparisonManager_AnchorShoppingTooltips)
-    else
-        hooksecurefunc("GameTooltip_AnchorComparisonTooltips", GameTooltip_AnchorComparisonTooltips)
-    end
-
-    hooksecurefunc("GameTooltip_ShowCompareItem", GameTooltip_ShowCompareItem)
-
-    if TooltipDataProcessor and TooltipDataProcessor.AddTooltipPostCall then
+    -- tooltip data post-calls only fire where GameTooltip uses TooltipDataHandlerMixin (mainline)
+    if GameTooltip.ProcessInfo then
         -- color tooltip border by item quality
         TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Item, UpdateItemTooltip)
 
         -- unit tooltip customization
         TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Unit, UpdateUnitTooltip)
-    end
-
-    if not E.isRetail then
+    else
+        hooksecurefunc("GameTooltip_ShowCompareItem", GameTooltip_ShowCompareItem)
 		GameTooltip:HookScript("OnTooltipSetItem", UpdateItemTooltip)
         GameTooltip:HookScript("OnTooltipSetUnit", UpdateUnitTooltip)
+        ItemRefTooltip:HookScript("OnTooltipSetItem", UpdateItemTooltip)
     end
 end
 
 
 function tooltip_proto:CreateAnchor()
-    local x = 10
-    local y = C.chat.height + 10 + 5
-
     local element = CreateFrame("Frame", "TaintedTooltipAnchor", UIParent)
-    element:SetPoint("BOTTOMRIGHT", UIParent, "BOTTOMRIGHT", -x, y)
+    element:SetPoint("BOTTOMRIGHT", _G.TaintedChatRight, "TOPRIGHT", 0, C.chat.margin)
     element:SetSize(200, 20)
     element:SetFrameStrata("TOOLTIP")
 	element:SetFrameLevel(20)
     element:SetClampedToScreen(true)
     element:SetMovable(false)
     return element
-end
-
-function tooltip_proto:UpdateAnchors()
-    local owner = self.Anchor
-
-    do
-        local container = _G.GameTooltipDefaultContainer
-        if container then
-            container:ClearAllPoints()
-            container:SetPoint("BOTTOMRIGHT", owner, "BOTTOMRIGHT", 0, 0)
-        end
-    end
-
-    do
-        local container = _G.SharedTooltipDefaultContainer
-        if container then
-            container:ClearAllPoints()
-            container:SetPoint("BOTTOMRIGHT", owner, "BOTTOMRIGHT", 0, 0)
-        end
-    end
 end
 
 function tooltip_proto:Update(element)
@@ -646,6 +542,11 @@ function tooltip_proto:Update(element)
 			element.NineSlice:SetAlpha(0)
 		end
 
+        -- EmbeddedItemTooltip is a plain frame without this script
+        if element:HasScript("OnTooltipCleared") then
+            element:HookScript("OnTooltipCleared", OnTooltipCleared)
+        end
+
         element.isSkinned = true
     end
 
@@ -654,14 +555,35 @@ function tooltip_proto:Update(element)
     end
 end
 
+-- AuraContainer buttons (mainline) use their own forbidden tooltip; this is the only way to style it
+function tooltip_proto:UpdateAuraTooltip()
+    local AuraContainerInbound = _G.AuraContainerInbound
+    if not AuraContainerInbound then return end
+
+    -- same as CreateBackdrop("transparent")
+    local inset = E.Scale(C.general.border.size or 1)
+    local backdrop = C.general.backdrop.color
+    AuraContainerInbound.SetTooltipBackdrop({
+        backdropInfo = {
+            bgFile = C.general.backdrop.texture,
+            edgeFile = A.textures.blank,
+            edgeSize = inset,
+            insets = { left = inset, right = inset, top = inset, bottom = inset }
+        },
+        borderColor = C.general.border.color,
+        centerColor = CreateColor(backdrop.r, backdrop.g, backdrop.b, 0.70),
+        anchorOffsets = { left = -inset, right = inset, top = inset, bottom = -inset }
+    })
+end
+
 function tooltip_proto:Init()
     self.Anchor = self:CreateAnchor()
-    self:UpdateAnchors()
     self:Update(_G.GameTooltip)
     self:Update(_G.ItemRefTooltip)
     self:Update(_G.EmbeddedItemTooltip)
     self:Update(_G.ShoppingTooltip1)
     self:Update(_G.ShoppingTooltip2)
+    self:UpdateAuraTooltip()
     self:UpdateStatusBar()
     self:SetupHooks(self.Anchor)
     self:AddMetadata()

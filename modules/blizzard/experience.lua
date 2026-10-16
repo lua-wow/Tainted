@@ -1,9 +1,7 @@
 local _, ns = ...
-local E, C, A = ns.E, ns.C, ns.A
+local E, C, A, L = ns.E, ns.C, ns.A, ns.L
 
 -- Blizzard
-local MAX_REPUTATION_REACTION = _G.MAX_REPUTATION_REACTION or 8
-
 local GameLimitedMode_GetLevelLimit = _G.GameLimitedMode_GetLevelLimit
 local GameLimitedMode_IsBankedXPActive = _G.GameLimitedMode_IsBankedXPActive
 local GetMaxLevelForPlayerExpansion = _G.GetMaxLevelForPlayerExpansion
@@ -18,9 +16,23 @@ local UnitTrialBankedLevels = _G.UnitTrialBankedLevels
 local UnitTrialXP = _G.UnitTrialXP
 local UnitXPMax = _G.UnitXPMax
 local GetWatchedFactionInfo = _G.GetWatchedFactionInfo
+local GetPetExperience = _G.GetPetExperience
+local HasArtifactEquipped = _G.HasArtifactEquipped
+local C_Housing = _G.C_Housing
 
 -- Mine
 local bars = {}
+
+-- only hunter pets gain experience
+local HAS_PET_XP = GetPetExperience ~= nil and E.class == "HUNTER"
+local HAS_HONOR = UnitHonorMax ~= nil
+-- C_ArtifactUI is documented on every client, Blizzard's artifact bar helper only loads on mainline
+local HAS_ARTIFACT = _G.ArtifactBarGetNumArtifactTraitsPurchasableFromXP ~= nil
+local HAS_AZERITE = _G.C_AzeriteItem ~= nil and _G.AzeriteUtil ~= nil
+local HAS_ANIMA = _G.C_CovenantSanctumUI ~= nil
+local HAS_MAJOR_FACTIONS = _G.C_MajorFactions ~= nil
+-- C_Housing is documented on every client, only Retail has houses
+local HAS_HOUSING = C_Housing ~= nil and C_Housing.GetTrackedHouseGuid ~= nil
 
 local EXP_PATTERN = "%d / %d (%.1f%%)"
 local RESTED_PATTERN = "+%d (%.1f%%)"
@@ -32,8 +44,13 @@ local RANK = _G.RANK or "Rank"
 local ARTIFACT = "Artifact"
 local AZERITE = "Azerite"
 local ANIMA = _G.POWER_TYPE_ANIMA or "Anima"
+local RENOWN = _G.COVENANT_SANCTUM_TAB_RENOWN or "Renown"
 local RESTED = _G.TUTORIAL_TITLE26 or "Rested"
-local PET_EXPERIENCE = "Pet Experience"
+local PET_EXPERIENCE = L.PET_EXPERIENCE
+local HOUSE_FAVOR = _G.HOUSING_DASHBOARD_NEIGHBORHOOD_FAVOR_LABEL or "House Favor"
+local HOUSE_LEVEL = _G.HOUSING_DASHBOARD_HOUSE_LEVEL or "Level %d"
+local HOUSE_FAVOR_PATTERN = _G.HOUSING_DASHBOARD_NEIGHBORHOOD_FAVOR or "%d / %d"
+local HOUSE_FAVOR_MAX_PATTERN = _G.HOUSING_HOUSE_EXPERIENCE_FORMAT or "%d"
 
 local BarsEnum = {
     Experience = 1,
@@ -47,16 +64,7 @@ local BarsEnum = {
 	None = -1,
 	Rested = 0,
     Renown = 8,
-}
-
-local BarPriorities = {
-	[BarsEnum.Experience] = 0,
-	[BarsEnum.Reputation] = 1,
-	[BarsEnum.Honor] = 2,
-	[BarsEnum.Azerite] = 3,
-	[BarsEnum.Artifact] = 4,
-	[BarsEnum.Anima] = 5,
-	[BarsEnum.PetExperience] = 6
+	HouseFavor = 9,
 }
 
 local BarColors = {
@@ -68,6 +76,8 @@ local BarColors = {
     [BarsEnum.Anima] = E:CreateColor(0.60, 0.80, 1.00),
     [BarsEnum.PetExperience] = E:CreateColor(1.00, 1.00, 0.41),
     [BarsEnum.Renown] = E:CreateColor(0.36, 0.68, 0.87),
+    -- Blizzard fills it with the artifact power atlas
+    [BarsEnum.HouseFavor] = E:CreateColor(0.90, 0.80, 0.50),
 }
 
 local FACTION_STANDING = {
@@ -82,22 +92,40 @@ local FACTION_STANDING = {
     [8] = _G.FACTION_STANDING_LABEL8
 }
 
+-- bar each event updates
+local BarEvents = {
+    ENABLE_XP_GAIN = BarsEnum.Experience,
+    DISABLE_XP_GAIN = BarsEnum.Experience,
+    UPDATE_EXPANSION_LEVEL = BarsEnum.Experience,
+    PLAYER_XP_UPDATE = BarsEnum.Experience,
+    UNIT_LEVEL = BarsEnum.Experience,
+    UPDATE_FACTION = BarsEnum.Reputation,
+    MAJOR_FACTION_RENOWN_LEVEL_CHANGED = BarsEnum.Reputation,
+    HONOR_XP_UPDATE = BarsEnum.Honor,
+    ZONE_CHANGED = BarsEnum.Honor,
+    ZONE_CHANGED_NEW_AREA = BarsEnum.Honor,
+    ARTIFACT_XP_UPDATE = BarsEnum.Artifact,
+    UNIT_INVENTORY_CHANGED = BarsEnum.Artifact,
+    UPDATE_EXTRA_ACTIONBAR = BarsEnum.Artifact,
+    AZERITE_ITEM_EXPERIENCE_CHANGED = BarsEnum.Azerite,
+    PLAYER_EQUIPMENT_CHANGED = BarsEnum.Azerite,
+    UNIT_PET = BarsEnum.PetExperience,
+    UNIT_PET_EXPERIENCE = BarsEnum.PetExperience,
+}
+
 local BarOrders = {}
 table.insert(BarOrders, { label = EXPERIENCE, value = BarsEnum.Experience, enabled = true })
 table.insert(BarOrders, { label = REPUTATION, value = BarsEnum.Reputation, enabled = true })
-table.insert(BarOrders, { label = HONOR, value = BarsEnum.Honor, enabled = E.isRetail })
-table.insert(BarOrders, { label = AZERITE, value = BarsEnum.Azerite, enabled = E.isRetail })
-table.insert(BarOrders, { label = ARTIFACT, value = BarsEnum.Artifact, enabled = E.isRetail })
-table.insert(BarOrders, { label = ANIMA, value = BarsEnum.Anima, enabled = E.isRetail })
-table.insert(BarOrders, { label = PET_EXPERIENCE, value = BarsEnum.PetExperience, enabled = true })
+table.insert(BarOrders, { label = HONOR, value = BarsEnum.Honor, enabled = HAS_HONOR })
+table.insert(BarOrders, { label = AZERITE, value = BarsEnum.Azerite, enabled = HAS_AZERITE })
+table.insert(BarOrders, { label = ARTIFACT, value = BarsEnum.Artifact, enabled = HAS_ARTIFACT })
+table.insert(BarOrders, { label = ANIMA, value = BarsEnum.Anima, enabled = HAS_ANIMA })
+table.insert(BarOrders, { label = PET_EXPERIENCE, value = BarsEnum.PetExperience, enabled = HAS_PET_XP })
+table.insert(BarOrders, { label = HOUSE_FAVOR, value = BarsEnum.HouseFavor, enabled = HAS_HOUSING })
 
 local element_proto = {
     min = 0
 }
-
-function element_proto:SetTooltip(tooltip)
-    E:print("SetTooltip", self:GetName(), tooltip)
-end
 
 function element_proto:OnEnter()
     local tooltip = GameTooltip
@@ -138,6 +166,11 @@ function element_proto:UpdateColor(color)
     end
 end
 
+-- whether the bar has something to show (Blizzard's StatusTrackingManagerMixin:CanShowBar)
+function element_proto:HasData()
+    return true
+end
+
 function element_proto:CalculatePercentage(value, max)
     if not max or max == 0 then
         return 0
@@ -160,16 +193,12 @@ local EnableBar = function(enum)
     end
 end
 
-local EnableBarCallback = function(value)
-    return function()
-    end
-end
-
 function element_proto:OnMouseUp(...)
     if MenuUtil then
         MenuUtil.CreateContextMenu(self, function(owner, rootDescription)
             for index, row in next, BarOrders do
-                if row.enabled then
+                local bar = bars[row.value]
+                if bar and bar:HasData() then
                     rootDescription:CreateButton(row.label, function()
                         EnableBar(row.value)
                     end)
@@ -191,7 +220,7 @@ end
 local experience_proto = Mixin({ unit = "player" }, element_proto)
 
 do
-    if E.isRetail then
+    if E.isMainline then
         function experience_proto:GetMaxLevel()
             return GetMaxLevelForPlayerExpansion()
         end
@@ -251,7 +280,7 @@ do
             if (self.isRested and self.restedXP > 0) then
                 local restedColor = BarColors[BarsEnum.Rested]
                 local restedPercentage = self:CalculatePercentage(self.restedXP, self.nextXP)
-                GameTooltip:AddDoubleLine(color:WrapTextInColorCode(RESTED .. ":"), RESTED_PATTERN:format(self.restedXP, restedPercentage))
+                tooltip:AddDoubleLine(restedColor:WrapTextInColorCode(RESTED .. ":"), RESTED_PATTERN:format(self.restedXP, restedPercentage))
             end
         end
     end
@@ -263,9 +292,9 @@ end
 local reputation_proto = Mixin({}, element_proto)
 
 do
-    if E.isRetail then
+    if HAS_MAJOR_FACTIONS then
         function reputation_proto:Update()
-            local watchedFactionData = C_Reputation:GetWatchedFactionData()
+            local watchedFactionData = C_Reputation.GetWatchedFactionData()
             if watchedFactionData and watchedFactionData.factionID ~= 0 then
                 self.factionID = watchedFactionData.factionID
                 self.name = watchedFactionData.name
@@ -277,7 +306,8 @@ do
                 local reputationInfo = C_GossipInfo.GetFriendshipReputation(self.factionID)
                 self.friendshipID = reputationInfo and reputationInfo.friendshipFactionID
     
-                if C_Reputation.IsFactionParagon(self.factionID) then
+                -- IsFactionParagon is also true for factions whose paragon track isn't reached yet
+                if C_Reputation.IsFactionParagonForCurrentPlayer(self.factionID) then
                     local currentValue, threshold, _, hasRewardPending = C_Reputation.GetFactionParagonInfo(self.factionID)
                     self.minBar = 0
                     self.maxBar = threshold
@@ -290,6 +320,7 @@ do
                     
                     if C_Reputation.IsMajorFaction(self.factionID) then
                         -- overrideUseBlueBarAtlases = true
+                        self.level = C_MajorFactions.GetMajorFactionData(self.factionID).renownLevel
                         self.color = BarColors[BarsEnum.Renown]
                         self.standing = MAJOR_FACTION_RENOWN_LEVEL_TOAST:format(self.level)
                     else
@@ -297,9 +328,16 @@ do
                         self.standing = FACTION_STANDING[self.level]
                     end
                 elseif C_Reputation.IsMajorFaction(self.factionID) then
+                    -- same values as the reputation frame (currentStanding isn't the renown progress)
                     local majorFactionData = C_MajorFactions.GetMajorFactionData(self.factionID)
                     self.minBar = 0
-                    self.maxBar = majorFactionData.renownLevelThreshold
+                    if C_MajorFactions.HasMaximumRenown(self.factionID) then
+                        self.maxBar = 1
+                        self.value = 1
+                    else
+                        self.maxBar = majorFactionData.renownLevelThreshold
+                        self.value = majorFactionData.renownReputationEarned
+                    end
                     self.level = majorFactionData.renownLevel
                     self.color = BarColors[BarsEnum.Renown]
                     self.standing = MAJOR_FACTION_RENOWN_LEVEL_TOAST:format(self.level)
@@ -317,9 +355,13 @@ do
                         self.value = 1
                     end
     
-                    -- self.level = 5
-                    self.color = E.colors.reaction[self.level]
-                    self.standing = FACTION_STANDING[self.level]
+                    -- friendships have their own rank names and are always green (Blizzard's reputation frame)
+                    self.color = E.colors.reaction[5]
+                    if reputationRankInfo.maxLevel > 0 then
+                        self.standing = ("%s (%d/%d)"):format(reputationInfo.reaction, self.level, reputationRankInfo.maxLevel)
+                    else
+                        self.standing = reputationInfo.reaction
+                    end
                 else
                     self.level = watchedFactionData.reaction
                     self.color = E.colors.reaction[self.level]
@@ -352,7 +394,16 @@ do
         end
     else
         function reputation_proto:Update()
-            local name, reaction, min, max, value, factionID = GetWatchedFactionInfo()
+            local name, reaction, min, max, value, factionID
+            if C_Reputation and C_Reputation.GetWatchedFactionData then
+                local data = C_Reputation.GetWatchedFactionData()
+                if data then
+                    name, reaction, factionID = data.name, data.reaction, data.factionID
+                    min, max, value = data.currentReactionThreshold, data.nextReactionThreshold, data.currentStanding
+                end
+            else
+                name, reaction, min, max, value, factionID = GetWatchedFactionInfo()
+            end
 
             self.name = name
             self.minBar = 0
@@ -372,12 +423,21 @@ do
         end
     end
 
+    -- left-click opens the reputation tab (to pick a watched faction), right-click the bar menu
+    function reputation_proto:OnMouseUp(button)
+        if button == "LeftButton" then
+            ToggleCharacter("ReputationFrame")
+        else
+            element_proto.OnMouseUp(self, button)
+        end
+    end
+
     function reputation_proto:SetTooltip(tooltip)
         if not self.name or not self.factionID then
             GameTooltip:AddLine(REPUTATION)
         else
             local left = self.color:WrapTextInColorCode(self.standing)
-            local right EXP_PATTERN:format(self.value, self.maxBar, self.percentage)
+            local right = EXP_PATTERN:format(self.value, self.maxBar, self.percentage)
             GameTooltip:AddLine(self.name)
             GameTooltip:AddDoubleLine(left, right)
         end
@@ -404,8 +464,7 @@ do
     function honor_proto:SetTooltip(tooltip)
         local color = BarColors[BarsEnum.Honor]
         if self.maxBar == 0 then
-            tooltip:AddLine(PVP_HONOR_PRESTIGE_AVAILABLE)
-            tooltip:AddLine(PVP_HONOR_XP_BAR_CANNOT_PRESTIGE_HERE)
+            tooltip:AddLine(HONOR)
         else
             tooltip:AddDoubleLine(color:WrapTextInColorCode(HONOR .. ":"), EXP_PATTERN:format(self.value, self.maxBar, self.percentage))
             tooltip:AddDoubleLine(color:WrapTextInColorCode(RANK .. ":"), self.level)
@@ -418,17 +477,27 @@ end
 --------------------------------------------------
 local azerite_proto = Mixin({}, element_proto)
 
-function azerite_proto:Update()
-    if not C_AzeriteItem then return end
+function azerite_proto:HasData()
+    local azeriteItemLocation = C_AzeriteItem.FindActiveAzeriteItem()
+    return azeriteItemLocation ~= nil and azeriteItemLocation:IsEquipmentSlot()
+        and C_AzeriteItem.IsAzeriteItemEnabled(azeriteItemLocation)
+        and not C_AzeriteItem.IsAzeriteItemAtMaxLevel()
+end
 
-    local azeriteItemLocation  = C_AzeriteItem.FindActiveAzeriteItem()
-    if not azeriteItemLocation or AzeriteUtil.IsAzeriteItemLocationBankBag(azeriteItemLocation) then
+function azerite_proto:Update()
+    if not self:HasData() then
+        self.name = nil
         self.level = -1
         self.value = 0
         self.maxBar = 0
     else
+        local azeriteItemLocation = C_AzeriteItem.FindActiveAzeriteItem()
         local xp, totalXP = C_AzeriteItem.GetAzeriteItemXPInfo(azeriteItemLocation)
-        self.level = C_AzeriteItem.GetPowerLevel(azeriteItemLocation)
+        if C_AzeriteItem.IsUnlimitedLevelingUnlocked() then
+            self.level = C_AzeriteItem.GetUnlimitedPowerLevel(azeriteItemLocation)
+        else
+            self.level = C_AzeriteItem.GetPowerLevel(azeriteItemLocation)
+        end
         self.value = xp
         self.maxBar = totalXP
 
@@ -437,6 +506,7 @@ function azerite_proto:Update()
         self.name = azeriteItemName
     end
 
+    self.percentage = self:CalculatePercentage(self.value, self.maxBar)
     self:UpdateStatusBar(self.value, 0, self.maxBar)
 end
 
@@ -455,17 +525,19 @@ end
 local artifact_proto = Mixin({}, element_proto)
 
 do
+    function artifact_proto:HasData()
+        return HasArtifactEquipped() and not C_ArtifactUI.IsEquippedArtifactMaxed() and not C_ArtifactUI.IsEquippedArtifactDisabled()
+    end
+
     function artifact_proto:Update()
         local element = self
 
-        if not C_ArtifactUI then return end
-
-        local artifactItemID = C_ArtifactUI.GetEquippedArtifactItemID();
+        local artifactItemID = self:HasData() and C_ArtifactUI.GetEquippedArtifactItemID();
         if artifactItemID then
             local item = Item:CreateFromItemID(artifactItemID);
 
             item:ContinueOnItemLoad(function()
-                local artifactItemID, _, name, _, artifactTotalXP, artifactPointsSpent, _, _, _, _, _, _, artifactTier = C_ArtifactUI.GetEquippedArtifactInfo()
+                local _, _, name, _, artifactTotalXP, artifactPointsSpent, _, _, _, _, _, _, artifactTier = C_ArtifactUI.GetEquippedArtifactInfo()
                 local numPointsAvailableToSpend, xp, xpForNextPoint = ArtifactBarGetNumArtifactTraitsPurchasableFromXP(artifactPointsSpent, artifactTotalXP, artifactTier)
 
                 element.name = name
@@ -473,6 +545,7 @@ do
                 element.totalXP = artifactTotalXP;
                 element.maxBar = xpForNextPoint;
                 element.level = numPointsAvailableToSpend + artifactPointsSpent
+                element.percentage = element:CalculatePercentage(element.value, element.maxBar)
                 element:UpdateStatusBar(element.value, 0, element.maxBar)
             end);
         else
@@ -481,6 +554,7 @@ do
             self.maxBar = 0
             self.totalXP = 0
             self.level = 0
+            self.percentage = 0
             self:UpdateStatusBar(self.value, 0, self.maxBar)
         end
     end
@@ -500,11 +574,17 @@ end
 local anima_proto = Mixin({}, element_proto)
 
 do
-    function anima_proto:Update()
-        if not C_CovenantSanctumUI then return end
+    function anima_proto:GetCurrencyInfo()
+        local currencyID = C_CovenantSanctumUI.GetAnimaInfo()
+        return C_CurrencyInfo.GetCurrencyInfo(currencyID)
+    end
 
-        local currencyID, maxDisplayableValue = C_CovenantSanctumUI.GetAnimaInfo()
-        local currencyInfo = C_CurrencyInfo.GetCurrencyInfo(currencyID)
+    function anima_proto:HasData()
+        return self:GetCurrencyInfo() ~= nil
+    end
+
+    function anima_proto:Update()
+        local currencyInfo = self:GetCurrencyInfo()
         if currencyInfo then
             self.value = currencyInfo.quantity
             self.maxBar = currencyInfo.maxQuantity
@@ -523,7 +603,7 @@ do
         if self.maxBar == 0 then
             tooltip:AddLine(ANIMA)
         else
-            tooltip:AddDoubleLine("|cffFF3333" .. COVENANT_SANCTUM_TAB_RENOWN .. " " .. LEVEL .. ": ", self.level)
+            tooltip:AddDoubleLine("|cffFF3333" .. RENOWN .. " " .. LEVEL .. ": ", self.level)
             tooltip:AddDoubleLine("|cff99CCFF" .. ANIMA_DIVERSION_CURRENCY_TOOLTIP_TITLE .. ": ", EXP_PATTERN:format(self.value, self.maxBar, self.percentage))
         end
     end
@@ -532,8 +612,6 @@ end
 --------------------------------------------------
 -- Pet Experience
 --------------------------------------------------
-local GetPetExperience = _G.GetPetExperience
-
 local pet_experience_proto = Mixin({ unit = "pet" }, element_proto)
 
 do
@@ -557,6 +635,68 @@ do
 end
 
 --------------------------------------------------
+-- House Favor
+--------------------------------------------------
+local house_favor_proto = Mixin({}, element_proto)
+
+do
+    function house_favor_proto:HasData()
+        return C_Housing.GetTrackedHouseGuid() ~= nil
+    end
+
+    -- the answer is HOUSE_LEVEL_FAVOR_UPDATED (Blizzard's HouseFavorBar requests it on show)
+    function house_favor_proto:OnShow()
+        local guid = C_Housing.GetTrackedHouseGuid()
+        if guid then
+            C_Housing.GetCurrentHouseLevelFavor(guid)
+        end
+    end
+
+    function house_favor_proto:SetFavor(info)
+        self.info = info
+        self:Update()
+    end
+
+    -- renders the last HOUSE_LEVEL_FAVOR_UPDATED payload only, requesting here would loop
+    function house_favor_proto:Update()
+        local info = self.info
+        if info then
+            self.level = info.houseLevel
+            self.value = info.houseFavor
+            self.minBar = C_Housing.GetHouseLevelFavorForLevel(self.level)
+            self.maxBar = C_Housing.GetHouseLevelFavorForLevel(self.level + 1)
+            self.isMaxLevel = self.level >= C_Housing.GetMaxHouseLevel() or self.maxBar == 0
+        else
+            self.level = 0
+            self.value = 0
+            self.minBar = 0
+            self.maxBar = 0
+            self.isMaxLevel = false
+        end
+
+        if self.isMaxLevel then
+            self:UpdateStatusBar(1, 0, 1)
+        else
+            self:UpdateStatusBar(self.value, self.minBar, self.maxBar)
+        end
+    end
+
+    function house_favor_proto:SetTooltip(tooltip)
+        if not self.info then
+            tooltip:AddLine(HOUSE_FAVOR)
+        else
+            local color = BarColors[BarsEnum.HouseFavor]
+            tooltip:AddLine(color:WrapTextInColorCode(HOUSE_LEVEL:format(self.level)))
+            if self.isMaxLevel then
+                tooltip:AddLine(HOUSE_FAVOR_MAX_PATTERN:format(self.value), 1, 1, 1)
+            else
+                tooltip:AddLine(HOUSE_FAVOR_PATTERN:format(self.value, self.maxBar), 1, 1, 1)
+            end
+        end
+    end
+end
+
+--------------------------------------------------
 -- Manager
 --------------------------------------------------
 local frame = CreateFrame("Frame", "TaintedExperienceBar", UIParent)
@@ -570,25 +710,34 @@ function frame:OnEvent(event, ...)
         self:CreateBar("Experience", experience_proto)
         self:CreateBar("Reputation", reputation_proto)
 
-        if BarOrders[BarsEnum.Honor].enabled then
+        if HAS_HONOR then
             self:CreateBar("Honor", honor_proto)
         end
 
-        if BarOrders[BarsEnum.Artifact].enabled then
+        if HAS_ARTIFACT then
             self:CreateBar("Artifact", artifact_proto)
         end
 
-        if BarOrders[BarsEnum.Azerite].enabled then
+        if HAS_AZERITE then
             self:CreateBar("Azerite", azerite_proto)
         end
 
-        if BarOrders[BarsEnum.Anima].enabled then
+        if HAS_ANIMA then
             self:CreateBar("Anima", anima_proto)
         end
 
-        self:CreateBar("PetExperience", pet_experience_proto)
+        if HAS_PET_XP then
+            self:CreateBar("PetExperience", pet_experience_proto)
+        end
+
+        if HAS_HOUSING then
+            self:CreateBar("HouseFavor", house_favor_proto)
+        end
 
         local index = E:GetExperienceBarIndex() or BarsEnum.Experience
+        if not bars[index] or not bars[index]:HasData() then
+            index = BarsEnum.Experience
+        end
         local bar = bars[index]
         if index == BarsEnum.Experience and bar and bar:IsMaxLevel() then
             EnableBar(BarsEnum.Reputation)
@@ -596,7 +745,6 @@ function frame:OnEvent(event, ...)
             EnableBar(index)
         end
 
-        self:RegisterEvent("CVAR_UPDATE")
         self:RegisterEvent("PLAYER_ENTERING_WORLD")
 
         -- Experience
@@ -608,32 +756,59 @@ function frame:OnEvent(event, ...)
 
         -- Reputation
         self:RegisterEvent("UPDATE_FACTION")
-        if E.isRetail then
+        if HAS_MAJOR_FACTIONS then
             self:RegisterEvent("MAJOR_FACTION_RENOWN_LEVEL_CHANGED")
         end
 
-        if E.isRetail then
-            -- Honor
+        if HAS_HONOR then
             self:RegisterEvent("HONOR_XP_UPDATE")
             self:RegisterEvent("ZONE_CHANGED")
             self:RegisterEvent("ZONE_CHANGED_NEW_AREA")
+        end
 
-            -- Artifact
+        if HAS_ARTIFACT then
             self:RegisterEvent("ARTIFACT_XP_UPDATE")
-            self:RegisterEvent("UNIT_INVENTORY_CHANGED")
+            self:RegisterUnitEvent("UNIT_INVENTORY_CHANGED", "player")
             self:RegisterEvent("UPDATE_EXTRA_ACTIONBAR")
+        end
 
-            -- Azerite
+        if HAS_AZERITE then
             self:RegisterEvent("AZERITE_ITEM_EXPERIENCE_CHANGED")
+            -- only an equipped azerite item shows data, so BAG_UPDATE isn't needed
             self:RegisterEvent("PLAYER_EQUIPMENT_CHANGED")
-            self:RegisterEvent("BAG_UPDATE")
         end
 
         -- Pet Experience
-        self:RegisterEvent("UNIT_PET")
-        self:RegisterEvent("UNIT_PET_EXPERIENCE")
+        if HAS_PET_XP then
+            self:RegisterUnitEvent("UNIT_PET", "player")
+            self:RegisterEvent("UNIT_PET_EXPERIENCE")
+            -- the pet's max XP changes on its level up (MoP: when the player levels)
+            self:RegisterUnitEvent("UNIT_LEVEL", "player", "pet")
+        end
+
+        if HAS_HOUSING then
+            self:RegisterEvent("HOUSE_LEVEL_FAVOR_UPDATED")
+            self:RegisterEvent("TRACKED_HOUSE_CHANGED")
+        end
 
         self:UnregisterEvent(event)
+    elseif event == "PLAYER_ENTERING_WORLD" then
+        for _, bar in next, bars do
+            bar:Update()
+        end
+    elseif event == "HOUSE_LEVEL_FAVOR_UPDATED" then
+        local info = ...
+        if info.houseGUID == C_Housing.GetTrackedHouseGuid() then
+            bars[BarsEnum.HouseFavor]:SetFavor(info)
+        end
+    elseif event == "TRACKED_HOUSE_CHANGED" then
+        local bar = bars[BarsEnum.HouseFavor]
+        bar:SetFavor(nil)
+        if ... and bar:IsShown() then
+            bar:OnShow()
+        end
+    elseif event == "UNIT_LEVEL" and ... == "pet" then
+        bars[BarsEnum.PetExperience]:Update()
     else
         if (event == "UNIT_LEVEL") then
             local bar = bars[BarsEnum.Experience]
@@ -642,11 +817,9 @@ function frame:OnEvent(event, ...)
             end
         end
 
-        for k, v in next, BarsEnum do
-            local bar = bars[v]
-            if bar then
-                bar:Update()
-            end
+        local bar = bars[BarEvents[event]]
+        if bar then
+            bar:Update()
         end
     end
 end
@@ -663,6 +836,7 @@ function frame:CreateBar(name, proto)
     element:SetScript("OnEnter", element.OnEnter)
     element:SetScript("OnLeave", element.OnLeave)
     element:SetScript("OnMouseUp", element.OnMouseUp)
+    element:SetScript("OnShow", element.OnShow)
     element.index = index
 
     local bg = element:CreateTexture(nil, "BACKGROUND")

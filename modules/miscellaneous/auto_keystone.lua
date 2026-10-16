@@ -1,5 +1,5 @@
 local _, ns = ...
-local E, C = ns.E, ns.C
+local C = ns.C
 
 -- Blizzard
 local BACKPACK_CONTAINER = _G.BACKPACK_CONTAINER or 0
@@ -8,10 +8,11 @@ local NUM_BAG_SLOTS = _G.NUM_BAG_SLOTS or 4
 --------------------------------------------------
 -- Auto Keystone
 --------------------------------------------------
-if not C.miscellaneous.mythic.portals then return end
+if not C.miscellaneous.mythic.autokeystone then return end
 
 local IsKeystone = function(itemID)
-    local classID, subclassID = select(12, C_Item.GetItemInfo(itemID))
+    -- instant variant: works for items not yet in the client cache
+    local classID, subclassID = select(6, C_Item.GetItemInfoInstant(itemID))
     return (classID == Enum.ItemClass.Reagent and subclassID == Enum.ItemReagentSubclass.Keystone)
 end
 
@@ -22,20 +23,25 @@ local GetKeystone = function()
             for slotIndex = 1, slots do
                 local itemID = C_Container.GetContainerItemID(containerIndex, slotIndex)
                 if itemID and IsKeystone(itemID) then
-                    -- "|cffa335ee|Hkeystone:180653:353:7:160:10:152:0|h[Keystone: Siege of Boralus (7)]|h|r"
-                    local itemLink = C_Container.GetContainerItemLink(containerIndex, slotIndex)
-                    
-                    return {
-                        containerIndex = containerIndex,
-                        slotIndex = slotIndex,
-                        itemID = itemID,
-                        itemLink = itemLink
-                    }
+                    return containerIndex, slotIndex
                 end
             end
         end
     end
-    return nil
+end
+
+-- using the key while the receptacle is shown slots it, as a bag click does
+local UseKeystone = function(containerIndex, slotIndex)
+    C_Container.UseContainerItem(containerIndex, slotIndex)
+end
+
+-- Blizzard's drag path (ChallengesKeystoneSlotMixin:OnReceiveDrag): key on the cursor, then slot it.
+-- Alternative to UseKeystone if that stops slotting; unverified in-game. On failure the key stays
+-- on the cursor and a click on the slot finishes the job.
+local SlotKeystone = function(containerIndex, slotIndex) -- luacheck: ignore
+    if CursorHasItem() then return end -- picking up would drop the cursor item into the bag slot
+    C_Container.PickupContainerItem(containerIndex, slotIndex)
+    C_ChallengeMode.SlotKeystone()
 end
 
 local keystone_proto = {}
@@ -47,23 +53,30 @@ function keystone_proto:OnEvent(event, ...)
 end
 
 function keystone_proto:OnShow()
-    local keystoneInfo = GetKeystone()
-    if keystoneInfo then
-        C_Container.UseContainerItem(keystoneInfo.containerIndex, keystoneInfo.slotIndex)
+    local containerIndex, slotIndex = GetKeystone()
+    if containerIndex then
+        UseKeystone(containerIndex, slotIndex) -- or SlotKeystone
+    end
+end
+
+function keystone_proto:Hook()
+    local frame = _G.ChallengesKeystoneFrame
+    if frame then
+        frame:HookScript("OnShow", self.OnShow)
     end
 end
 
 function keystone_proto:ADDON_LOADED(addon)
     if addon ~= "Blizzard_ChallengesUI" then return end
-
-    local frame = _G.ChallengesKeystoneFrame
-    if not frame then return end
-
-    frame:HookScript("OnShow", self.OnShow)
-    
+    self:Hook()
     self:UnregisterEvent("ADDON_LOADED")
 end
 
-local keystone = Mixin(CreateFrame("Frame", "TaintedAutoKeystone"), keystone_proto)
-keystone:RegisterEvent("ADDON_LOADED")
-keystone:SetScript("OnEvent", keystone.OnEvent)
+local keystone = Mixin(CreateFrame("Frame"), keystone_proto)
+-- load-on-demand: another addon may have loaded it before us
+if C_AddOns.IsAddOnLoaded("Blizzard_ChallengesUI") then
+    keystone:Hook()
+else
+    keystone:RegisterEvent("ADDON_LOADED")
+    keystone:SetScript("OnEvent", keystone.OnEvent)
+end

@@ -2,10 +2,14 @@ local _, ns = ...
 local E, C, A = ns.E, ns.C, ns.A
 local UnitFrames = E:GetModule("UnitFrames")
 
+local issecretvalue = _G.issecretvalue
+
 local element_proto = {
-    timeToHold = 0.4
+    timeToHold = 0.4,
+    smoothing = Enum.StatusBarInterpolation.ExponentialEaseOut,
 }
 
+-- Classic/Mists oUF only (duration is a number); retail oUF drives Time via Time.binding
 function element_proto:CustomDelayText(duration)
     self.Time:SetFormattedText("%.1f |cffaf5050%s %.1f|r", self.channeling and duration or (self.max - duration), self.channeling and "- " or "+", self.delay)
 end
@@ -25,32 +29,31 @@ function element_proto:UpdateStatusBarColor(color)
     end
 end
 
-function element_proto:UpdateColor(unit)
+-- retail oUF keeps casting/channeling/empowering state internal, so derive it from the API
+function element_proto:UpdateColor(unit, notInterruptible)
     local element = self
+    local colors = C.unitframes.castbar.colors
 
-    if (element.casting) then
-        element:UpdateStatusBarColor(C.unitframes.castbar.colors.casting)
+    local color = colors.casting
+    -- name is secret on Retail when cast info is restricted; castBarID never is
+    local channel, _, _, _, _, _, _, _, isEmpowered, _, castBarID = UnitChannelInfo(unit)
+    if (castBarID ~= nil or (not issecretvalue(channel) and channel)) then
+        color = isEmpowered and colors.empowering or colors.channeling
     end
-    
-    if (element.channeling) then
-        element:UpdateStatusBarColor(C.unitframes.castbar.colors.channeling)
+
+    if (not issecretvalue(notInterruptible) and notInterruptible) then
+        color = colors.notInterruptible
     end
-    
-    if (element.empowering) then
-        element:UpdateStatusBarColor(C.unitframes.castbar.colors.empowering)
-    end
-    
-    if (element.notInterruptible) then
-        element:UpdateStatusBarColor(C.unitframes.castbar.colors.notInterruptible)
-    end
+
+    element:UpdateStatusBarColor(color)
 end
 
-function element_proto:PostCastInterruptible(unit)
-    self:UpdateColor(unit)
+function element_proto:PostCastInterruptible(unit, _, notInterruptible)
+    self:UpdateColor(unit, notInterruptible)
 end
 
-function element_proto:PostCastStart(unit)
-    self:UpdateColor(unit)
+function element_proto:PostCastStart(unit, _, notInterruptible)
+    self:UpdateColor(unit, notInterruptible)
     -- 	if C.NamePlates.ClassIcon and unit:find("nameplate") and self.Button and self.Button.Shadow then
     -- 		self.Button.Shadow:SetBackdropBorderColor(self:GetStatusBarColor())
     -- 	end
@@ -68,7 +71,7 @@ function UnitFrames:CreateCastbar(frame, parent)
     local element = Mixin(CreateFrame("StatusBar", frame:GetName() .. "Castbar", frame), element_proto)
     element:SetStatusBarTexture(texture)
     
-    local iconOwner = nil
+    local iconOwner
     if mode == "detached" then
         element:SetPoint("TOPLEFT", owner, "BOTTOMLEFT", 0, -3)
         element:SetPoint("TOPRIGHT", owner, "BOTTOMRIGHT", 0, -3)
@@ -120,7 +123,7 @@ function UnitFrames:CreateCastbar(frame, parent)
     text:SetFontObject(fontObject)
     text:SetTextColor(C.unitframes.castbar.colors.text:GetRGB())
     
-    if (frame.__unit == "player") and frame.__config.castbar.latency then
+    if (frame.__key == "player") and frame.__config.castbar.latency then
         local color = C.unitframes.castbar.colors.latency
         local safezone = element:CreateTexture(nil, "OVERLAY")
         safezone:SetTexture(texture)

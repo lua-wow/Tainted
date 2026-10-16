@@ -85,23 +85,10 @@ function WorldMap:SynchronizeDisplayState()
 end
 
 function WorldMap:Init()
-    local scale = C.maps.worldmap.scale or 0.80
-    
-    local Map = WorldMapFrame.ScrollContainer.Child
-    
-    -- WorldMapFrame:SetScale(scale)
-    -- WorldMapFrame:CreateBackdrop()
-
     local BlackoutFrame = WorldMapFrame.BlackoutFrame
     if (BlackoutFrame) then
         BlackoutFrame:StripTextures()
         BlackoutFrame:EnableMouse(false)
-    end
-
-    local BorderFrame = WorldMapFrame.BorderFrame
-    if (BorderFrame) then
-        -- BorderFrame:Hide()
-        -- BorderFrame:EnableMouse(false)
     end
 
     hooksecurefunc(WorldMapFrame, "SynchronizeDisplayState", self.SynchronizeDisplayState)

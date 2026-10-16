@@ -4,30 +4,26 @@ assert(oUF, "JasjeUI was unable to locate oUF install.")
 
 local E, L = ns.E, ns.L
 
--- Lua
-local format = string.format
-
 -- Blizzard
-local TANK = _G.TANK or "Tank"
-local HEALER = _G.HEALER or "Healer"
-local DAMAGE = _G.DAMAGE or "Damage"
 local DEAD = _G.DEAD or "Dead"
-local CHAT_FLAG_AFK = _G.CHAT_FLAG_AFK
 
 local UnitReaction = _G.UnitReaction
 local UnitIsPlayer = _G.UnitIsPlayer
 local UnitLevel = _G.UnitLevel
 local UnitName = _G.UnitName
+local UnitHealth = _G.UnitHealth
+local UnitPower = _G.UnitPower
 local GetQuestDifficultyColor = _G.GetQuestDifficultyColor
 local UnitIsGroupLeader = _G.UnitIsGroupLeader
 local UnitIsGroupAssistant = _G.UnitIsGroupAssistant
 local UnitIsRaidOfficer = _G.UnitIsRaidOfficer
-local UnitIsDeadOrGhost = _G.UnitIsDeadOrGhost
-local UnitHealth = _G.UnitHealth
-local UnitHealthMax = _G.UnitHealthMax
-local UnitIsAFK = _G.UnitIsAFK
 local UnitClassification = _G.UnitClassification
-local UnitPowerType = _G.UnitPowerType
+local issecretvalue = _G.issecretvalue
+
+-- secret booleans (Midnight) can't be tested; treat them as false
+local function IsTrue(value)
+    return not (issecretvalue and issecretvalue(value)) and value
+end
 
 -- Constants
 local GHOST = L.GHOST or "Ghost"
@@ -38,52 +34,43 @@ local GHOST = L.GHOST or "Ghost"
 local events = {
     -- health
     ["curhp"]           = "UNIT_HEALTH UNIT_MAXHEALTH",
-    ["maxhp"]           = "UNIT_MAXHEALTH",
+    -- ["maxhp"]           = "UNIT_MAXHEALTH",
     -- power
-    ["curpp"]           = "UNIT_POWER_UPDATE UNIT_POWER_FREQUENT UNIT_MAXPOWER",
-    ["maxpp"]           = "UNIT_MAXPOWER",
+    ["curpp"]           = "UNIT_POWER_UPDATE UNIT_MAXPOWER",
+    -- ["maxpp"]           = "UNIT_MAXPOWER",
     -- names
     ["name"]            = "UNIT_NAME_UPDATE",
     ["nameshort"]       = "UNIT_NAME_UPDATE PARTY_LEADER_CHANGED GROUP_ROSTER_UPDATE",
     ["namemedium"]      = "UNIT_NAME_UPDATE",
-    ["namelarge"]       = "UNIT_NAME_UPDATE",
+    ["namelong"]        = "UNIT_NAME_UPDATE",
     -- colors
     ["healthcolor"]     = "UNIT_HEALTH UNIT_MAXHEALTH",
     ["namecolor"]       = "UNIT_POWER_UPDATE",
-    ["rolecolor"]       = "RAID_ROSTER_UPDATE GROUP_ROSTER_UPDATE",
     ["hostility"]       = "UNIT_POWER_UPDATE",
     ["difficulty"]      = "UNIT_FACTION UNIT_LEVEL PLAYER_LEVEL_UP",
     -- others
     ["classification"]  = "UNIT_CLASSIFICATION_CHANGED",
     ["dead"]            = "UNIT_HEALTH",
-    ["offline"]         = "UNIT_HEALTH UNIT_CONNECTION",
     -- ["afk"]             = "PLAYER_FLAGS_CHANGED",
 }
 
 local tags = {
     -- health
     ["curhp"] = function(unit)
-        local value = UnitHealth(unit)
-        return E.ShortValue(value)
+        return E.ShortValue(UnitHealth(unit))
     end,
-    ["maxhp"] = function(unit)
-        local value = UnitHealthMax(unit)
-        return E.ShortValue(value)
-    end,
+    -- ["maxhp"] = function(unit)
+    --     local value = UnitHealthMax(unit)
+    --     return E.ShortValue(value)
+    -- end,
     -- power
     ["curpp"] = function(unit)
-        local powerType, powerToken = UnitPowerType(unit)
-        local color = oUF.colors.power[powerToken or "MANA"]
-        if UnitIsDeadOrGhost(unit) then
-            return ""
-        end
-        local value = UnitPower(unit, powerType)
-        return E.ShortValue(value)
+        return E.ShortValue(UnitPower(unit))
     end,
-    ["maxpp"] = function(unit)
-        local value = UnitPowerMax(unit)
-        return E.ShortValue(value)
-    end,
+    -- ["maxpp"] = function(unit)
+    --     local value = UnitPowerMax(unit)
+    --     return E.ShortValue(value)
+    -- end,
     -- names
     ["name"] = function(unit, r)
         local name = UnitName(unit or r) or "???"
@@ -91,10 +78,14 @@ local tags = {
     end,
     ["nameshort"] = function(unit)
         local name = UnitName(unit) or "???"
-        local isLeader = UnitIsGroupLeader(unit)
-        local isAssistant = UnitIsGroupAssistant(unit) or UnitIsRaidOfficer(unit)
+        local isLeader = IsTrue(UnitIsGroupLeader(unit))
+        local isAssistant = IsTrue(UnitIsGroupAssistant(unit)) or IsTrue(UnitIsRaidOfficer(unit))
         local assist = isAssistant and "[A] " or ""
         local lead = isLeader and "[L] " or ""
+        -- secret names can't be concatenated or truncated
+        if (issecretvalue and issecretvalue(name)) then
+            return C_StringUtil.WrapString(name, lead .. assist)
+        end
         return E.UTF8Sub(lead .. assist .. name, 10, false)
     end,
     ["namemedium"] = function(unit)
@@ -124,11 +115,6 @@ local tags = {
             return E.colors.white:GenerateHexColorMarkup()
         end
     end,
-    ["rolecolor"] = function(unit)
-        local role = UnitGroupRolesAssigned(unit)
-        local color = oUF.colors.roles[role or "NONE"]
-		return color:GenerateHexColorMarkup()
-    end,
     ["hostility"] = function(unit)
         local reaction = UnitReaction(unit, "player")
         local color = oUF.colors.reaction[reaction] or E.colors.white
@@ -147,7 +133,7 @@ local tags = {
     ["dead"] = function(unit)
         if UnitIsDead(unit) then
 			return DEAD
-		elseif UnitIsGhost(u) then
+		elseif UnitIsGhost(unit) then
 			return GHOST
 		end
     end,

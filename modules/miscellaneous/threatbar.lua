@@ -2,9 +2,9 @@ local _, ns = ...
 local E, C = ns.E, ns.C
 
 -- Blizzard
+local issecretvalue = _G.issecretvalue
 local UnitAffectingCombat = _G.UnitAffectingCombat
 local UnitDetailedThreatSituation = _G.UnitDetailedThreatSituation
-local UnitIsDead = _G.UnitIsDead
 local UnitName = _G.UnitName
 
 --------------------------------------------------
@@ -28,52 +28,48 @@ function element_proto:Update()
     if not UnitAffectingCombat("player") then return end
 
     local isTanking, status, percentage, _, _ = UnitDetailedThreatSituation(self.unit, "target")
-    
-    if not percentage then
-        percentage = 0
-    end
 
-    if status then
-        self:SetValue(percentage)
-        
-        if self.Text then
-            self.Text:SetFormattedText("%.2f%%", percentage)
-        end
-        
-        if self.Value then
-            self.Value:SetText(UnitName("target") or "")
-        end
-        
-        local color = E.ColorGradient(percentage, E.colors.threat[1], E.colors.threat[2], E.colors.threat[3])
-        if color then
-            self:SetStatusBarColor(color.r, color.g, color.b)
-            
-            if self.bg then
-                local mu = self.bg.multiplier or 1
-                self.bg:SetVertexColor(color.r * mu, color.g * mu, color.b * mu)
-            end
-        end
-        
-        self:SetAlpha(1)
-    else
+    -- secret where threat is restricted (Retail/Forever instances, PvP): hide, as when there's no threat
+    if issecretvalue(status) or not status then
         self:SetAlpha(0)
+        return
     end
-end
 
-function element_proto:OnUpdate(elapsed)
-    self.elapsed = (self.elapsed or 0) + elapsed
-    if self.elapsed >= 0.75 then
-        self:Update()
-        self.elapsed = 0
+    percentage = percentage or 0
+
+    self:SetValue(percentage)
+
+    if self.Text then
+        self.Text:SetFormattedText("%.2f%%", percentage)
     end
+
+    if self.Value then
+        self.Value:SetText(UnitName("target") or "")
+    end
+
+    local color = E.ColorGradient(percentage, E.colors.threat[1], E.colors.threat[2], E.colors.threat[3])
+    if color then
+        self:SetStatusBarColor(color.r, color.g, color.b)
+
+        if self.bg then
+            local mu = self.bg.multiplier or 1
+            self.bg:SetVertexColor(color.r * mu, color.g * mu, color.b * mu)
+        end
+    end
+
+    self:SetAlpha(1)
 end
 
 function element_proto:OnShow()
-    self:SetScript("OnUpdate", self.OnUpdate)
+    self:RegisterEvent("PLAYER_TARGET_CHANGED")
+    self:RegisterUnitEvent("UNIT_THREAT_LIST_UPDATE", "target")
+    self:RegisterUnitEvent("UNIT_THREAT_SITUATION_UPDATE", "player")
 end
 
 function element_proto:OnHide()
-    self:SetScript("OnUpdate", nil)
+    self:UnregisterEvent("PLAYER_TARGET_CHANGED")
+    self:UnregisterEvent("UNIT_THREAT_LIST_UPDATE")
+    self:UnregisterEvent("UNIT_THREAT_SITUATION_UPDATE")
 end
 
 function element_proto:OnEvent(event, ...)
@@ -85,8 +81,6 @@ function element_proto:OnEvent(event, ...)
         self:RegisterEvent("PLAYER_DEAD")
         self:RegisterEvent("PLAYER_REGEN_ENABLED")
         self:RegisterEvent("PLAYER_REGEN_DISABLED")
-        -- self:RegisterEvent("UNIT_THREAT_SITUATION_UPDATE")
-        -- self:RegisterEvent("UNIT_THREAT_LIST_UPDATE")
         self:Hide()
         self.isInit = true
     elseif event == "PLAYER_ENTERING_WORLD" then
@@ -97,16 +91,18 @@ function element_proto:OnEvent(event, ...)
             self:Show()
             self:Update()
         end
-    else
+    elseif event == "PLAYER_DEAD" or event == "PLAYER_REGEN_ENABLED" then
         if self:IsShown() then
             self:Hide()
         end
+    else
+        self:Update()
     end
 end
 
 local fontObject = E.GetFont(C.miscellaneous.font)
 
-local frame = Mixin(CreateFrame("StatusBar", "TaintedThreatBar", E.PetHider), element_proto)
+local frame = Mixin(CreateFrame("StatusBar", nil, E.PetHider), element_proto)
 frame:SetPoint("TOP", 0, -10)
 frame:SetSize(230, 18)
 frame:SetFrameStrata("HIGH")

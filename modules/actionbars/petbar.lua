@@ -5,9 +5,6 @@ local MODULE = E:GetModule("ActionBars")
 -- Blizzard
 local NUM_PET_ACTION_SLOTS = _G.NUM_PET_ACTION_SLOTS or 10
 
--- Mine
-local StyleActionButton = MODULE.StyleActionButton
-
 local element_proto = {
 	name = "PetActionButton",
 	num = NUM_PET_ACTION_SLOTS,
@@ -48,15 +45,13 @@ do
 	function element_proto:PostCreate()
         local element = self
 
-        local frame = _G.PetActionBar or _G.PetActionBarFrame
+        local frame = _G.PetActionBar
         if frame then
 			-- frame:SetShown(true)
 			-- frame:EnableMouse(false)
 			frame:SetParent(element)
 			frame:ClearAllPoints()
 			frame:SetAllPoints(E.Hider)
-			frame.ignoreFramePositionManager = true
-			frame.ignoreInLayout = true
         end
     end
 end

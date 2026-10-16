@@ -2,13 +2,6 @@ local _, ns = ...
 local E, C, A = ns.E, ns.C, ns.A
 local UnitFrames = E:GetModule("UnitFrames")
 
--- Blizzard
-local UnitIsQuestBoss = _G.UnitIsQuestBoss
-
--- Mine
-local ICON_SIZE = 20
-local VERTEX_COLOR = { 0.69, 0.31, 0.31 }
-
 local function CreateIndicator(frame, name, parent, element_proto, sublevel, size)
     local element = Mixin(parent:CreateTexture(frame:GetName() .. name, "OVERLAY", nil, sublevel or 7), element_proto)
     --element:SetPoint("CENTER", parent, "TOPLEFT", 0, 0)
@@ -72,10 +65,8 @@ end
 -- Phase Indicator
 --------------------------------------------------
 do
-    local element_proto = {}
-
     function UnitFrames:CreatePhaseIndicator(frame, sublevel)
-        if not E.isRetail then
+        if not E.isMainline then
             return nil
         end
         
@@ -86,7 +77,7 @@ do
 
         local icon = element:CreateTexture(nil, "OVERLAY")
         icon:SetAllPoints()
-        element.Icon = Icon
+        element.Icon = icon
 
         return element
     end
@@ -101,7 +92,7 @@ do
     }
 
     function UnitFrames:CreatePvPClassificationIndicator(frame, sublevel)
-        if not E.isRetail then
+        if not E.isMainline then
             return nil
         end
 
@@ -118,7 +109,7 @@ do
     local element_proto = {}
 
     function UnitFrames:CreatePvPIndicator(frame, sublevel)
-        local holder = CreateFrame("Frame", frame:GetName() .. "PvPIndicator", parent)
+        local holder = CreateFrame("Frame", frame:GetName() .. "PvPIndicator", frame)
         holder:SetPoint("CENTER", frame, "TOPRIGHT", 0, 0)
         holder:SetSize(16, 16)
 
@@ -144,7 +135,7 @@ do
     local element_proto = {}
 
     function UnitFrames:CreateQuestIndicator(frame, sublevel)
-        if not E.isRetail then
+        if not E.isMainline then
             return nil
         end
 
@@ -164,7 +155,7 @@ do
 
     function UnitFrames:CreateRaidRoleIndicator(frame, sublevel)
         local element = CreateIndicator(frame, "RaidRoleIndicator", frame, element_proto)
-        element:SetPoint("BOTTOM", frame.Heatlth, "TOP", 0, 5)
+        element:SetPoint("BOTTOM", frame.Health, "TOP", 0, 5)
         return element
     end
 end
@@ -236,7 +227,7 @@ do
     local element_proto = {}
 
     function UnitFrames:CreateSummonIndicator(frame, sublevel)
-        if not E.isRetail then
+        if not E.isMainline then
             return nil
         end
 
