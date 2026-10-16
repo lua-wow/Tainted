@@ -237,10 +237,5 @@ function MODULE:AddMetadata()
         hookscript(_G.ItemRefShoppingTooltip2, "OnTooltipSetItem", OnTooltipSetItem)
         hookscript(_G.ShoppingTooltip1, "OnTooltipSetItem", OnTooltipSetItem)
         hookscript(_G.ShoppingTooltip2, "OnTooltipSetItem", OnTooltipSetItem)
-
-        -- TEMP: does Blizzard add a sell price away from a vendor? remove after checking
-        hookscript(_G.GameTooltip, "OnTooltipAddMoney", function(_, cost, maxCost)
-            print("Tainted OnTooltipAddMoney", cost, maxCost, _G.MerchantFrame:IsShown())
-        end)
     end
 end
