@@ -47,6 +47,9 @@ Every module loads on all 6 clients except lines tagged in `Tainted.toc`. Non-ob
 - Dispels/interrupts are `classic`-only: addons can't read the combat log on Retail/Forever. Auto
   keystone, dungeon portals and `core\keystone.lua` are `standard`-only. Skyriding race is the
   standalone `Skyriding` addon.
+- Install sets `taintLog` to 0 on Retail and to the `C.general.taintLog` level elsewhere: on Retail (12.0.5)
+  turning it on mid-session breaks frame-method `hooksecurefunc` hooks until `/reload` (client bug,
+  reproduces with no addons; #13). For a Retail taint log: `/console taintLog 1`, then `/reload`.
 
 ## Decisions
 
