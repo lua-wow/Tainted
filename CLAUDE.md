@@ -19,7 +19,7 @@ needs new persistent state, explain why before adding it.
 dependencies unless they solve a real problem. 30 understandable lines beat a 300-line
 generic system. When borrowing from another addon, separate the necessary WoW workaround
 from defensive compatibility code and from architecture that is merely convenient for that
-addon; don't reproduce the last one. Don't copy ElvUI patterns because ElvUI uses them.
+addon; don't reproduce the last one. Don't copy another addon's patterns just because it uses them.
 
 **Efficiency.** Prefer "detect change → update only what changed" over "event → reapply
 everything". Avoid repeated updates, repeated calls to the same API, unnecessary loops,
@@ -58,8 +58,8 @@ architecture win when they conflict.
 
 - Reference repositories live in `../refs` and are read-only. Use targeted searches, not
   broad exploration. Map: [docs/references.md](docs/references.md).
-- Blizzard `wow-ui-source` is the API authority. `Tukui` is the visual/layout reference
-  (understand, never copy). `ElvUI`, `ls_UI`, `idTip` are implementation references only.
+- Blizzard `wow-ui-source` is the API authority. Addon references and their rules: private
+  notes (`CLAUDE.local.md`).
 
 ## Git & GitHub
 

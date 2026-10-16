@@ -4,9 +4,8 @@ A dark, flat, compact UI that keeps the centre of the screen clear: a few tight 
 and just below centre, built from flat dark panels, 1px black borders, a plain bar texture and one small
 font. Information appears next to what it describes and nowhere else.
 
-Tukui is the visual/layout reference: same design language (composition, density, restraint), not a
-reproduction; never copy its code, assets or architecture. Differences from Tukui aren't bugs: the
-Tainted screenshots win, unless the Tainted element is clearly broken or unfinished.
+The Tainted screenshots below are the reference: they win unless an element is clearly broken or
+unfinished.
 
 ## Principles
 
@@ -19,7 +18,7 @@ Tainted screenshots win, unless the Tainted element is clearly broken or unfinis
 6. **Symmetry** around the vertical centre (chats, unit frames, action bar groups).
 7. **Show less.** Only what's useful in play; leave Blizzard UI that's fine and out of the way.
 
-Also avoid: bright saturated fills over large areas, adding elements "because Tukui has them",
+Also avoid: bright saturated fills over large areas, adding elements because another UI has them,
 treating every element in a screenshot as a requirement.
 
 ## Layout
@@ -54,11 +53,11 @@ treating every element in a screenshot as a requirement.
 
 - Backdrop flat dark grey, slightly transparent, uniform; values in `C.general`.
 - Bars plain. Unit-frame health is dark/monochrome with colour in the text (name by class/reaction,
-  values by health/power). Deliberately unlike Tukui's coloured fill; keep it.
+  values by health/power). Deliberately not a coloured fill; keep it.
 - Meaningful colour: class, reaction, power, debuff type, cast interruptibility, urgency. Palette in
   `core/colors.lua`; no near-duplicates. `C.general.highlight` only for hover/selection.
 - Inactive things (out of range, non-target nameplates) fade, not hide or restyle.
-- One thin experience/reputation/honor strip above the left chat, chat-width, 8px (Tukui has one per chat).
+- One thin experience/reputation/honor strip above the left chat, chat-width, 8px.
 
 ## Components
 
@@ -78,7 +77,6 @@ treating every element in a screenshot as a requirement.
 
 ## Reference images
 
-[tukui-18-reference](images/tukui-18-reference.jpg) (inspiration),
 [tainted-tank-reference](images/tainted-tank-reference.jpg) (solo/tank),
 [tainted-header-reference](images/tainted-header-reference.jpg) (party). Not pixel specs; constants
 live in `core/colors.lua`, `core/fonts.lua`, `core/assets.lua`, `C.general`.
@@ -97,5 +95,4 @@ Easy to misread:
   (`modules/unitframes/elements/stagger.lua`) at the class power anchor.
 - tank, red "Soul-Scribe 100.00%" bottom-right: threat bar (`modules/miscellaneous/threatbar.lua`),
   covers the right chat datatexts in combat.
-- Both Tainted images, strip above left chat: `modules/blizzard/experience.lua`. Tukui's strips above
-  both chats are its honor/reputation/experience bars.
+- Both Tainted images, strip above left chat: `modules/blizzard/experience.lua`.
