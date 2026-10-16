@@ -124,10 +124,8 @@ function E:SetupDefaultsCVars()
 		end
 	end
 
-	-- writes taint.log continuously, so it is opt-in
-	if C.general.taintLog then
-		SetCVar("taintLog", 1)
-	end
+	-- always 0 on Retail: turning it on mid-session breaks frame-method hooksecurefunc hooks until /reload (#13)
+	SetCVar("taintLog", E.isStandard and 0 or C.general.taintLog)
 
 	if SetAutoDeclineGuildInvites then
 		SetAutoDeclineGuildInvites(true)
