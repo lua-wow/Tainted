@@ -27,7 +27,6 @@ local BAG_CLEANUP_BAGS = _G.BAG_CLEANUP_BAGS
 local CloseBag = _G.CloseBag
 local OpenBag = _G.OpenBag
 local IsBagOpen = _G.IsBagOpen
-local OpenAllBags = _G.OpenAllBags
 local PlaySound = _G.PlaySound
 local hooksecurefunc = _G.hooksecurefunc
 
@@ -223,7 +222,7 @@ do
             end
         end
 
-        if self.BagSlots and self.BagSlots:IsShown() then
+        if self.BagSlots then
             self.BagSlots:ClearAllPoints()
             self.BagSlots:SetPoint("TOPRIGHT", self, "TOPRIGHT", -MARGIN, -y)
             y = y + size + SECTION_SPACING
@@ -592,21 +591,6 @@ function MODULE:CreateBagSlots(window, buttons)
     end
 
     return element
-end
-
--- false where the window has no bag-slot row (mainline keeps blizzard's bags bar)
-function MODULE:ToggleBagSlots()
-    local window = self.Bags
-    local slots = window and window.BagSlots
-    if not slots then return false end
-
-    slots:SetShown(not slots:IsShown())
-    window:Layout()
-
-    if not window:IsShown() then
-        OpenAllBags()
-    end
-    return true
 end
 
 -- an invisible frame holding only its item buttons, above the window that shows them
