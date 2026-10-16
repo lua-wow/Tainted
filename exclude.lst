@@ -8,6 +8,8 @@ exclude.lst
 .luacheckrc
 mise.toml
 CLAUDE.md
+CLAUDE.local.md
+.editorconfig
 docs/*
 .claude/*
 
