@@ -72,7 +72,10 @@ Agreed during the rebuild; don't re-litigate without a new reason.
   MoP); talking head Retail/Forever. Raid utility dropped (Blizzard `/wm`, `/readycheck`, keybinds);
   unit frames hide the raid manager.
 - **Bags:** one implementation; clients differ only in data (bag IDs, sort, Classic bank and bag-slot
-  strip). Blizzard slot templates, nothing secure. Toggles hooked, never replaced. `BAG_UPDATE` marks
+  strip). Blizzard slot templates, nothing secure. Classic shows Blizzard's own container-frame item
+  buttons (their frames become invisible holders): addon-created slots run the template's inline
+  `OnClick` tainted and can't use items in combat. The Classic bank container keeps Tainted buttons.
+  Toggles hooked, never replaced. `BAG_UPDATE` marks
   a bag dirty, `BAG_UPDATE_DELAYED` refreshes only dirty bags; a hidden window catches up on show.
   Non-goals: mainline/warband/reagent bank, item level, junk/new markers, categories, currencies, movers.
 - **Classic sort:** hearthstone, class, subclass (desc), equip slot, quality (desc), name, ID, full

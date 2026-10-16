@@ -12,14 +12,15 @@ local BANK_BAG_PURCHASE = _G.BANK_BAG_PURCHASE
 local COSTS_LABEL = _G.COSTS_LABEL
 
 local BankFrameItemButton_Update = _G.BankFrameItemButton_Update
-local CloseAllBags = _G.CloseAllBags
+local CloseBag = _G.CloseBag
 local CloseBankFrame = _G.CloseBankFrame
 local GameTooltip = _G.GameTooltip
 local GameTooltip_Hide = _G.GameTooltip_Hide
 local GetBankSlotCost = _G.GetBankSlotCost
 local GetMoneyString = _G.GetMoneyString
 local GetNumBankSlots = _G.GetNumBankSlots
-local OpenAllBags = _G.OpenAllBags
+local IsBagOpen = _G.IsBagOpen
+local OpenBag = _G.OpenBag
 local PlaySound = _G.PlaySound
 local StaticPopup_Show = _G.StaticPopup_Show
 local UpdateBagSlotStatus = _G.UpdateBagSlotStatus
@@ -27,6 +28,27 @@ local UpdateBagSlotStatus = _G.UpdateBagSlotStatus
 local bank_proto = {}
 
 do
+    -- the bank bags' slots are blizzard's container frame buttons (MODULE:DisableBlizzard), shown while
+    -- their frame is open; OpenBag skips a bag slot without a bag
+    function bank_proto:OpenBags()
+        for _, bag in ipairs(self.bags) do
+            local bagID = bag:GetID()
+            if bag.holder and not IsBagOpen(bagID) then
+                OpenBag(bagID)
+            end
+        end
+    end
+
+    function bank_proto:CloseBags()
+        for _, bag in ipairs(self.bags) do
+            local bagID = bag:GetID()
+            if bag.holder and IsBagOpen(bagID) then
+                CloseBag(bagID)
+            end
+        end
+    end
+
+    -- also opens a bag just bought or put in a bank bag slot
     function bank_proto:UpdateBagSlots()
         for _, button in ipairs(self.bagSlotButtons) do
             BankFrameItemButton_Update(button)
@@ -37,6 +59,8 @@ do
 
         local _, full = GetNumBankSlots()
         self.PurchaseButton:SetShown(not full)
+
+        self:OpenBags()
     end
 
     -- the window follows the bank session; blizzard's BankFrame only keeps it open
@@ -45,7 +69,8 @@ do
             self:SetAllDirty()
             self:Show()
             self:UpdateBagSlots()
-            OpenAllBags(self)
+            -- not cached: MODULE:Init hooks OpenAllBags and CloseAllBags after this file loads
+            _G.OpenAllBags(self)
         elseif event == "BANKFRAME_CLOSED" then
             self:Hide()
         elseif event == "PLAYERBANKBAGSLOTS_CHANGED" then
@@ -59,7 +84,8 @@ do
 
     -- also reached by Escape (UISpecialFrames); CloseAllBags only closes the bags the bank opened
     function bank_proto:OnHide()
-        CloseAllBags(self)
+        _G.CloseAllBags(self)
+        self:CloseBags()
         CloseBankFrame()
     end
 end

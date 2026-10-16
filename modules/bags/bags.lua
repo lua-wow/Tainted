@@ -57,15 +57,6 @@ local function GetNumSlots(bagID)
     return GetContainerNumSlots(bagID)
 end
 
-local function AnyBagOpen(window)
-    for _, bag in ipairs(window.bags) do
-        if IsBagOpen(bag:GetID()) then
-            return true
-        end
-    end
-    return false
-end
-
 local function UpdateSearch(bagID, button)
     local info = GetContainerItemInfo(bagID, button:GetID())
     button.searchOverlay:SetShown(info and info.isFiltered or false)
@@ -88,9 +79,29 @@ local function UpdateLock(bagID, button)
     button.icon:SetDesaturated(info and info.isLocked or false)
 end
 
+local function UpdateBorder(bagID, button, info)
+    local color = C.general.border.color
+    local r, g, b = color.r, color.g, color.b
+    local quest = info and GetContainerItemQuestInfo(bagID, button:GetID())
+    if quest and (quest.questID or quest.isQuestItem) then
+        r, g, b = QUEST_COLOR.r, QUEST_COLOR.g, QUEST_COLOR.b
+    elseif info and info.quality and info.quality > 1 then
+        r, g, b = GetItemQualityColor(info.quality)
+    end
+    button.Backdrop:SetBackdropBorderColor(r, g, b)
+    button.IconQuestTexture:SetShown(quest and quest.questID and not quest.isActive or false)
+end
+
+-- classic bags show blizzard's own slots (see DisableBlizzard), whose content blizzard updates
+local function UpdateBorders(bag)
+    local bagID = bag:GetID()
+    for _, button in ipairs(bag.slots) do
+        UpdateBorder(bagID, button, GetContainerItemInfo(bagID, button:GetID()))
+    end
+end
+
 local function UpdateSlot(bagID, button)
-    local slot = button:GetID()
-    local info = GetContainerItemInfo(bagID, slot)
+    local info = GetContainerItemInfo(bagID, button:GetID())
     local texture = info and info.iconFileID
 
     -- read by blizzard for tooltips, dress-up and the cursor, never on the click path
@@ -104,17 +115,7 @@ local function UpdateSlot(bagID, button)
     local count = info and info.stackCount or 0
     button.Count:SetText(count > 1 and count or "")
 
-    local color = C.general.border.color
-    local r, g, b = color.r, color.g, color.b
-    local quest = texture and GetContainerItemQuestInfo(bagID, slot)
-    if quest and (quest.questID or quest.isQuestItem) then
-        r, g, b = QUEST_COLOR.r, QUEST_COLOR.g, QUEST_COLOR.b
-    elseif info and info.quality and info.quality > 1 then
-        r, g, b = GetItemQualityColor(info.quality)
-    end
-    button.Backdrop:SetBackdropBorderColor(r, g, b)
-    button.IconQuestTexture:SetShown(quest and quest.questID and not quest.isActive or false)
-
+    UpdateBorder(bagID, button, info)
     UpdateCooldown(bagID, button)
 
     if GameTooltip:GetOwner() == button then
@@ -129,13 +130,10 @@ end
 local element_proto = {}
 
 do
-    function element_proto:CreateSlot(bag, slot)
+    function element_proto:StyleSlot(button)
         local size = C.bags.buttons.size
-        local name = ("TaintedBag%dSlot%d"):format(bag:GetID(), slot)
+        local name = button:GetName()
 
-        -- the bag is read by blizzard from the parent's id, never from a field on the button (taints)
-        local button = CreateFrame("ItemButton", name, bag, bag.template or "ContainerFrameItemButtonTemplate")
-        button:SetID(slot)
         button:SetSize(size, size)
         button:SetNormalTexture(0)
         button:CreateBackdrop()
@@ -164,6 +162,15 @@ do
         button.IconQuestTexture:ClearAllPoints()
         button.IconQuestTexture:SetAllPoints(button)
         button.IconQuestTexture:SetTexture(TEXTURE_ITEM_QUEST_BANG)
+    end
+
+    function element_proto:CreateSlot(bag, slot)
+        local name = ("TaintedBag%dSlot%d"):format(bag:GetID(), slot)
+
+        -- the bag is read by blizzard from the parent's id, never from a field on the button (taints)
+        local button = CreateFrame("ItemButton", name, bag, bag.template or "ContainerFrameItemButtonTemplate")
+        button:SetID(slot)
+        self:StyleSlot(button)
 
         bag.slots[slot] = button
         return button
@@ -191,13 +198,18 @@ do
                 for slot = 1, math.max(bag.numSlots, #bag.slots) do
                     local button = bag.slots[slot]
                     if slot <= bag.numSlots then
-                        button = button or self:CreateSlot(bag, slot)
+                        -- a holder bag gets its buttons when its blizzard frame is generated
+                        if not bag.holder then
+                            button = button or self:CreateSlot(bag, slot)
+                        end
 
-                        local column = offset + index % columns
-                        local row = math.floor(index / columns)
-                        button:ClearAllPoints()
-                        button:SetPoint("TOPLEFT", self, "TOPLEFT", MARGIN + column * step, -(y + row * step))
-                        button:Show()
+                        if button then
+                            local column = offset + index % columns
+                            local row = math.floor(index / columns)
+                            button:ClearAllPoints()
+                            button:SetPoint("TOPLEFT", self, "TOPLEFT", MARGIN + column * step, -(y + row * step))
+                            button:Show()
+                        end
 
                         index = index + 1
                     else
@@ -274,9 +286,11 @@ do
         local updated = false
         for _, bag in ipairs(self.bags) do
             if bag.dirty then
-                local bagID = bag:GetID()
-                for slot = 1, bag.numSlots do
-                    UpdateSlot(bagID, bag.slots[slot])
+                if not bag.holder then
+                    local bagID = bag:GetID()
+                    for slot = 1, bag.numSlots do
+                        UpdateSlot(bagID, bag.slots[slot])
+                    end
                 end
                 bag.dirty = false
                 updated = true
@@ -290,9 +304,11 @@ do
 
     function element_proto:UpdateCooldowns()
         for _, bag in ipairs(self.bags) do
-            local bagID = bag:GetID()
-            for slot = 1, bag.numSlots do
-                UpdateCooldown(bagID, bag.slots[slot])
+            if not bag.holder then
+                local bagID = bag:GetID()
+                for slot = 1, bag.numSlots do
+                    UpdateCooldown(bagID, bag.slots[slot])
+                end
             end
         end
         self.cooldownsDirty = false
@@ -300,9 +316,11 @@ do
 
     function element_proto:UpdateSearch()
         for _, bag in ipairs(self.bags) do
-            local bagID = bag:GetID()
-            for slot = 1, bag.numSlots do
-                UpdateSearch(bagID, bag.slots[slot])
+            if not bag.holder then
+                local bagID = bag:GetID()
+                for slot = 1, bag.numSlots do
+                    UpdateSearch(bagID, bag.slots[slot])
+                end
             end
         end
         self.searchDirty = false
@@ -327,7 +345,7 @@ do
             end
         elseif event == "ITEM_LOCK_CHANGED" then
             local bag = slot and self.bagsByID[bagID]
-            if not bag then return end
+            if not bag or bag.holder then return end
 
             if self:IsShown() then
                 local button = bag.slots[slot]
@@ -367,6 +385,12 @@ do
             self:SetAllDirty()
             if self:IsShown() then
                 self:Refresh()
+                -- not every classic container frame updates on quest events; a hidden one updates on show
+                for _, bag in ipairs(self.bags) do
+                    if bag.frame then
+                        UpdateBorders(bag)
+                    end
+                end
             end
         end
     end
@@ -585,25 +609,135 @@ function MODULE:ToggleBagSlots()
     return true
 end
 
--- blizzard keeps its bag state: frames holding a bag of a window are only reparented to the
--- hider, so IsBagOpen stays valid and blizzard still closes them (CloseAllBags, Escape). On classic
--- the bank bags are opened by ToggleAllBags at the bank; the bank window follows the bank session
--- instead. Frames reused for any other bag get their own parent back.
+-- an invisible frame holding only its item buttons, above the window that shows them
+local function SetupHolder(window, frame)
+    frame:EnableMouse(false)
+    frame:SetFrameStrata("HIGH")
+    frame:SetFrameLevel(window:GetFrameLevel() + 2)
+
+    for _, region in next, { frame:GetRegions() } do
+        region:SetAlpha(0)
+    end
+
+    local items = "^" .. frame:GetName() .. "Item%d+$"
+    for _, child in next, { frame:GetChildren() } do
+        local name = child:GetName()
+        if not (name and name:match(items)) then
+            child:SetParent(E.Hider)
+        end
+    end
+end
+
+-- blizzard keeps its bag state: frames holding a bag of a window stay shown, so IsBagOpen stays
+-- valid and blizzard still closes them (CloseAllBags, Escape). On classic the bank bags are opened
+-- by ToggleAllBags at the bank; the bank window follows the bank session instead. Frames reused for
+-- any other bag get their own parent back.
+--
+-- mainline frames are only reparented to the hider. Classic slot buttons created by an addon run
+-- their inline XML OnClick tainted, which blocks UseContainerItem in combat, so classic windows show
+-- blizzard's own buttons: each frame is parented to its window as a holder (SetupHolder) and its
+-- items become the bag's slots. Blizzard keeps updating their content; Tainted only sets the border.
 function MODULE:DisableBlizzard(window, bank)
     local parents = {}
+    local holders = {} -- frame -> bag
+    local styled = {}
+    -- blizzard reparents these into the backpack frame (ManageBackpackTokenFrame, mists search box)
+    local strays = {}
 
-    hooksecurefunc("ContainerFrame_GenerateFrame", function(frame, _, bagID)
+    if E.isClassic then
+        for _, element in next, { window, bank } do
+            for _, bag in ipairs(element.bags) do
+                -- the bank container has no container frame
+                bag.holder = not bag.template
+            end
+        end
+
+        for _, name in next, { "BackpackTokenFrame", "BagItemSearchBox" } do
+            local stray = _G[name]
+            if stray then
+                strays[#strays + 1] = stray
+                hooksecurefunc(stray, "SetParent", function(self, parent)
+                    if holders[parent] then
+                        self:SetParent(E.Hider)
+                    end
+                end)
+            end
+        end
+    end
+
+    local function Hold(element, frame, size, bag)
+        if not styled[frame] then
+            SetupHolder(element, frame)
+            styled[frame] = true
+        end
+        frame:SetParent(element)
+
+        local old = holders[frame]
+        if old and old ~= bag then
+            old.frame = nil
+            table.wipe(old.slots)
+        end
+        holders[frame] = bag
+        bag.frame = frame
+
+        -- blizzard gives item i the slot id size - i + 1
+        local name = frame:GetName()
+        table.wipe(bag.slots)
+        for slot = 1, size do
+            local button = _G[name .. "Item" .. (size + 1 - slot)]
+            if not styled[button] then
+                element:StyleSlot(button)
+                button.IconBorder:SetAlpha(0)
+                styled[button] = true
+            end
+            bag.slots[slot] = button
+        end
+
+        -- reparented while the frame was not held yet
+        for _, stray in ipairs(strays) do
+            if stray:GetParent() == frame then
+                stray:SetParent(E.Hider)
+            end
+        end
+
+        -- blizzard anchored the items to its frame again
+        element:Layout()
+        UpdateBorders(bag)
+    end
+
+    hooksecurefunc("ContainerFrame_GenerateFrame", function(frame, size, bagID)
         parents[frame] = parents[frame] or frame:GetParent()
 
-        if window.bagsByID[bagID] then
-            frame:SetParent(E.Hider)
+        local bag = window.bagsByID[bagID]
+        if bag then
+            if bag.holder then
+                Hold(window, frame, size, bag)
+            else
+                frame:SetParent(E.Hider)
+            end
             window:Show()
-        elseif bank and bank.bagsByID[bagID] then
+            return
+        end
+
+        bag = bank and bank.bagsByID[bagID]
+        if bag and bag.holder then
+            Hold(bank, frame, size, bag)
+        elseif bag then
             frame:SetParent(E.Hider)
         else
             frame:SetParent(parents[frame])
         end
     end)
+
+    if E.isClassic then
+        -- the frame's id is set before it updates, so a frame reused for another bag is skipped until held again
+        hooksecurefunc("ContainerFrame_Update", function(frame)
+            local bag = holders[frame]
+            if bag and bag.frame == frame and bag:GetID() == frame:GetID() then
+                UpdateBorders(bag)
+            end
+        end)
+    end
 end
 
 function MODULE:Init()
@@ -658,18 +792,17 @@ function MODULE:Init()
         hooksecurefunc(name, Update)
     end
 
-    -- at the bank, ToggleAllBags with every bag open closes them, then reopens them with the bank bags
+    -- at the bank, closing the bags with ToggleAllBags also closes the bank bags, which the bank
+    -- window keeps open
     hooksecurefunc("ToggleAllBags", function()
-        if bank and AnyBagOpen(bank) then
-            CloseBags(window)
-            CloseBags(bank)
+        if bank and bank:IsShown() then
+            bank:OpenBags()
         end
         Update()
     end)
 
     -- the window shows every bag, so one bag toggles them all: a single closed bag would make
-    -- ToggleAllBags reopen the bags instead of closing them. A bank bag frame shows nothing, and an
-    -- open one would read as the bank case above.
+    -- ToggleAllBags reopen the bags instead of closing them. The bank window keeps its bags open.
     hooksecurefunc("ToggleBag", function(bagID)
         if window.bagsByID[bagID] then
             if IsBagOpen(bagID) then
@@ -678,7 +811,7 @@ function MODULE:Init()
                 CloseBags(window)
             end
         elseif bank and bank.bagsByID[bagID] then
-            CloseBag(bagID)
+            bank:OpenBags()
         end
         Update()
     end)
