@@ -44,7 +44,7 @@ local function SellJunkRetail()
     local numJunkItems = C_MerchantFrame.GetNumJunkItems()
     if C_MerchantFrame.IsSellAllJunkEnabled() and (numJunkItems > 0) then
         C_MerchantFrame.SellAllJunkItems()
-        local message = string.format(L.merchant.junkSold, "")
+        local message = L.merchant.junkSold
         DEFAULT_CHAT_FRAME:AddMessage(message, 255, 255, 0)
     end
 end
@@ -66,7 +66,7 @@ local function SellJunkClassic()
         end
     end
     if (total > 0) then
-        local message = string.format(L.merchant.junkSold, " for " .. ToMoneyText(total))
+        local message = string.format(L.merchant.junkSoldFor, ToMoneyText(total))
         DEFAULT_CHAT_FRAME:AddMessage(message, 255, 255, 0)
     end
 end

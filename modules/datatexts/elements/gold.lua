@@ -13,7 +13,6 @@ local IsLoggedIn = _G.IsLoggedIn
 local GetMoney = _G.GetMoney
 
 -- Mine
-local GOLD = L.GOLD
 local BAGS = L.BAGS or "Bags"
 local REAGENTS = L.REAGENTS or "Reagents"
 local CHARACTER = L.CHARACTER or "Character"
@@ -196,7 +195,6 @@ function gold_proto:Enable()
     
     if self.Text then
         local color = C.datatexts.colors.value
-        self.Text:SetText(GOLD)
         self.Text:SetTextColor(color:GetRGB())
     end
     
