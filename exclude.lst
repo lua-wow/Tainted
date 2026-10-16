@@ -10,6 +10,8 @@ mise.toml
 CLAUDE.md
 CLAUDE.local.md
 .editorconfig
+modules/blizzard/event_trace.lua
+locales/template.lua
 docs/*
 .claude/*
 
