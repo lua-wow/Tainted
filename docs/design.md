@@ -77,9 +77,10 @@ treating every element in a screenshot as a requirement.
 
 ## Reference images
 
-[tainted-tank-reference](images/tainted-tank-reference.jpg) (solo/tank),
-[tainted-header-reference](images/tainted-header-reference.jpg) (party). Not pixel specs; constants
-live in `core/colors.lua`, `core/fonts.lua`, `core/assets.lua`, `C.general`.
+`tainted-tank-reference.jpg` (solo/tank) and `tainted-header-reference.jpg` (party), removed from
+the tree to keep the repository small; restore with
+`git show 49aac26:docs/images/<name>.jpg > <name>.jpg`. Not pixel specs; constants live in
+`core/colors.lua`, `core/fonts.lua`, `core/assets.lua`, `C.general`.
 
 Not Tainted: Blizzard objective tracker styling, banners, cooldown-manager icon grids, encounter
 widgets; other addons' damage meter (right chat), aura/cooldown displays, spell-ID tooltip lines.
