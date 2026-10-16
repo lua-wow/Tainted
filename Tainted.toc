@@ -103,6 +103,7 @@ modules\miscellaneous\screenshots\init.xml
 modules\miscellaneous\settings.lua
 modules\miscellaneous\merchant.lua
 modules\miscellaneous\threatbar.lua
+modules\miscellaneous\taint.lua
 modules\miscellaneous\auto_keystone.lua [AllowLoadGameType standard]
 modules\miscellaneous\dungeon_portals.lua [AllowLoadGameType standard]
 

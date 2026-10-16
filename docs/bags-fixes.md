@@ -1,6 +1,6 @@
 # Bags fixes (issue #10, branch `issues/10-bag-combat-taint`)
 
-Status: uncommitted. Classic done; Retail blocked on new Lua errors (below).
+Status: committed (`b1281b6`). Classic done; Retail errors were unrelated (below).
 
 ## Problem
 Classic (Era, TBC, WotLK, MoP): Tainted's bag slots were addon-created `ContainerFrameItemButtonTemplate`
@@ -24,7 +24,7 @@ items in the bags couldn't be used in combat.
   are read from `_G` at call time because `MODULE:Init` hooks them after the file loads.
 - `docs/compatibility.md`: bags entry describes the Classic holder approach.
 - `docs/limitations.md`: limitation narrowed to the Classic bank's own slots (not bank bags).
-- `core/development.lua`: dev-only prints for `taintLog`, `ADDON_ACTION_BLOCKED`, `MACRO_ACTION_BLOCKED`.
+- `modules/miscellaneous/taint.lua`: prints `ADDON_ACTION_*`/`MACRO_ACTION_*` (`BLOCKED`, `FORBIDDEN`).
 
 ## Tested in-game
 - Classic Era: OK
@@ -41,7 +41,10 @@ Not tested: WotLK (`classic_titan`), Forever.
 Classic bank container slots (the bank itself, not bank bags) are still Tainted buttons and can't be
 used in combat.
 
-## Retail: new Lua errors
+## Retail: Lua errors (resolved, unrelated to bags)
+Cause: `taintLog` set to non-zero on Retail (known Blizzard issue), not the bag changes. Fixed in
+`22b19c4` (#13: never enable `taintLog` on Retail).
+
 Every login and `/reload` (not only after `/tainted reset`), Tainted only enabled. Logs:
 `docs/issues/_retail_/1..6.log`, `1-8.log`. All are `attempt to call a nil value`, with no file prefix and
 no Tainted frame in the stack:
@@ -54,12 +57,10 @@ no Tainted frame in the stack:
    (count 77/86)
 4. `Blizzard_BNet/Mainline/BNet.lua:46` `OnEvent` (`BN_FRIEND_ACCOUNT_ONLINE`): `BNToastFrame:AddToast()`
 
-Every one is a frame method Tainted hooks with `hooksecurefunc`. Root cause unverified; see
-[retail-lua-errors-plan.md](retail-lua-errors-plan.md).
-
 ## Next
-- [ ] Retest Retail with this branch stashed (master) to rule the bag changes in or out.
-- [ ] Fix the Retail errors (plan above).
-- [ ] Test WotLK and Forever.
-- [ ] Decide whether `core/development.lua` is committed or stays local.
-- [ ] Commit: `Classic bags: show Blizzard's container item buttons so items work in combat (#10)`
+- [x] Retail errors: `taintLog`, fixed in `22b19c4` (#13).
+- [ ] Test Forever.
+- WotLK (`classic_titan`): can't be tested, no client currently available.
+- [x] Taint prints moved to `modules/miscellaneous/taint.lua` (blocked/forbidden actions, gated on
+  `C.general.taintLog ~= 0`); `core/development.lua` back to its empty template.
+- [x] Commit (`b1281b6`): `Classic bags: show Blizzard's container item buttons so items work in combat (#10)`
