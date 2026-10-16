@@ -126,8 +126,6 @@ local function UpdateAlpha(self, alpha)
 end
 
 nameplates_proto.SetAddedCallback = function(self, event, unit)
-    -- print("Nameplate Added Callback", event, unit)
-
     if unit then
         self.showWidgetsOnly = UnitNameplateShowsWidgetsOnly(unit)
         self.widgetSet = UnitWidgetSet(unit)
@@ -152,16 +150,9 @@ nameplates_proto.SetAddedCallback = function(self, event, unit)
 end
 
 nameplates_proto.SetRemovedCallback = function(self, event, unit)
-    -- print("Nameplate Removed Callback", event, unit)
 end
 
 nameplates_proto.SetTargetCallback = function(self, event, unit)
-    -- print("Nameplate Target Callback", event, unit)
-
-    -- if self.showWidgetsOnly then
-    --     UpdateAlpha(self, 1)
-    -- end
-
     if self.widgetContainer then
         self.widgetContainer:ClearAllPoints()
         self.widgetContainer:SetPoint("TOP", self.blizzPlate.CastBarsContainer.castBar, "BOTTOM")

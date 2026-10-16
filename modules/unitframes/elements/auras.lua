@@ -149,17 +149,9 @@ function aura_proto:PostUpdateButton(button, unit, data, position)
         -- only Classic/MoP oUF call this, and they provide plain AuraData flags
         if (data.isHarmful and UnitCanAssist(unit, "player")) or (data.isHelpful and UnitCanAttack(unit, "player") and UnitCanAttack("player", unit)) then
             local color = E.colors.dispel[data.dispelName or "none"] or C.general.border.color
-			-- if color == nil then
-			-- 	-- BUG: this shouldn't happen but color can be nil, so default to None color
-			-- 	color = element.dispelColorCurve:Evaluate(0)
-			-- end
-            -- local mu = 0.8
-            -- local color = E.colors.dispel[data.dispelName or "none"] or C.general.border.color
-            -- print(color:WrapTextInColorCode("AURA TYPE"))
             button.Backdrop:SetBackdropBorderColor(color.r, color.g, color.b, color.a or 1)
         else
             local color = C.general.border.color
-            -- print(color:WrapTextInColorCode("AURA"))
             button.Backdrop:SetBackdropBorderColor(color.r, color.g, color.b, color.a or 1)
         end
     end
