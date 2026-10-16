@@ -117,7 +117,7 @@ function gold_proto:CreateTooltip(tooltip)
     if C_Bank and C_Bank.FetchDepositedMoney then
         local warband = C_Bank.FetchDepositedMoney(Enum.BankType.Account)
         tooltip:AddLine(" ")
-        tooltip:AddDoubleLine("Warband", self:FormatMoney(warband), 1.0, 1.0, 1.0, 1.0, 1.0, 1.0)
+        tooltip:AddDoubleLine(L.WARBAND, self:FormatMoney(warband), 1.0, 1.0, 1.0, 1.0, 1.0, 1.0)
     end
 
     local bagSlots, bagFree, reagentSlots, reagentFree = self:GetBagUsage()

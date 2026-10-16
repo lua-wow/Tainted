@@ -1,5 +1,5 @@
 local _, ns = ...
-local E = ns.E
+local E, L = ns.E, ns.L
 local MODULE = E:GetModule("Tooltips")
 
 -- Blizzard
@@ -8,6 +8,7 @@ local GetActionInfo = _G.GetActionInfo
 -- Mine
 local METADATA = E.colors.yellow:WrapTextInColorCode("%s") .. " %s"
 local SPELL_ID = "SpellID"
+local VENDOR_PRICE = L.VENDOR_PRICE
 
 local TooltipDataAccessor = {
     ["GetUnitAura"] = function(...)
@@ -140,7 +141,7 @@ local OnTooltipSetItem = function(self)
                 end
 
                 -- Add the vendor price to the tooltip
-                self:AddLine("Vendor Price: " .. priceText, 1, 1, 1)
+                self:AddLine(VENDOR_PRICE:format(priceText), 1, 1, 1)
                 self:Show()
             end
         end

@@ -38,7 +38,7 @@ if not C.tooltips.enabled then return end
 
 
 
-local IN_BAG = E.colors.yellow:WrapTextInColorCode("In Bag") .. " %d"
+local IN_BAG = E.colors.yellow:WrapTextInColorCode(L.IN_BAG) .. " %d"
 local TARGET = E.colors.yellow:WrapTextInColorCode(_G.TARGET .. ":") .. " %s"
 local STATUS = E.colors.gray:WrapTextInColorCode("<%s> ")
 local AFK = STATUS:format(_G.AFK or "AFK")
@@ -471,8 +471,8 @@ local UpdateUnitTooltip = function(tooltip, data)
         local happiness, damagePercentage, loyaltyRate = GetPetHappiness()
         if happiness then
             local color = E.colors.happiness[happiness]
-            local happy = ({ "Unhappy", "Content", "Happy" })[happiness]
-            local loyalty = (loyaltyRate > 0) and "gaining" or "losing"
+            local happy = L.PET_HAPPINESS_STATES[happiness]
+            local loyalty = (loyaltyRate > 0) and L.PET_LOYALTY_GAINING or L.PET_LOYALTY_LOSING
 
             tooltip:AddLine(" ")
             tooltip:AddLine(L.PET_HAPINESS:format(color:WrapTextInColorCode(happy)), 1, 1, 1)

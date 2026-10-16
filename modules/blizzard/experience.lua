@@ -1,5 +1,5 @@
 local _, ns = ...
-local E, C, A = ns.E, ns.C, ns.A
+local E, C, A, L = ns.E, ns.C, ns.A, ns.L
 
 -- Blizzard
 local GameLimitedMode_GetLevelLimit = _G.GameLimitedMode_GetLevelLimit
@@ -46,7 +46,7 @@ local AZERITE = "Azerite"
 local ANIMA = _G.POWER_TYPE_ANIMA or "Anima"
 local RENOWN = _G.COVENANT_SANCTUM_TAB_RENOWN or "Renown"
 local RESTED = _G.TUTORIAL_TITLE26 or "Rested"
-local PET_EXPERIENCE = "Pet Experience"
+local PET_EXPERIENCE = L.PET_EXPERIENCE
 local HOUSE_FAVOR = _G.HOUSING_DASHBOARD_NEIGHBORHOOD_FAVOR_LABEL or "House Favor"
 local HOUSE_LEVEL = _G.HOUSING_DASHBOARD_HOUSE_LEVEL or "Level %d"
 local HOUSE_FAVOR_PATTERN = _G.HOUSING_DASHBOARD_NEIGHBORHOOD_FAVOR or "%d / %d"

@@ -42,6 +42,14 @@ L.merchant = {
 L.PET_HAPINESS = "Pet is %s"
 L.PET_DAMAGE = "Pet is doing %s damage"
 L.PET_LOYALTY = "Pet is %s loyalty"
+L.PET_HAPPINESS_STATES = { "Unhappy", "Content", "Happy" }
+L.PET_LOYALTY_GAINING = "gaining"
+L.PET_LOYALTY_LOSING = "losing"
+L.IN_BAG = "In Bag"
+L.VENDOR_PRICE = "Vendor Price: %s"
+
+-- experience
+L.PET_EXPERIENCE = "Pet Experience"
 
 -- datatexts
 L.ADDON_CPU = "AddOn CPU"
@@ -67,6 +75,7 @@ L.LATENCY = "Latency"
 L.LOCAL_TIME = "Local"                                                                                                                                                                                                                                                                                                                                                                                                                      
 L.LOOT_SPEC = "Loot Spec"
 L.MANA_REGEN = "Mana Regen"
+L.MANA_PER_SEC = "%0.2f mana per sec"
 L.MAP = _G.WORLD_MAP or "Map"
 L.MEMBERS = "Members"
 L.MICRO_MENU = "Micro Menu"
@@ -110,7 +119,6 @@ L.ZONE = "Zone"
 L.TOGGLE_BAGS_TEXT = "Click to Toggle Bags"
 L.TOGGLE_BAGS_BAR_TEXT = "Shift + Click to Toggle Bags Bar"
 L.TOGGLE_CHARACTER_TEXT = "Click to Toggle Character Info"
-L.TOGGLE_GUILD_TEXT = "Click to Toggle Guild"
 L.TOGGLE_TALENTS_TEXT = "Click to Toggle Talents"
 L.TOGGLE_WORLD_MAP_TEXT = "Click to Toggle World Map"
 L.CHANGE_LOOT_SPEC_TEXT = "Right Click to Change Loot Spec"

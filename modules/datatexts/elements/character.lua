@@ -84,6 +84,7 @@ local KEY_STONES = L.KEY_STONES or "Key Stones"
 local TOGGLE_CHARACTER_TEXT = L.TOGGLE_CHARACTER_TEXT
 local HIT_CHANCE = L.HIT_CHANCE or "Hit Chance"
 local MANA_REGEN = L.MANA_REGEN or "Mana Regen"
+local MANA_PER_SEC = L.MANA_PER_SEC
 local HEALING_BONUS = L.HEALING_BONUS or "Healing Bonus"
 local ATTACK_POWER = _G.STAT_ATTACK_POWER or "Attack Power"
 local SPELL_POWER = _G.STAT_SPELLPOWER or "Spell Power"
@@ -281,7 +282,7 @@ function character_proto:CreateTooltip(tooltip)
         -- mana regen
         local regen = self:GetManaRegen()
         if regen then
-            tooltip:AddDoubleLine(MANA_REGEN, ("%0.2f mana per sec"):format(regen), 1.0, 1.0, 1.0, 1.0, 1.0, 1.0)
+            tooltip:AddDoubleLine(MANA_REGEN, MANA_PER_SEC:format(regen), 1.0, 1.0, 1.0, 1.0, 1.0, 1.0)
         end
 
         -- healing bonus
