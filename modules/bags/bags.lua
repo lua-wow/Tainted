@@ -299,6 +299,17 @@ do
         if updated then
             self:UpdateFreeSlots()
         end
+
+        -- the ContainerFrame_GenerateFrame hook holds the reopened frame
+        for _, bag in ipairs(self.bags) do
+            if bag.reopen then
+                bag.reopen = nil
+                local bagID = bag:GetID()
+                if bag.numSlots > 0 and not IsBagOpen(bagID) then
+                    OpenBag(bagID)
+                end
+            end
+        end
     end
 
     function element_proto:UpdateCooldowns()
@@ -337,6 +348,10 @@ do
             local bag = self.bagsByID[bagID]
             if bag then
                 bag.dirty = true
+                -- swapping a bag closes its blizzard frame (BAG_CLOSED), hiding the holder's buttons
+                if bag.holder and self:IsShown() then
+                    bag.reopen = true
+                end
             end
         elseif event == "BAG_UPDATE_DELAYED" then
             if self:IsShown() then
@@ -788,6 +803,9 @@ function MODULE:Init()
     -- the window shows every bag, so one bag toggles them all: a single closed bag would make
     -- ToggleAllBags reopen the bags instead of closing them. The bank window keeps its bags open.
     hooksecurefunc("ToggleBag", function(bagID)
+        -- blizzard ignores a bag without slots, e.g. a bag slot clicked while a bag is put in it
+        if GetNumSlots(bagID) == 0 then return end
+
         if window.bagsByID[bagID] then
             if IsBagOpen(bagID) then
                 OpenBags(window)
