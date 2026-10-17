@@ -82,6 +82,11 @@ do
         end
     end
 
+    -- OnHide ends the bank session
+    function bank_proto:Close()
+        self:Hide()
+    end
+
     -- also reached by Escape (UISpecialFrames); CloseAllBags only closes the bags the bank opened
     function bank_proto:OnHide()
         _G.CloseAllBags(self)
@@ -100,7 +105,7 @@ function MODULE:CreateBank()
     for index = 1, NUM_BANKBAGSLOTS do
         element.bagSlotButtons[index] = _G.BankSlotsFrame["Bag" .. index]
     end
-    element.BagSlots = self:CreateBagSlots(element, element.bagSlotButtons)
+    element.BagSlots = self:CreateBagSlots(element, element.bagSlotButtons, NUM_BAG_SLOTS + 1)
 
     local section = element:AddSection(false)
     element:AddBag(section, BANK_CONTAINER).template = "BankItemButtonGenericTemplate"

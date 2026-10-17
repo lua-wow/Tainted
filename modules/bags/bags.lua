@@ -20,10 +20,13 @@ local SortBags = _G.C_Container.SortBags
 local GetKeyRingSize = _G.GetKeyRingSize
 local GetItemQualityColor = _G.C_Item.GetItemQualityColor
 local GetAtlasInfo = _G.C_Texture.GetAtlasInfo
+local GetMoney = _G.GetMoney
+local GetMoneyString = _G.GetMoneyString
 local CooldownFrame_Set = _G.CooldownFrame_Set
 local GameTooltip = _G.GameTooltip
 local GameTooltip_Hide = _G.GameTooltip_Hide
 local BAG_CLEANUP_BAGS = _G.BAG_CLEANUP_BAGS
+local CloseAllBags = _G.CloseAllBags
 local CloseBag = _G.CloseBag
 local OpenBag = _G.OpenBag
 local IsBagOpen = _G.IsBagOpen
@@ -36,6 +39,7 @@ local FOOTER_HEIGHT = 20
 local MARGIN = 10
 local SECTION_SPACING = 10
 local SORT_ICON_CROP = 0.18 -- per side; the sort atlas has a rounded frame of its own
+local SEARCH_PADDING = 4
 
 -- shared with bank.lua
 MODULE.FOOTER_HEIGHT = FOOTER_HEIGHT
@@ -181,8 +185,8 @@ do
         local columns = C.bags.buttons.columns
         local step = size + spacing
 
-        -- sections stack top to bottom, SECTION_SPACING apart; y is the next section's top
-        local y = MARGIN
+        -- sections stack top to bottom under the header, SECTION_SPACING apart; y is the next section's top
+        local y = MARGIN + FOOTER_HEIGHT + SECTION_SPACING
         for _, section in ipairs(self.sections) do
             local total = 0
             for _, bag in ipairs(section) do
@@ -244,6 +248,16 @@ do
             end
         end
         self.FreeSlots:SetFormattedText("%d/%d", free, total)
+    end
+
+    function element_proto:UpdateMoney()
+        self.Money:SetText(GetMoneyString(GetMoney(), true))
+        self.moneyDirty = false
+    end
+
+    -- the Update hook in Init hides the window; the bank window ends its bank session instead (bank.lua)
+    function element_proto:Close()
+        CloseAllBags()
     end
 
     function element_proto:AddSection(extra)
@@ -395,6 +409,12 @@ do
             else
                 self.searchDirty = true
             end
+        elseif event == "PLAYER_MONEY" then
+            if self:IsShown() then
+                self:UpdateMoney()
+            else
+                self.moneyDirty = true
+            end
         elseif event == "QUEST_ACCEPTED" or event == "QUEST_REMOVED" then
             self:SetAllDirty()
             if self:IsShown() then
@@ -417,6 +437,9 @@ do
         if self.searchDirty then
             self:UpdateSearch()
         end
+        if self.moneyDirty then
+            self:UpdateMoney()
+        end
     end
 end
 
@@ -438,6 +461,13 @@ function MODULE:CreateWindow(name)
     freeSlots:SetFontObject(element.fontObject)
     element.FreeSlots = freeSlots
 
+    local close = CreateFrame("Button", nil, element)
+    close:SetSize(FOOTER_HEIGHT, FOOTER_HEIGHT)
+    close:SetPoint("TOPRIGHT", -MARGIN, -MARGIN)
+    close:SetScript("OnClick", function() element:Close() end)
+    close:SkinCloseButton()
+    element.CloseButton = close
+
     element.bags = {}
     element.bagsByID = {}
     element.sections = {}
@@ -456,7 +486,18 @@ function MODULE:CreateBags()
     local element = self:CreateWindow("TaintedBags")
     element:SetPoint("BOTTOMRIGHT", _G.TaintedChatRight, "TOPRIGHT", 0, C.chat.margin)
 
-    local searchAnchor = element.FreeSlots
+    element.FreeSlots:ClearAllPoints()
+    element.FreeSlots:SetPoint("BOTTOMLEFT", MARGIN, MARGIN)
+
+    local money = element:CreateFontString(nil, "OVERLAY")
+    money:SetPoint("BOTTOMRIGHT", -MARGIN, MARGIN)
+    money:SetHeight(FOOTER_HEIGHT)
+    money:SetFontObject(element.fontObject)
+    element.Money = money
+    element.moneyDirty = true
+    element:RegisterEvent("PLAYER_MONEY")
+
+    local searchAnchor = element.CloseButton
     -- classic sorts with MODULE:Sort (sort.lua)
     if SortBags or self.Sort then
         element.SortButton = self:CreateSortButton(element)
@@ -469,7 +510,7 @@ function MODULE:CreateBags()
         for _, name in ipairs(BLIZZARD_BAG_SLOTS) do
             buttons[#buttons + 1] = _G[name]
         end
-        element.BagSlots = self:CreateBagSlots(element, buttons)
+        element.BagSlots = self:CreateBagSlots(element, buttons, BACKPACK_CONTAINER + 1)
 
         -- the rest of blizzard's bags bar (backpack and keyring buttons) has no use with the window.
         -- Hide alone is not enough: BagsBarMixin shows it again.
@@ -503,10 +544,15 @@ end
 function MODULE:CreateSearchBox(window, anchor)
     local element = CreateFrame("EditBox", "TaintedBagsSearchBox", window, "BagSearchBoxTemplate")
     element:SetHeight(FOOTER_HEIGHT)
-    element:SetPoint("BOTTOMLEFT", MARGIN, MARGIN)
+    element:SetPoint("TOPLEFT", MARGIN, -MARGIN)
     element:SetPoint("RIGHT", anchor, "LEFT", -C.bags.buttons.spacing, 0)
     element:StripTextures("BACKGROUND")
     element:CreateBackdrop()
+
+    -- the template's icon and text sit against the left edge (icon x = 1, text inset 16)
+    element.searchIcon:SetPoint("LEFT", SEARCH_PADDING, 0)
+    element.Instructions:SetPoint("TOPLEFT", 16 + SEARCH_PADDING, 0)
+    element:SetTextInsets(16 + SEARCH_PADDING, 20, 0, 0)
 
     return element
 end
@@ -514,7 +560,7 @@ end
 function MODULE:CreateSortButton(window)
     local element = CreateFrame("Button", nil, window)
     element:SetSize(FOOTER_HEIGHT, FOOTER_HEIGHT)
-    element:SetPoint("RIGHT", window.FreeSlots, "LEFT", -C.bags.buttons.spacing, 0)
+    element:SetPoint("RIGHT", window.CloseButton, "LEFT", -C.bags.buttons.spacing, 0)
 
     -- blizzard's sort art inside the square border, cropped past its own rounded frame
     local atlas = GetAtlasInfo("bags-button-autosort-up")
@@ -545,8 +591,26 @@ function MODULE:CreateSortButton(window)
     return element
 end
 
--- classic only: blizzard's bag slot buttons (equipped or bank bags), shown as a row under the item slots
-function MODULE:CreateBagSlots(window, buttons)
+-- hovering a bag slot highlights the item slots of its bag
+local function HighlightBag(window, bagID, highlight)
+    local bag = window.bagsByID[bagID]
+    if not bag then return end
+
+    for slot = 1, bag.numSlots do
+        local button = bag.slots[slot]
+        if button then
+            if highlight then
+                button:LockHighlight()
+            else
+                button:UnlockHighlight()
+            end
+        end
+    end
+end
+
+-- classic only: blizzard's bag slot buttons (equipped or bank bags), shown as a row under the item slots.
+-- button i holds the bag firstBagID + i - 1
+function MODULE:CreateBagSlots(window, buttons, firstBagID)
     local size = C.bags.buttons.size
     local spacing = C.bags.buttons.spacing
 
@@ -603,6 +667,10 @@ function MODULE:CreateBagSlots(window, buttons)
         offsets[button] = (index - 1) * (size + spacing)
         Anchor(button)
         hooksecurefunc(button, "SetPoint", Anchor)
+
+        local bagID = firstBagID + index - 1
+        button:HookScript("OnEnter", function() HighlightBag(window, bagID, true) end)
+        button:HookScript("OnLeave", function() HighlightBag(window, bagID, false) end)
     end
 
     return element
