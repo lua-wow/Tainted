@@ -2,7 +2,6 @@ local _, ns = ...
 local E, C, L = ns.E, ns.C, ns.L
 local MODULE = E:GetModule("DataTexts")
 local ActionBars = E:GetModule("ActionBars")
-local Bags = E:GetModule("Bags")
 
 -- Blizzard
 local BACKPACK_CONTAINER = _G.BACKPACK_CONTAINER or 0
@@ -129,7 +128,10 @@ function gold_proto:CreateTooltip(tooltip)
 
     tooltip:AddLine(" ")
     tooltip:AddLine(TOGGLE_BAGS_TEXT)
-    tooltip:AddLine(TOGGLE_BAGS_BAR_TEXT)
+    -- classic shows the bag slots inside the bags window
+    if E.isMainline and ActionBars then
+        tooltip:AddLine(TOGGLE_BAGS_BAR_TEXT)
+    end
 end
 
 -- containers above 'NUM_BAG_SLOTS' are the reagent bag (mainline)
@@ -152,10 +154,8 @@ function gold_proto:GetBagUsage()
 end
 
 function gold_proto:OnMouseDown()
-    if IsShiftKeyDown() then
-        if not Bags:ToggleBagSlots() and ActionBars then
-            ActionBars:ToggleBagsBar()
-        end
+    if IsShiftKeyDown() and E.isMainline and ActionBars then
+        ActionBars:ToggleBagsBar()
     else
         ToggleAllBags()
     end

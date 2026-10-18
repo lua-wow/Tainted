@@ -1,6 +1,7 @@
 # Known limitations
 
--   **Classic bags:** items in Tainted's bag slots can't be used in combat on Era, TBC, WotLK and MoP.
+-   **Classic bank:** items in the bank's own slots (not bank bags) can't be used in combat on Era, TBC,
+    WotLK and MoP.
 -   **Auras on Retail/Forever:** aura buttons show Blizzard's protected aura tooltip, so there is no spell ID line.
 -   **Minimap on Forever:** toggling `rotateMinimap` brings back Blizzard's round mask until `/reload`.
 -   **Announcers:** addons can't read the combat log on Retail and Forever, so dispel and interrupt

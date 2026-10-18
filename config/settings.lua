@@ -64,11 +64,11 @@ C["auras"] = {
 C["bags"] = {
     ["enabled"] = true,
     ["font"] = "Tainted Outlined",
-    ["sort_bank"] = true, -- classic: the sort button also sorts the open bank
+    ["sort_bank"] = true,           -- classic: the sort button also sorts the open bank
     ["buttons"] = {
         ["size"] = 32,
         ["spacing"] = 5,
-        ["columns"] = 10,
+        ["columns"] = 0,            -- 0: computed from the number of slots
     }
 }
 
