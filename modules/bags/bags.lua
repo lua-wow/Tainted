@@ -40,6 +40,11 @@ local MARGIN = 10
 local SECTION_SPACING = 10
 local SORT_ICON_CROP = 0.18 -- per side; the sort atlas has a rounded frame of its own
 local SEARCH_PADDING = 4
+local SEARCH_MAX_WIDTH = 300
+local HEADER_GAP = 2 * MARGIN -- at least between the sort and close buttons
+local MIN_COLUMNS = 8 -- fits the header and the bag slot row
+local AUTO_MIN_COLUMNS = 10 -- blizzard's default
+local COLUMN_SHAPE = 1.1 -- computed columns per row
 
 -- shared with bank.lua
 MODULE.FOOTER_HEIGHT = FOOTER_HEIGHT
@@ -58,6 +63,15 @@ local function GetNumSlots(bagID)
         return GetKeyRingSize()
     end
     return GetContainerNumSlots(bagID)
+end
+
+-- columns = 0: the grid keeps its shape as the number of slots grows
+local function GetColumns(numSlots)
+    local columns = C.bags.buttons.columns
+    if columns ~= 0 then
+        return math.max(columns, MIN_COLUMNS)
+    end
+    return math.max(math.ceil(math.sqrt(numSlots * COLUMN_SHAPE)), AUTO_MIN_COLUMNS)
 end
 
 local function UpdateSearch(bagID, button)
@@ -182,8 +196,13 @@ do
     function element_proto:Layout()
         local size = C.bags.buttons.size
         local spacing = C.bags.buttons.spacing
-        local columns = C.bags.buttons.columns
         local step = size + spacing
+
+        local numSlots = 0
+        for _, bag in ipairs(self.bags) do
+            numSlots = numSlots + bag.numSlots
+        end
+        local columns = GetColumns(numSlots)
 
         -- sections stack top to bottom under the header, SECTION_SPACING apart; y is the next section's top
         local y = MARGIN + FOOTER_HEIGHT + SECTION_SPACING
@@ -226,13 +245,24 @@ do
             end
         end
 
+        local grid = columns * step - spacing
+
         if self.BagSlots then
             self.BagSlots:ClearAllPoints()
             self.BagSlots:SetPoint("TOPRIGHT", self, "TOPRIGHT", -MARGIN, -y)
             y = y + size + SECTION_SPACING
         end
 
-        self:SetWidth(MARGIN + columns * step - spacing + MARGIN)
+        -- the search box fills the header left of the sort button, keeping HEADER_GAP before close
+        if self.SearchBox then
+            local width = grid - self.CloseButton:GetWidth() - HEADER_GAP
+            if self.SortButton then
+                width = width - self.SortButton:GetWidth() - spacing
+            end
+            self.SearchBox:SetWidth(math.min(width, SEARCH_MAX_WIDTH))
+        end
+
+        self:SetWidth(MARGIN + grid + MARGIN)
         self:SetHeight(y + FOOTER_HEIGHT + MARGIN)
     end
 
@@ -497,13 +527,11 @@ function MODULE:CreateBags()
     element.moneyDirty = true
     element:RegisterEvent("PLAYER_MONEY")
 
-    local searchAnchor = element.CloseButton
+    element.SearchBox = self:CreateSearchBox(element)
     -- classic sorts with MODULE:Sort (sort.lua)
     if SortBags or self.Sort then
         element.SortButton = self:CreateSortButton(element)
-        searchAnchor = element.SortButton
     end
-    element.SearchBox = self:CreateSearchBox(element, searchAnchor)
 
     if E.isClassic then
         local buttons = {}
@@ -541,11 +569,10 @@ function MODULE:CreateBags()
 end
 
 -- the template sets the item search on text change and clears it on hide
-function MODULE:CreateSearchBox(window, anchor)
+function MODULE:CreateSearchBox(window)
     local element = CreateFrame("EditBox", "TaintedBagsSearchBox", window, "BagSearchBoxTemplate")
     element:SetHeight(FOOTER_HEIGHT)
     element:SetPoint("TOPLEFT", MARGIN, -MARGIN)
-    element:SetPoint("RIGHT", anchor, "LEFT", -C.bags.buttons.spacing, 0)
     element:StripTextures("BACKGROUND")
     element:CreateBackdrop()
 
@@ -560,7 +587,7 @@ end
 function MODULE:CreateSortButton(window)
     local element = CreateFrame("Button", nil, window)
     element:SetSize(FOOTER_HEIGHT, FOOTER_HEIGHT)
-    element:SetPoint("RIGHT", window.CloseButton, "LEFT", -C.bags.buttons.spacing, 0)
+    element:SetPoint("LEFT", window.SearchBox, "RIGHT", C.bags.buttons.spacing, 0)
 
     -- blizzard's sort art inside the square border, cropped past its own rounded frame
     local atlas = GetAtlasInfo("bags-button-autosort-up")
