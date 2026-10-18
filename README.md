@@ -56,7 +56,6 @@ Cataclysm is not supported.
 -   `/tainted tank` - Set the tank role: raid frames stay above the chat.
 -   `/tainted dps` - Set the damage role: raid frames stay above the chat.
 -   `/tainted auto` - Clear the manual role and use the detected one.
--   `/tainted keybindings` - Reconfigure the action bar keybindings.
 -   `/tainted spell <spellID|name>` - Print a spell's name, ID and whether it is known.
 -   `/tainted test` - Show the unit frames with the player as unit.
 -   `/tainted reset` - Reset Tainted's saved data for this character and reload the UI.

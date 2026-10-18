@@ -21,6 +21,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   Fix bag window closing when a bag is swapped or an empty bag slot is clicked (Classic)
 -   Fix Retail Lua errors: `taintLog` is never enabled on Retail and is a level elsewhere ([#13](https://github.com/lua-wow/Tainted/issues/13))
 
+### Removed
+
+-   `/tainted keybindings`: personal key bindings moved to a separate addon
+
 ## [1.4.0] - 2026-10-15
 
 ### Added

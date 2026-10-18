@@ -13,5 +13,4 @@
 	<Script file="stancebar.lua"/>
 	<Script file="extra.lua"/>
 	<Script file="zone.lua"/>
-	<Script file="bindings.lua"/>
 </Ui>
