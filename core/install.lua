@@ -112,6 +112,12 @@ local variables = {
 	["showArenaEnemyFrames"] = 0,
 	["showArenaEnemyPets"] = 0,
 
+	-- coordinates
+	["worldMapShowPlayerCoords"] = 1,
+	["worldMapShowCursorCoords"] = 1,
+	["minimapShowPlayerCoords"] = 1,
+	["coordsByTenths"] = 1,
+
 	-- new player experience
 	["showNPETutorials"] = 0
 }
