@@ -25,7 +25,7 @@ One `Tainted.toc` (`## Interface: 11509, 20506, 38002, 50504, 120105, 16001`):
   (`mainline`, `classic`) or game types (`vanilla, tbc, wrath`, `mists`). One ordered list.
 - Unrecognized condition tokens count as satisfied: a `camelot`-only line also needs
   `[ExcludeLoadGameType standard, classic]`.
-- Per-game metadata (`## Title`, `## OptionalDeps`) uses the same suffix.
+- Per-game metadata (`## OptionalDeps`) uses the same suffix.
 - `[Game]`/`[Family]` path variables work everywhere but are unused: variants are named files
   (`init_classic.xml`, `init_mists.xml`) split by oUF variant, and inline branches still need flags.
 

@@ -3,11 +3,7 @@
 ## Author: Luaerror
 
 ## Notes: Minimalistic interface
-## Title: |cffff8000Tainted|r [AllowLoadGameType mainline]
-## Title: |cffff8000Tainted|r Classic [AllowLoadGameType vanilla]
-## Title: |cffff8000Tainted|r TBC [AllowLoadGameType tbc]
-## Title: |cffff8000Tainted|r Wrath [AllowLoadGameType wrath]
-## Title: |cffff8000Tainted|r Mists of Pandaria [AllowLoadGameType mists]
+## Title: |cffff8000Tainted|r
 
 ## IconTexture: Interface\ICONS\Spell_Shadow_Shadowform
 
