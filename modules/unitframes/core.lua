@@ -462,4 +462,4 @@ function UnitFrames:RunTest()
     end
 end
 
-E:AddCommand("test", UnitFrames.RunTest, "spawn frames")
+E:AddCommand("test", UnitFrames.RunTest, "Spawn test unit frames.")

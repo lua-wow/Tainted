@@ -37,6 +37,8 @@ function E:AddCommand(command, handler, description)
 end
 
 local help = function()
+    E:print(E.version)
+    print("usage: |cffff8000/tainted <command> [args]|r")
     for _, cmd in next, keys do
         local row = commands[cmd]
         if (row and row.description) then
@@ -65,7 +67,8 @@ local reset = function()
 end
 
 E:AddCommand("", help)
-E:AddCommand("reset", reset, "reset Tainted settings")
+E:AddCommand("help", help, "Show this help.")
+E:AddCommand("reset", reset, "Reset Tainted settings.")
 E:AddCommand("spell", spell, "Look for spell information based on spellID or name.")
 
 SLASH_RELOADUI1 = "/rl"
