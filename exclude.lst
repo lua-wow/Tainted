@@ -23,3 +23,5 @@ docs/*
 **/.pkgmeta
 **/.editorconfig
 **/.luacheckrc
+**/tests/*
+**/UPSTREAM_REVISION
