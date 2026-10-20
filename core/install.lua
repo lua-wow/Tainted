@@ -100,6 +100,11 @@ local variables = {
 	["autoQuestProgress"] = 1,
 	-- ["instantQuestText"] = 1,
 
+	-- combat text
+	["enableFloatingCombatText"] = 0,			-- scrolling combat text around the player
+	["floatingCombatTextCombatDamage_v2"] = 0,	-- damage numbers over the target
+	["floatingCombatTextCombatHealing_v2"] = 0,	-- healing numbers over the target
+
 	-- loss of control
 	["lossOfControl"] = 1,
 	-- ["lossOfControlDisarm"] = 2,

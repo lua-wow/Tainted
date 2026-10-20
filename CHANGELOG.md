@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 -   Bag window layout closer to Retail: search box and sort button at the top, free slots bottom left, gold bottom right
 -   Gold datatext: shift-click no longer toggles the bag slots on Classic (they live in the bag window)
+-   Install disables floating combat text and target damage/healing numbers
 -   Fix items in bags not usable in combat on Classic clients ([#10](https://github.com/lua-wow/Tainted/issues/10))
 -   Fix bag window closing when a bag is swapped or an empty bag slot is clicked (Classic)
 -   Fix Retail Lua errors: `taintLog` is never enabled on Retail and is a level elsewhere ([#13](https://github.com/lua-wow/Tainted/issues/13))
