@@ -58,8 +58,9 @@ do
     end
 
     function element_proto:SetBackgroundShown(shown)
-        self.Left:SetShown(shown)
-        self.Right:SetShown(shown)
+        -- Left/Right are protected (buttons anchor to them); only their backdrops can toggle in combat
+        self.Left.Backdrop:SetShown(shown)
+        self.Right.Backdrop:SetShown(shown)
     end
 
     function element_proto:UpdateButtonPosition(button, index)
