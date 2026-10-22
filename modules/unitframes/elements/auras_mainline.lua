@@ -226,3 +226,25 @@ function UnitFrames:CreateRaidAuras(frame)
     end
     return buffs, debuffs
 end
+
+--------------------------------------------------
+-- Private Auras
+-- Blizzard draws these into our anchors; only size and layout are ours.
+--------------------------------------------------
+function UnitFrames:CreatePrivateAuras(frame, config)
+    local num = config.num or 2
+    local size = config.size or 16
+    local spacing = C.unitframes.auras.spacing or 3
+
+    local element = CreateFrame("Frame", frame:GetName() .. "PrivateAuras", frame)
+    element:SetSize(num * size + (num - 1) * spacing, size)
+    element:SetFrameLevel(frame.Health:GetFrameLevel() + 10)
+
+    element.num = num
+    element.size = size
+    element.spacing = spacing
+    element.initialAnchor = "TOPLEFT"
+    element.growthX = "RIGHT"
+
+    return element
+end

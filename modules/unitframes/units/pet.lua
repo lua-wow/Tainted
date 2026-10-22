@@ -7,4 +7,5 @@ local UnitFrames = E:GetModule("UnitFrames")
 --------------------------------------------------
 function UnitFrames:CreatePetFrame(frame)
     self:CreateUnitFrame(frame)
+    frame.Happiness = self:CreateHappinessIndicator(frame)
 end

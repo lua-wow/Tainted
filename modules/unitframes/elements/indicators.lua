@@ -18,6 +18,7 @@ do
     function UnitFrames:CreateAssistantIndicator(frame, sublevel)
         local element = CreateIndicator(frame, "AssistantIndicator", frame.Health, element_proto)
         element:SetPoint("CENTER", frame.Health, "TOPLEFT", 0, 0)
+        element:SetTexture(A.icons.assistant)
         return element
     end
 end
@@ -36,14 +37,72 @@ do
 end
 
 --------------------------------------------------
--- Group Role Indicator
+-- Focus Indicator
 --------------------------------------------------
 do
     local element_proto = {}
 
+    function UnitFrames:CreateFocusIndicator(frame, sublevel)
+        if not E.isMainline then
+            return nil
+        end
+
+        local element = CreateIndicator(frame, "FocusIndicator", frame.Health, element_proto)
+        element:SetPoint("CENTER", frame.Health, "TOPRIGHT", 0, 0)
+        element:SetTexture(A.icons.focus)
+        return element
+    end
+end
+
+--------------------------------------------------
+-- Group Role Indicator
+--------------------------------------------------
+do
+    local UnitGroupRolesAssigned = _G.UnitGroupRolesAssigned
+    local issecretvalue = _G.issecretvalue
+
+    local textures = {
+        TANK = A.icons.tank,
+        HEALER = A.icons.healer,
+        DAMAGER = A.icons.damage
+    }
+
+    local element_proto = {}
+
+    -- replaces both oUF updates (Retail atlases, Classic tex coords) so every client shows the same icons
+    function element_proto.Override(frame, event)
+        local element = frame.GroupRoleIndicator
+        local role = UnitGroupRolesAssigned(frame.__unit or frame.unit)
+        -- secret while unit identity is restricted (Retail, Forever)
+        local texture = not (issecretvalue and issecretvalue(role)) and textures[role]
+        if texture then
+            element:SetTexture(texture)
+            element:Show()
+        else
+            element:Hide()
+        end
+    end
+
     function UnitFrames:CreateGroupRoleIndicator(frame, sublevel)
         local element = CreateIndicator(frame, "GroupRoleIndicator", frame.Health, element_proto)
         element:SetPoint("BOTTOM", frame.Health, "BOTTOM", 0, 3)
+        return element
+    end
+end
+
+--------------------------------------------------
+-- Happiness Indicator
+--------------------------------------------------
+do
+    local element_proto = {}
+
+    function UnitFrames:CreateHappinessIndicator(frame, sublevel)
+        if not E.isMainline then
+            return nil
+        end
+
+        local element = CreateIndicator(frame, "Happiness", frame.Health, element_proto)
+        element:SetPoint("CENTER", frame.Health, "TOPRIGHT", 0, 0)
         return element
     end
 end
@@ -54,9 +113,34 @@ end
 do
     local element_proto = {}
 
+    -- oUF sets Blizzard's leader/guide texture on every update; replace it
+    function element_proto:PostUpdate(isLeader)
+        if isLeader then
+            self:SetTexture(A.icons.leader)
+            self:SetTexCoord(0, 1, 0, 1)
+        end
+    end
+
     function UnitFrames:CreateLeaderIndicator(frame, sublevel)
         local element = CreateIndicator(frame, "LeaderIndicator", frame.Health, element_proto)
         element:SetPoint("CENTER", frame.Health, "TOPLEFT", 0, 0)
+        return element
+    end
+end
+
+--------------------------------------------------
+-- Master Looter Indicator
+--------------------------------------------------
+do
+    local element_proto = {}
+
+    function UnitFrames:CreateMasterLooterIndicator(frame, sublevel)
+        if not E.isMainline then
+            return nil
+        end
+
+        local element = CreateIndicator(frame, "MasterLooterIndicator", frame.Health, element_proto)
+        element:SetPoint("CENTER", frame.Health, "TOPLEFT", 16, 0)
         return element
     end
 end
@@ -109,21 +193,13 @@ do
     local element_proto = {}
 
     function UnitFrames:CreatePvPIndicator(frame, sublevel)
-        local holder = CreateFrame("Frame", frame:GetName() .. "PvPIndicator", frame)
-        holder:SetPoint("CENTER", frame, "TOPRIGHT", 0, 0)
-        holder:SetSize(16, 16)
+        -- oUF_Classic calls UnitHonorLevel unguarded
+        if not E.isMainline then
+            return nil
+        end
 
-        local element = Mixin(holder:CreateTexture(nil, "ARTWORK", nil, 0), element_proto)
-        element:SetAllPoints()
-        -- element:SetPoint("TOPLEFT", holder, "TOPLEFT", 10, -12)
-        -- element:SetSize(30, 30)
-        
-        local banner = holder:CreateTexture(nil, "ARTWORK", nil, -1)
-        banner:SetAllPoints()
-
-        element.Holder = holder
-        element.Banner = banner
-
+        local element = CreateIndicator(frame, "PvPIndicator", frame.Health, element_proto)
+        element:SetPoint("CENTER", frame.Health, "TOPRIGHT", -18, 0)
         return element
     end
 end
@@ -199,10 +275,34 @@ end
 do
     local element_proto = {}
 
+    function element_proto:PostUpdate(isResting)
+        local animation = self.Animation
+        if not isResting then
+            animation:Stop()
+        elseif not animation:IsPlaying() then
+            animation:Play()
+        end
+    end
+
     function UnitFrames:CreateRestingIndicator(frame, sublevel)
         local element = CreateIndicator(frame, "RestingIndicator", frame.Health, element_proto)
         element:SetPoint("CENTER", frame.Health, "TOPRIGHT", 0, 0)
+        -- 4x2 sheet of 32x32 frames: z, zz, zzZ, each letter popping in small then full size
         element:SetTexture(A.icons.resting)
+
+        local animation = element:CreateAnimationGroup()
+        animation:SetLooping("REPEAT")
+
+        local flipbook = animation:CreateAnimation("FlipBook")
+        flipbook:SetFlipBookRows(2)
+        flipbook:SetFlipBookColumns(4)
+        flipbook:SetFlipBookFrames(8)
+        flipbook:SetFlipBookFrameWidth(0)
+        flipbook:SetFlipBookFrameHeight(0)
+        flipbook:SetDuration(3.0)
+
+        element.Animation = animation
+
         return element
     end
 end
