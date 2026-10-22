@@ -82,7 +82,7 @@ Agreed during the rebuild; don't re-litigate without a new reason.
   stacks first; junk fills from the end; special bags take fitting items first. Never starts in combat;
   `PLAYER_REGEN_DISABLED`/`BANKFRAME_CLOSED` stop it. Keyring never sorted. `C.bags.sort_bank` sorts
   the open bank separately.
-- **Unit frames:** plugins (Atonement, AuraTrack, RaidDebuffs, TargetIndicator) may be edited;
+- **Unit frames:** plugins (Atonement, AuraTrack, RaidDebuffs) may be edited;
   oUF_Tempest is out of scope. The Atonement bar is created on no client (spell-ID aura lookups are
   secret on Retail/Forever). Healer position: `C.unitframes.raid.healer`, role override `E.db.role`.
 - **Raid auras:** Retail/Forever use oUF `Auras` groups with Blizzard filters. Buffs:
