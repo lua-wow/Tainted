@@ -220,7 +220,7 @@ do
     local element_proto = {}
 
     function UnitFrames:CreateQuestIndicator(frame, sublevel)
-        if not E.isMainline then
+        if not UnitIsQuestBoss then
             return nil
         end
 
