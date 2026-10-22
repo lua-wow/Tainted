@@ -110,7 +110,8 @@ Flags in `core/init.lua`, named after [TOC](https://warcraft.wiki.gg/wiki/TOC_fo
   frames). Remaining game-flag uses are content: Era vehicles, haste and pet happiness, MoP stances and
   keyring, Retail nameplate distance and currencies, install CVar defaults.
 - The oUF variant has no flag: code depending on it goes in files tagged like the oUF line, or checks
-  the matching game flags.
+  the matching game flags, or checks for a method defined only in such a file (`raid.lua`:
+  `CreateRaidAuras`).
 - `ChatFrame_*`, `SendChatMessage`, `GetItemInfo`, `IsSpellKnown`, `GetSpecialization`,
   `GetWeaponEnchantInfo` exist only via `loadDeprecationFallbacks`; use the `C_*` API.
 

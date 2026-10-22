@@ -69,8 +69,8 @@ end
 --------------------------------------------------
 function UnitFrames:CreateRaidFrame(frame)
     self:CreateUnitFrame(frame)
-    if (E.isMainline) then
-        -- oUF_AuraTrack and oUF_RaidDebuffs are classic only
+    if (self.CreateRaidAuras) then
+        -- defined only in auras_mainline.lua (oUF AuraContainer); Classic uses AuraTrack/RaidDebuffs
         frame.Buffs, frame.Debuffs = self:CreateRaidAuras(frame)
         frame.PrivateAuras = self:CreatePrivateAuras(frame, frame.__config.privateauras)
         if (frame.Debuffs) then
