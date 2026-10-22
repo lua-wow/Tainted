@@ -72,7 +72,7 @@ do
     -- replaces both oUF updates (Retail atlases, Classic tex coords) so every client shows the same icons
     function element_proto.Override(frame, event)
         local element = frame.GroupRoleIndicator
-        local role = UnitGroupRolesAssigned(frame.__unit or frame.unit)
+        local role = UnitGroupRolesAssigned(frame.__unit)
         -- secret while unit identity is restricted (Retail, Forever)
         local texture = not (issecretvalue and issecretvalue(role)) and textures[role]
         if texture then

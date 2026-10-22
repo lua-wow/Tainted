@@ -14,7 +14,7 @@ function button_proto:UpdateTooltip()
     if (GameTooltip:IsForbidden()) then return end
 
     local owner = self:GetParent().__owner
-    local unit = owner.__unit or owner.unit
+    local unit = owner.__unit
 	if self.auraIndex then
 		GameTooltip:SetUnitAura(unit, self.auraIndex, self.isHarmfulAura and "HARMFUL" or "HELPFUL")
     elseif self.auraInstanceID and GameTooltip.SetUnitDebuffByAuraInstanceID then

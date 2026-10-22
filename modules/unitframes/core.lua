@@ -119,7 +119,7 @@ function UnitFrames:DisableBlizzard()
 	end
 end
 
--- Blizzard's UnitFrame_OnEnter reads frame.unit, which Retail oUF no longer sets,
+-- Blizzard's UnitFrame_OnEnter reads frame.unit, which oUF no longer sets,
 -- so read the secure unit attribute instead (works with every oUF version).
 local function UnitFrame_UpdateTooltip(self)
     local unit = SecureButton_GetModifiedUnit(self)
@@ -447,15 +447,12 @@ function UnitFrames:RunTest()
         local length = #frame
         if (length > 0) then
             for i = 1, length do
-                -- Retail oUF reads __unit, Classic/MoP oUF read unit
                 frame[i].__unit = "player"
-                frame[i].unit = "player"
                 frame[i].Hide = function() end
                 frame[i]:Show()
             end
         else
             frame.__unit = "player"
-            frame.unit = "player"
             frame.Hide = function() end
             frame:Show()
         end
