@@ -442,21 +442,32 @@ function UnitFrames:Init()
     end)
 end
 
-function UnitFrames:RunTest()
-    for _, frame in next, units do
+local function SetTest(frame, enabled)
+    if (enabled) then
+        frame.__unit = "player"
+        frame.Hide = function() end
+        frame:Show()
+    elseif (rawget(frame, "Hide")) then
+        -- only frames shown by a previous test: restore the real Hide
+        frame.Hide = nil
+        frame:Hide()
+    end
+end
+
+function UnitFrames.RunTest(group)
+    -- boss and arena frames share the same position, show only one of them
+    local skip = (group == "arena") and "boss" or "arena"
+    for unit, frame in next, units do
+        local enabled = (unit ~= skip)
         local length = #frame
         if (length > 0) then
             for i = 1, length do
-                frame[i].__unit = "player"
-                frame[i].Hide = function() end
-                frame[i]:Show()
+                SetTest(frame[i], enabled)
             end
         else
-            frame.__unit = "player"
-            frame.Hide = function() end
-            frame:Show()
+            SetTest(frame, enabled)
         end
     end
 end
 
-E:AddCommand("test", UnitFrames.RunTest, "Spawn test unit frames.")
+E:AddCommand("test", UnitFrames.RunTest, "Spawn test unit frames; [boss|arena], default boss.")

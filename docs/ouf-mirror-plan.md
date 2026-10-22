@@ -10,7 +10,7 @@ oUF_Classic branch: `refactor/retail-mirror` (pushed).
 - [x] Step 3 — Quest indicator: `indicators.lua:223` → `not UnitIsQuestBoss`
 - [x] Step 4 — Raid auras: `raid.lua:72` → `self.CreateRaidAuras`
 - [x] Step 5 — AlternativePower everywhere: `power.lua:114-115, 137-139`
-- [ ] Step 6 — Core `__unit/__realUnit` (oUF_Classic commit 3 + Tainted `auras.lua:17`, `core.lua:450-458`)
+- [x] Step 6 — Core `__unit/__realUnit`, `id` → `__unitIndex`; no `frame.unit` (oUF_Classic `6f7e1fe`, Tainted `4aa96af`)
 - [ ] Docs — `docs/compatibility.md` "oUF variants"/"Decisions" per step
 - [ ] Decide whether `refactor/retail-mirror` merges into oUF_Classic `classic`
 
