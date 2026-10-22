@@ -150,10 +150,6 @@ end
 --------------------------------------------------
 do
     function UnitFrames:CreatePhaseIndicator(frame, sublevel)
-        if not E.isMainline then
-            return nil
-        end
-        
         local element = CreateFrame("Frame", frame:GetName() .. "PhaseIndicator", frame)
         element:SetPoint("CENTER", UIParent, "CENTER", 0, 0)
         element:SetSize(20, 20)
@@ -175,11 +171,24 @@ do
         useAtlasSize = true
     }
 
-    function UnitFrames:CreatePvPClassificationIndicator(frame, sublevel)
-        if not E.isMainline then
-            return nil
-        end
+    local fallbacks = {
+        [Enum.PvPUnitClassification.FlagCarrierHorde] = [[Interface\WorldStateFrame\HordeFlag]],
+        [Enum.PvPUnitClassification.FlagCarrierAlliance] = [[Interface\WorldStateFrame\AllianceFlag]]
+    }
 
+    -- the nameplate flag atlases are missing on Classic (MoP verified), so SetAtlas leaves an empty texture
+    function element_proto:PostUpdate(unit, class)
+        if not self:IsShown() or self:GetAtlas() then return end
+        local texture = fallbacks[class]
+        if texture then
+            self:SetTexture(texture)
+            self:SetTexCoord(0, 1, 0, 1)
+        else
+            self:Hide()
+        end
+    end
+
+    function UnitFrames:CreatePvPClassificationIndicator(frame, sublevel)
         local element = CreateIndicator(frame, "PvPClassificationIndicator", frame.Health, element_proto)
         element:SetPoint("LEFT", frame.Health, "RIGHT", 5, 0)
         return element
@@ -315,7 +324,7 @@ do
 
     function UnitFrames:CreateResurrectIndicator(frame, sublevel)
         local element = CreateIndicator(frame, "ResurrectIndicator", frame.Health, element_proto)
-        element:SetPoint("CENTER", frame.Health, "CENTER", 0, 0)
+        element:SetPoint("CENTER", frame.Health, "TOP", 0, 0)
         return element
     end
 end
@@ -327,12 +336,8 @@ do
     local element_proto = {}
 
     function UnitFrames:CreateSummonIndicator(frame, sublevel)
-        if not E.isMainline then
-            return nil
-        end
-
         local element = CreateIndicator(frame, "SummonIndicator", frame.Health, element_proto)
-        element:SetPoint("CENTER", frame.Health, "CENTER", 0, 0)
+        element:SetPoint("CENTER", frame.Health, "TOP", 0, 0)
         return element
     end
 end
