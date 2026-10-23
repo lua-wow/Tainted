@@ -245,6 +245,8 @@ function UnitFrames:CreatePrivateAuras(frame, config)
     element.spacing = spacing
     element.initialAnchor = "TOPLEFT"
     element.growthX = "RIGHT"
+    -- Blizzard sizes the debuff border to iconWidth + 5 * borderScale; unset it stays 40x40
+    element.borderScale = 0.4
 
     return element
 end
