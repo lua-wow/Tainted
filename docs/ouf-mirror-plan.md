@@ -12,7 +12,7 @@ oUF_Classic branch: `refactor/retail-mirror` (pushed).
 - [x] Step 5 — AlternativePower everywhere: `power.lua:114-115, 137-139`
 - [x] Step 6 — Core `__unit/__realUnit`, `id` → `__unitIndex`; no `frame.unit` (oUF_Classic `6f7e1fe`, Tainted `4aa96af`)
 - [x] Docs — `docs/compatibility.md` "oUF variants"/"Decisions" per step
-- [ ] Decide whether `refactor/retail-mirror` merges into oUF_Classic `classic`
+- [x] `refactor/retail-mirror` squash-merged into oUF_Classic `classic` (`55f37cd`)
 
 Not in this plan (gates added later by `40f721b`, `indicators.lua`): Focus `:46`, Happiness `:100`,
 MasterLooter `:138`, PvP `:206` (`UnitHonorLevel` unguarded in oUF_Classic). Line numbers in the
