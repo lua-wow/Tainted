@@ -69,9 +69,17 @@ end
 --------------------------------------------------
 function UnitFrames:CreateRaidFrame(frame)
     self:CreateUnitFrame(frame)
-    if (E.isMainline) then
-        -- oUF_AuraTrack and oUF_RaidDebuffs are classic only
+    if (self.CreateRaidAuras) then
+        -- defined only in auras_mainline.lua (oUF AuraContainer); Classic uses AuraTrack/RaidDebuffs
         frame.Buffs, frame.Debuffs = self:CreateRaidAuras(frame)
+        frame.PrivateAuras = self:CreatePrivateAuras(frame, frame.__config.privateauras)
+        if (frame.Debuffs) then
+            -- AuraContainers can't be anchored to: sit below the debuff row centred on Health
+            local size = frame.__config.debuffs.size or 24
+            frame.PrivateAuras:SetPoint("TOP", frame.Health, "CENTER", 0, -(size / 2 + 2))
+        else
+            frame.PrivateAuras:SetPoint("CENTER", frame.Health, "CENTER", 0, 0)
+        end
     else
         if (frame.__config.auratrack.enabled) then
             frame.AuraTrack = self:CreateAuraTrack(frame)
@@ -81,6 +89,7 @@ function UnitFrames:CreateRaidFrame(frame)
         frame.RaidDebuffs = self:CreateRaidDebuffs(frame)
     end
     frame.GroupRoleIndicator = self:CreateGroupRoleIndicator(frame)
+    frame.MasterLooterIndicator = self:CreateMasterLooterIndicator(frame)
     frame.ReadyCheckIndicator = self:CreateReadyCheckIndicator(frame)
     frame.ResurrectIndicator = self:CreateResurrectIndicator(frame)
     frame.TargetIndicator = self:CreateTargetIndicator(frame)

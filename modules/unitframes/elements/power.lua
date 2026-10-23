@@ -111,8 +111,7 @@ do
             return
         end
 
-        -- retail oUF keeps barID internal; classic oUF still exposes __barID
-        local barID = self.__barID or UnitPowerBarID(unit)
+        local barID = UnitPowerBarID(unit)
         local name = GetUnitPowerBarStringsByID(barID) or GetUnitPowerBarStrings(unit)
 
         if (self.Text) then
@@ -133,11 +132,6 @@ do
     end
         
     function UnitFrames:CreateAlternativePower(frame)
-        -- Retail/Forever and MoP only (classic oUF has the element on every classic client)
-        if not (E.isMainline or E.isMists) then
-            return nil
-        end
-
         local texture = C.unitframes.texture
 
         local element = Mixin(CreateFrame("StatusBar", frame:GetName() .. "AlternativePower", frame), element_proto)

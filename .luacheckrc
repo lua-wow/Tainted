@@ -294,6 +294,7 @@ read_globals = {
     'UnitIsDead',
     'UnitIsFriend',
     'UnitIsGhost',
+    'UnitIsQuestBoss',
     'UnitIsUnit',
     'UnitLevel',
     'UnitName',

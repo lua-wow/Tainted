@@ -27,7 +27,6 @@ libs\oUF_Classic\oUF.xml [AllowLoadGameType classic]
 libs\oUF_Atonement\oUF_Atonement.lua [AllowLoadGameType mainline]
 libs\oUF_AuraTrack\oUF_AuraTrack.xml [AllowLoadGameType classic]
 libs\oUF_RaidDebuffs\oUF_RaidDebuffs.xml [AllowLoadGameType classic]
-libs\oUF_TargetIndicator\oUF_TargetIndicator.lua [AllowLoadGameType classic]
 libs\oUF_Tempest\oUF_Tempest.lua [AllowLoadGameType mainline]
 
 ## assets

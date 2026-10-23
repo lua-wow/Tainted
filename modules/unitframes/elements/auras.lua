@@ -14,7 +14,7 @@ function button_proto:UpdateTooltip()
     if (GameTooltip:IsForbidden()) then return end
 
     local owner = self:GetParent().__owner
-    local unit = owner.__unit or owner.unit
+    local unit = owner.__unit
 	if self.auraIndex then
 		GameTooltip:SetUnitAura(unit, self.auraIndex, self.isHarmfulAura and "HARMFUL" or "HELPFUL")
     elseif self.auraInstanceID and GameTooltip.SetUnitDebuffByAuraInstanceID then
@@ -54,9 +54,13 @@ function aura_proto:OnUpdate(elapsed)
     if (self.elapsed >= 0.1) then
         local remaining = self.duration:GetRemainingDuration(0)
         if (remaining) then
-            local truncated = C_StringUtil.TruncateWhenZero(remaining)
             local color = self.duration:EvaluateRemainingDuration(E.curves.auras.duration)
-            self.Timer:SetText(truncated)
+            -- a secret can't be compared or formatted: raw seconds
+            if (issecretvalue(remaining)) then
+                self.Timer:SetText(C_StringUtil.TruncateWhenZero(remaining))
+            else
+                self.Timer:SetText(remaining > 0 and E.FormatTime(remaining) or "")
+            end
             self.Timer:SetTextColor(color.r, color.g, color.b)
         else
             self.Timer:Hide()

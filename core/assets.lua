@@ -36,9 +36,15 @@ A["textures"] = {
 }
 
 A["icons"] = {
+    ["assistant"]   = [[Interface\AddOns\Tainted\assets\icons\assistant]],
     ["copy"]        = [[Interface\AddOns\Tainted\assets\icons\copy]],
+    ["damage"]      = [[Interface\AddOns\Tainted\assets\icons\damage]],
+    ["focus"]       = [[Interface\AddOns\Tainted\assets\icons\focus]],
+    ["healer"]      = [[Interface\AddOns\Tainted\assets\icons\healer]],
+    ["leader"]      = [[Interface\AddOns\Tainted\assets\icons\leader]],
     ["raidtarget"]  = [[Interface\AddOns\Tainted\assets\icons\raidtarget]],
-    ["resting"]     = [[Interface\AddOns\Tainted\assets\icons\resting]]
+    ["resting"]     = [[Interface\AddOns\Tainted\assets\icons\resting]],
+    ["tank"]        = [[Interface\AddOns\Tainted\assets\icons\tank]]
 }
 
 A["sounds"] = {}

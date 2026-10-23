@@ -18,10 +18,6 @@
 	path = libs/oUF_RaidDebuffs
 	url = https://github.com/lua-wow/oUF_RaidDebuffs.git
 	branch = master
-[submodule "libs/oUF_TargetIndicator"]
-	path = libs/oUF_TargetIndicator
-	url = https://github.com/lua-wow/oUF_TargetIndicator.git
-	branch = master
 [submodule "libs/oUF_Tempest"]
 	path = libs/oUF_Tempest
 	url = https://github.com/lua-wow/oUF_Tempest.git

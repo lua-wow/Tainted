@@ -363,6 +363,11 @@ C["unitframes"] = {
             ["name"] = "[namecolor][namemedium]|r",
             ["health"] = "[healthcolor][perhp]%|r"
         },
+        -- Retail/Forever: Blizzard-drawn boss mechanic auras, right of the frame
+        ["privateauras"] = {
+            ["num"] = 2,
+            ["size"] = 24
+        },
         -- room for the aura row above each frame
         ["yOffset"] = 35
     },
@@ -381,6 +386,11 @@ C["unitframes"] = {
             ["enabled"] = true,
             ["num"] = 3,
             ["size"] = 27
+        },
+        -- Retail/Forever: Blizzard-drawn boss mechanic auras, under the debuff row
+        ["privateauras"] = {
+            ["num"] = 2,
+            ["size"] = 16
         },
         ["auratrack"] = {
             ["enabled"] = true

@@ -82,9 +82,12 @@ Agreed during the rebuild; don't re-litigate without a new reason.
   stacks first; junk fills from the end; special bags take fitting items first. Never starts in combat;
   `PLAYER_REGEN_DISABLED`/`BANKFRAME_CLOSED` stop it. Keyring never sorted. `C.bags.sort_bank` sorts
   the open bank separately.
-- **Unit frames:** plugins (Atonement, AuraTrack, RaidDebuffs, TargetIndicator) may be edited;
+- **Unit frames:** plugins (Atonement, AuraTrack, RaidDebuffs) may be edited;
   oUF_Tempest is out of scope. The Atonement bar is created on no client (spell-ID aura lookups are
   secret on Retail/Forever). Healer position: `C.unitframes.raid.healer`, role override `E.db.role`.
+  Unit-frame code is shared, Retail oUF is the reference; a remaining difference is a capability
+  check, not a client flag. AlternativePower on every client. Adapter ports skipped: castbar duration
+  objects, colour curves, range without polling, Auras shim.
 - **Raid auras:** Retail/Forever use oUF `Auras` groups with Blizzard filters. Buffs:
   `BIG_DEFENSIVE`, `EXTERNAL_DEFENSIVE`, own `RAID_IN_COMBAT` HoTs. Debuffs: `RAID_PLAYER_DISPELLABLE`,
   boss, `CROWD_CONTROL`, `IMPORTANT`. Classic keeps AuraTrack and RaidDebuffs.
@@ -93,11 +96,14 @@ Agreed during the rebuild; don't re-litigate without a new reason.
 
 ## oUF variants
 
-- `libs/oUF` (Retail, read-only): sets `frame.__unit`, not `frame.unit`; `colors.debuff` is
-  `colors.dispel`. `AddGroup` groups aren't exclusive (later groups need `!` negations); spell-ID
-  filters are ignored for debuffs on friendly units.
+- `libs/oUF` (Retail, read-only): `colors.debuff` is `colors.dispel`. `AddGroup` groups aren't
+  exclusive (later groups need `!` negations); spell-ID filters are ignored for debuffs on friendly units.
 - `libs/oUF_Classic` (branch `classic`): Era, TBC, WotLK, MoP; game content gated by `oUF.isMoP`;
-  ClassPower `PostUpdate` uses the Retail signature.
+  ClassPower `PostUpdate` uses the Retail signature. Mirrors Retail: frames set `__unit`/`__realUnit`
+  and `__unitIndex` (number), never `frame.unit`; Target, Phase, Summon and PvPClassification
+  indicators are the Retail elements (no `oUF_TargetIndicator` plugin). Absent: Auras container
+  (`AddGroup`), QuestIndicator (`UnitIsQuestBoss`), selection colour (`UnitSelectionType`), so
+  nameplate health colour (`units/nameplate.lua`) is the one remaining oUF-variant branch.
 
 ## Runtime client checks
 
@@ -110,7 +116,8 @@ Flags in `core/init.lua`, named after [TOC](https://warcraft.wiki.gg/wiki/TOC_fo
   frames). Remaining game-flag uses are content: Era vehicles, haste and pet happiness, MoP stances and
   keyring, Retail nameplate distance and currencies, install CVar defaults.
 - The oUF variant has no flag: code depending on it goes in files tagged like the oUF line, or checks
-  the matching game flags.
+  the matching game flags, or checks for a method defined only in such a file (`raid.lua`:
+  `CreateRaidAuras`) or for the API itself (`indicators.lua`: `UnitIsQuestBoss`).
 - `ChatFrame_*`, `SendChatMessage`, `GetItemInfo`, `IsSpellKnown`, `GetSpecialization`,
   `GetWeaponEnchantInfo` exist only via `loadDeprecationFallbacks`; use the `C_*` API.
 

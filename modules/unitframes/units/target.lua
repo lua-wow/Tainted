@@ -17,4 +17,6 @@ function UnitFrames:CreateTargetFrame(frame)
     frame.AlternativePower = self:CreateAlternativePower(frame)
     frame.LeaderIndicator = self:CreateLeaderIndicator(frame)
     frame.AssistantIndicator = self:CreateAssistantIndicator(frame)
+    frame.FocusIndicator = self:CreateFocusIndicator(frame)
+    frame.MasterLooterIndicator = self:CreateMasterLooterIndicator(frame)
 end
