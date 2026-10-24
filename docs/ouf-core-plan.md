@@ -39,15 +39,15 @@ Spike = steps 1–4 + gate. Tick a box in the same edit as the change.
 - [x] 2: compat module (spike)
 - [x] 3: block Blizzard frames without rolesets (spike)
 - [x] 4: spawn without rolesets, hide in pet battles (spike)
-- [ ] Go/no-go gate: castbar, health/prediction, tags, range (spike)
+- [x] Go/no-go gate: castbar, health/prediction, tags, range (spike; passed on MoP)
 - [ ] 5: arena preparation
-- [ ] 6: selection colour
+- [x] 6: selection colour (pulled before the gate)
 - [ ] 7: Totems
 - [ ] 8: ClassPower (8a guards, 8b target combo points, 8c MoP)
 - [ ] 9: PvPIndicator
 - [ ] 10: classic aura element
 - [ ] 11: Runes on WotLK/MoP
-- [ ] 12: AdditionalPower display pairs
+- [x] 12: AdditionalPower display pairs (pulled before the gate)
 - [ ] 13: Tags without UnitFrameUtil
 - [ ] 13b: Happiness and MasterLooterIndicator
 - [ ] 14: in-game failures only (range, castbar, health, role indicators)
