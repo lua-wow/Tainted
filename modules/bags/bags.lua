@@ -30,6 +30,7 @@ local CloseAllBags = _G.CloseAllBags
 local CloseBag = _G.CloseBag
 local OpenBag = _G.OpenBag
 local IsBagOpen = _G.IsBagOpen
+local InCombatLockdown = _G.InCombatLockdown
 local PlaySound = _G.PlaySound
 local hooksecurefunc = _G.hooksecurefunc
 
@@ -310,7 +311,7 @@ do
     end
 
     -- slot counts are only known once bag data is loaded and change when a bag is swapped
-    function element_proto:Refresh()
+    function element_proto:UpdateSize()
         local changed = false
         for _, bag in ipairs(self.bags) do
             if bag.dirty then
@@ -325,6 +326,10 @@ do
         if changed then
             self:Layout()
         end
+    end
+
+    function element_proto:Refresh()
+        self:UpdateSize()
 
         local updated = false
         for _, bag in ipairs(self.bags) do
@@ -400,6 +405,9 @@ do
         elseif event == "BAG_UPDATE_DELAYED" then
             if self:IsShown() then
                 self:Refresh()
+            elseif not InCombatLockdown() then
+                -- retail: a slot created in combat uses items tainted until /reload
+                self:UpdateSize()
             end
         elseif event == "ITEM_LOCK_CHANGED" then
             local bag = slot and self.bagsByID[bagID]
