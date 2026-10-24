@@ -21,7 +21,7 @@ the legacy branch (`oUF_Classic/oUF.toc`; `init.lua`: `WOW_PROJECT_CLASSIC`,
 | Q1 | Public flags | Legacy names and meanings: `isRetail`, `isClassic` (= **Era**), `isTBC`, `isWrath`, `isCata`, `isMoP`. Plugins unchanged |
 | Q2 | Classic auras | `elements/auras_classic.lua` from `9d557b4:elements/auras.lua` + re-implemented fixes; `oUF.xml` swaps it for `auras.lua` |
 | Q2b | Dispel key | Tainted uses `"None"` (`modules/unitframes/elements/auras.lua:155`); no alias in oUF |
-| Q3 | Selection colour | `UnitSelectionColor` RGB → `oUF.Enum.SelectionType` reverse map in `private.lua` |
+| Q3 | Selection colour | Colour taken from `UnitSelectionColor` (`Private.unitSelectionColor`), no type mapping |
 | Q4 | Arena frames | CVar `showArenaEnemyFrames` 0 + hide `ArenaEnemyFrame1-5` when `Blizzard_ArenaUI` loads; no `Arena_LoadUI` override |
 | Q5 | Runes | Port rune types (`GetRuneType`) on WotLK/MoP |
 | Q6 | MoP ClassPower | Chi for all monks (`not GameCompatibility.Legion`) only; warlock/mage changed only if in-game shows them wrong |
@@ -42,7 +42,7 @@ Spike = steps 1–4 + gate. Tick a box in the same edit as the change.
 - [x] Go/no-go gate: castbar, health/prediction, tags, range (spike; passed on MoP)
 - [x] 5: arena preparation
 - [x] 6: selection colour (pulled before the gate)
-- [ ] 7: Totems
+- [x] 7: Totems
 - [ ] 8: ClassPower (8a guards, 8b target combo points, 8c MoP)
 - [ ] 9: PvPIndicator
 - [ ] 10: classic aura element
@@ -240,11 +240,10 @@ All work → continue with step 5. Any is a stub → abort (step 0): delete `ref
 - Verify: `/tainted test arena`; MoP real arena queue (prep shows class colour); TBC/WotLK arena.
 
 **Step 6: selection colour** (shim)
-- Files: `private.lua` (`unitSelectionType`, `:72-78`), possibly `compat.lua`.
+- Files: `compat.lua` (`unitSelectionColor`), `elements/{health,power}.lua`.
 - `UnitSelectionType` is absent. `UnitSelectionColor` is X only (`Shared/CompactUnitFrame.lua`) and is
-  what legacy used in production. Q3, decided: when `UnitSelectionType` is nil, map `UnitSelectionColor(unit, true)` RGB → `oUF.Enum.SelectionType` through a reverse table. That
-  keeps `colors.selection[type]` and the element code unchanged (the RGB values are **UNVERIFIED**).
-- Commit: `private: selection type from UnitSelectionColor on Classic`
+  what legacy used in production. Q3, decided: `Private.unitSelectionColor` returns the `UnitSelectionColor(unit, true)` colour (computed per `UpdateColor`); no type mapping.
+- Commit: `private: selection colour from UnitSelectionColor on Classic`
 - Verify: Classic nameplate selection colours (hostile, neutral, friendly, tapped, party, dead).
 
 ### Phase 3: elements (failure-driven, in the order Tainted hits them)
@@ -457,7 +456,7 @@ worktree.
 | `__unit`/`__realUnit`/`__unitIndex` (`55f37cd`) | hand-port | master native → drop |
 | Target/Phase/Summon/PvPClassification (`55f37cd`) | Retail files | identical to master → drop |
 | Heal prediction in Health/Power (`5330b4c`) | calculator sub-widgets | master native → drop |
-| Selection colour (no `UnitSelectionType`) | `Private.UnitSelectionColor` → colour object | step 6 (reverse map, Q3) |
+| Selection colour (no `UnitSelectionType`) | `Private.unitSelectionColor` → colour object | step 6 (Q3) |
 | Smooth gradient colours (`Private.SmoothColor`, `colors.smooth`) | gradient helpers | master curves (D all, used by Tainted) → drop |
 | `ColorMixin` nil alpha breaks `ColorCurve:AddPoint` | `a or 1` | check in-game; master `SetRGBA(r,g,b,a)` with `a=nil` → **UNVERIFIED**, fix in `colors.lua` only if it fails |
 | Death rune colour, rune types (`f7b410d`) | `runes[4]`, `GetRuneType` | step 11 |
@@ -477,7 +476,7 @@ worktree.
 | PhaseIndicator, PvPClassificationIndicator, SummonIndicator, TargetIndicator | identical | — |
 | AssistantIndicator, CombatIndicator, LeaderIndicator, RaidTargetIndicator, RestingIndicator, ResurrectIndicator, ThreatIndicator, Portrait, ReadyCheckIndicator | API availability (master runs as is) | diffs are `__unit`, secret guards, atlases |
 | GroupRoleIndicator, RaidRoleIndicator | API availability | Classic uses the non-PTR `else`; upstream will remove it (merge risk) |
-| Health, Power, AlternativePower | shim candidate | `unitSelectionType` (step 6); calculator/percent APIs **UNVERIFIED** |
+| Health, Power, AlternativePower | shim candidate | `unitSelectionColor` (step 6); calculator/percent APIs **UNVERIFIED** |
 | PvPIndicator | shim candidate | step 9 |
 | Totems | shim candidate | step 7 |
 | Tags | shim candidate | step 13; percent APIs **UNVERIFIED** |
@@ -531,8 +530,8 @@ worktree.
 
 **UNVERIFIED** (in-game only): castbar duration objects and text binding; Tags percent APIs and
 seconds formatter; Health calculator getters; `UNIT_IN_RANGE_UPDATE` cadence; `UnitPower` combo
-points on Classic; `COMBO_TARGET_CHANGED`; arena spec APIs per client; `UnitSelectionColor` RGB
-values; honor APIs; WotLK `GetSpecialization`; focus on Era; nil-alpha `ColorMixin` with curves.
+points on Classic; `COMBO_TARGET_CHANGED`; arena spec APIs per client;
+honor APIs; WotLK `GetSpecialization`; focus on Era; nil-alpha `ColorMixin` with curves.
 
 **Hard-fork triggers.** Any of these would justify a hard fork instead:
 - the castbar duration APIs are stubs on Classic, so the castbar needs an `OnUpdate` rewrite (large

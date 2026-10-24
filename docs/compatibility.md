@@ -102,7 +102,7 @@ Agreed during the rebuild; don't re-litigate without a new reason.
   ClassPower `PostUpdate` uses the Retail signature. Mirrors Retail: frames set `__unit`/`__realUnit`
   and `__unitIndex` (number), never `frame.unit`; Target, Phase, Summon and PvPClassification
   indicators are the Retail elements (no `oUF_TargetIndicator` plugin). Absent: Auras container
-  (`AddGroup`), QuestIndicator (`UnitIsQuestBoss`), selection colour (`UnitSelectionType`), so
+  (`AddGroup`), QuestIndicator (`UnitIsQuestBoss`); selection colour comes from `UnitSelectionColor`. So
   nameplate health colour (`units/nameplate.lua`) is the one remaining oUF-variant branch.
 
 ## Runtime client checks
