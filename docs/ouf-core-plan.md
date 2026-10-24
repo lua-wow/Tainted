@@ -30,6 +30,31 @@ the legacy branch (`oUF_Classic/oUF.toc`; `init.lua`: `WOW_PROJECT_CLASSIC`,
 | — | Old plan doc | This plan replaces `docs/ouf-core-plan.md` (tracked) |
 | — | Go/no-go | Gate after step 4 on `refactor/classic`; `classic` is overwritten only after step 16 passes |
 
+## Progress
+
+Spike = steps 1–4 + gate. Tick a box in the same edit as the change.
+
+- [x] 0: `refactor/classic` from `origin/master` (`3692cb6`)
+- [ ] 1: TOC for Classic (spike)
+- [ ] 2: compat module (spike)
+- [ ] 3: block Blizzard frames without rolesets (spike)
+- [ ] 4: spawn without rolesets, hide in pet battles (spike)
+- [ ] Go/no-go gate: castbar, health/prediction, tags, range (spike)
+- [ ] 5: arena preparation
+- [ ] 6: selection colour
+- [ ] 7: Totems
+- [ ] 8: ClassPower (8a guards, 8b target combo points, 8c MoP)
+- [ ] 9: PvPIndicator
+- [ ] 10: classic aura element
+- [ ] 11: Runes on WotLK/MoP
+- [ ] 12: AdditionalPower display pairs
+- [ ] 13: Tags without UnitFrameUtil
+- [ ] 13b: Happiness and MasterLooterIndicator
+- [ ] 14: in-game failures only (range, castbar, health, role indicators)
+- [ ] 15: oUF cleanup
+- [ ] 16: Tainted
+- [ ] Publish: overwrite `classic`
+
 ---
 
 ## 1. Findings summary
