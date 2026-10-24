@@ -37,7 +37,7 @@ Spike = steps 1–4 + gate. Tick a box in the same edit as the change.
 - [x] 0: `refactor/classic` from `origin/master` (`3692cb6`)
 - [x] 1: TOC for Classic (spike)
 - [x] 2: compat module (spike)
-- [ ] 3: block Blizzard frames without rolesets (spike)
+- [x] 3: block Blizzard frames without rolesets (spike)
 - [ ] 4: spawn without rolesets, hide in pet battles (spike)
 - [ ] Go/no-go gate: castbar, health/prediction, tags, range (spike)
 - [ ] 5: arena preparation
