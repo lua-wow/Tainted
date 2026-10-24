@@ -40,7 +40,7 @@ Spike = steps 1–4 + gate. Tick a box in the same edit as the change.
 - [x] 3: block Blizzard frames without rolesets (spike)
 - [x] 4: spawn without rolesets, hide in pet battles (spike)
 - [x] Go/no-go gate: castbar, health/prediction, tags, range (spike; passed on MoP)
-- [ ] 5: arena preparation
+- [x] 5: arena preparation
 - [x] 6: selection colour (pulled before the gate)
 - [ ] 7: Totems
 - [ ] 8: ClassPower (8a guards, 8b target combo points, 8c MoP)
@@ -54,6 +54,11 @@ Spike = steps 1–4 + gate. Tick a box in the same edit as the change.
 - [ ] 15: oUF cleanup
 - [ ] 16: Tainted
 - [ ] Publish: overwrite `classic`
+
+Later (found in-game, outside the port steps):
+- [ ] `oUF_RaidDebuffs`: border colour missing for some debuffs
+- [ ] Focus range: `C.unitframes.focus.range` constant for the focus `Range` element
+- [ ] Classic nameplates use the Retail layout; restore the Classic one
 
 ---
 
