@@ -49,7 +49,7 @@ Spike = steps 1–4 + gate. Tick a box in the same edit as the change.
 - [x] 11: Runes on WotLK/MoP
 - [x] 12: AdditionalPower display pairs (pulled before the gate)
 - [x] 13: Tags without UnitFrameUtil
-- [ ] 13b: Happiness and MasterLooterIndicator
+- [x] 13b: Happiness and MasterLooterIndicator
 - [ ] 14: in-game failures only (range, castbar, health, role indicators)
 - [x] 15: oUF cleanup
 - [x] 16: Tainted (indicator gates moved to 13b)
@@ -337,8 +337,8 @@ All work → continue with step 5. Any is a stub → abort (step 0): delete `ref
     first return has the same 1–3 meaning.
   - Gate `GameVersion.Forever` → `Private.getPetHappiness` (hunter + `pet`, as now).
   - `UNIT_HAPPINESS` is in all 4 docs.
-  - MoP removed pet happiness, but its PetFrame still calls `GetPetHappiness`; whether it returns nil
-    there is **UNVERIFIED**. The element must hide on nil.
+  - MoP removed pet happiness, but its PetFrame still calls `GetPetHappiness`. In-game (2026-10-25)
+    it returns `nil, 100, 0`, so the element hides.
   - Commit: `happiness: Classic hunter pets via GetPetHappiness`
 - MasterLooter (`elements/masterlooterindicator.lua:103`): gate `GameVersion.Forever` → the API
   check (`C_PartyInfo.GetLootMethod`, D on all 4; `PARTY_LOOT_METHOD_CHANGED` in all 4 docs).

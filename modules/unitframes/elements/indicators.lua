@@ -97,10 +97,6 @@ do
     local element_proto = {}
 
     function UnitFrames:CreateHappinessIndicator(frame, sublevel)
-        if not E.isMainline then
-            return nil
-        end
-
         local element = CreateIndicator(frame, "Happiness", frame.Health, element_proto)
         element:SetPoint("CENTER", frame.Health, "TOPRIGHT", 0, 0)
         return element
@@ -135,10 +131,6 @@ do
     local element_proto = {}
 
     function UnitFrames:CreateMasterLooterIndicator(frame, sublevel)
-        if not E.isMainline then
-            return nil
-        end
-
         local element = CreateIndicator(frame, "MasterLooterIndicator", frame.Health, element_proto)
         element:SetPoint("CENTER", frame.Health, "TOPLEFT", 16, 0)
         return element
