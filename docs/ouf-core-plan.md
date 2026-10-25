@@ -19,7 +19,7 @@ the legacy branch (`oUF_Classic/oUF.toc`; `init.lua`: `WOW_PROJECT_CLASSIC`,
 |:--|:--|:--|
 | — | WotLK | Target, same as legacy |
 | Q1 | Public flags | Legacy names and meanings: `isRetail`, `isClassic` (= **Era**), `isTBC`, `isWrath`, `isCata`, `isMoP`. Plugins unchanged |
-| Q2 | Classic auras | `elements/auras_classic.lua` from `9d557b4:elements/auras.lua` + re-implemented fixes; `oUF.xml` swaps it for `auras.lua` |
+| Q2 | Classic auras | `elements/auras.lua` replaced by `9d557b4:elements/auras.lua` + re-implemented fixes (no separate Classic file) |
 | Q2b | Dispel key | Tainted uses `"None"` (`modules/unitframes/elements/auras.lua:155`); no alias in oUF |
 | Q3 | Selection colour | Colour taken from `UnitSelectionColor` (`Private.unitSelectionColor`), no type mapping |
 | Q4 | Arena frames | CVar `showArenaEnemyFrames` 0 + hide `ArenaEnemyFrame1-5` when `Blizzard_ArenaUI` loads; no `Arena_LoadUI` override |
@@ -45,8 +45,8 @@ Spike = steps 1–4 + gate. Tick a box in the same edit as the change.
 - [x] 7: Totems
 - [x] 8: ClassPower (8a guards, 8b target combo points, 8c MoP)
 - [x] 9: PvPIndicator
-- [ ] 10: classic aura element
-- [ ] 11: Runes on WotLK/MoP
+- [x] 10: classic aura element
+- [x] 11: Runes on WotLK/MoP
 - [x] 12: AdditionalPower display pairs (pulled before the gate)
 - [ ] 13: Tags without UnitFrameUtil
 - [ ] 13b: Happiness and MasterLooterIndicator
@@ -286,16 +286,14 @@ All work → continue with step 5. Any is a stub → abort (step 0): delete `ref
 - Verify: flag PvP, FFA zone, enemy player nameplate/target; Tainted gate `indicators.lua:206` can
   then be revisited (separate decision).
 
-**Step 10: classic aura element** (skip + classic-only file; Q2, decided)
-- Files: `oUF.xml` (swap the `elements\auras.lua` line for `elements\auras_classic.lua`); new
-  `elements/auras_classic.lua`.
+**Step 10: classic aura element** (replace; Q2, decided)
+- Files: `elements/auras.lua`, replaced (the AuraContainer element is Retail-only).
 - Source: **master's own history**, `git show 9d557b4:elements/auras.lua`, the last upstream
   button-based element and not a legacy file. Then re-implement the problems legacy solved:
   - `growthX`/`growthY` (legacy `5fd0303`)
   - `__unit` (master core)
-  - dispel colour key `None` (master `colors.dispel` from `AuraUtil`)
-- Registers `'Auras'` like the old element. Master's `AddMetaElement('Auras')` must therefore not load
-  on Classic, hence the skip.
+  - dispel colour key `None` (master `colors.dispel` from `AuraUtil`); colours are color objects (`GetRGB`)
+- Registers `'Auras'` with `AddElement` like the old element.
 - Commit: `auras: button-based Buffs/Debuffs for Classic (no AuraContainer)`
 - Verify: player/target/party/nameplate buffs and debuffs, growth direction, tooltips, dispel
   borders, stealable; AuraTrack/RaidDebuffs plugins on raid frames.
@@ -305,8 +303,11 @@ All work → continue with step 5. Any is a stub → abort (step 0): delete `ref
 - With `GetRuneType` (X: `Classic/RuneFrame_Shared.lua`): Blizzard order, per-rune type colour,
   `RUNE_TYPE_UPDATE`, `PostUpdateColor(color, rune)`. This is the idea from legacy `f7b410d`, written
   against master's `STATE` layout.
-- WotLK has no specs. Check `C_SpecializationInfo.GetSpecialization()` returns 0/nil cleanly
-  (`runes.lua:79`), **UNVERIFIED**.
+- Rune type is the `colors.runes` index directly (1 blood, 2 frost, 3 unholy, 4 death), as in
+  `Classic/RuneFrame_Shared.lua:6-9`, ElvUI and Tukui. Legacy's `{1, 3, 2, 4}` remap (combat-text order)
+  was dropped. **UNVERIFIED** in-game.
+- `GetSpecialization` doesn't run with rune types, and `PLAYER_SPECIALIZATION_CHANGED` is registered
+  only without them.
 - Commit: `runes: rune types on WotLK and MoP`
 - Verify: DK blood/frost/unholy/death runes, Blood Tap and death-rune conversion.
 
@@ -484,7 +485,7 @@ worktree.
 | AdditionalPower | real classic delta | pairs data (step 12) |
 | ClassPower | real classic delta | target combo points, MoP powers (step 8) |
 | Runes | real classic delta | rune types (step 11) |
-| Auras | real classic delta → Retail-only master file | skip on Classic + `auras_classic.lua` (step 10) |
+| Auras | real classic delta → Retail-only master file | replaced by the button element (step 10) |
 | Stagger | API availability | MoP monks only; loads fine elsewhere |
 | QuestIndicator | Retail-only | **deleted** on classic (step 15) |
 | Happiness, MasterLooterIndicator | shim candidate | enabled on Classic (step 13b) |
@@ -548,7 +549,7 @@ oUF `classic`:
 - **~18–21 commits**: setup 0, manifests/compat 2, core 4, elements 10–12, cleanup 2
 - **~16 files**: `oUF.toc`, `oUF.xml`, `.luacheckrc`, `compat.lua` (new, ~80–120 lines),
   `blizzard.lua`, `ouf.lua`, `units.lua`, `private.lua`, `colors.lua`, `elements/{totems,classpower,pvpindicator,runes,additionalpower,tags,happiness,masterlooterindicator,health}.lua`, `elements/questindicator.lua` (deleted),
-  `elements/auras_classic.lua` (new, ~900 lines from `9d557b4`), plus 0–3 from step 14
+  `elements/auras.lua` (replaced, ~900 lines from `9d557b4`), plus 0–3 from step 14
 - Expected diff vs master outside the new files: **~150–250 lines**
 
 Tainted: 1 commit, 4–5 files (pointer, `auras.lua`, `indicators.lua`, `docs/compatibility.md`, `docs/ouf-core-plan.md`).

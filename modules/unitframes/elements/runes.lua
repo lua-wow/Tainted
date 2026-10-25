@@ -11,6 +11,22 @@ local element_proto = {
     colorSpec = true
 }
 
+-- rune is passed only with rune types (WotLK, MoP), one call per rune
+function element_proto:PostUpdateColor(color, rune)
+    if (not color) then return end
+
+    local mu = C.general.background.multiplier or 0.15
+    local r, g, b = color.r * mu, color.g * mu, color.b * mu
+
+    if (rune) then
+        rune.bg:SetVertexColor(r, g, b)
+    else
+        for i = 1, #self do
+            self[i].bg:SetVertexColor(r, g, b)
+        end
+    end
+end
+
 function UnitFrames:CreateRunes(frame)
     local texture = C.unitframes.texture
     local width = C.unitframes.classpower.width
