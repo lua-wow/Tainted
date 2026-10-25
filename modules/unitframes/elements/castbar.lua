@@ -6,7 +6,8 @@ local issecretvalue = _G.issecretvalue
 
 local element_proto = {
     timeToHold = 0.4,
-    smoothing = Enum.StatusBarInterpolation.ExponentialEaseOut,
+    -- eases each new cast from the previous bar value (drain, then fill); kept on Retail by choice
+    smoothing = E.isStandard and Enum.StatusBarInterpolation.ExponentialEaseOut or nil,
 }
 
 -- Classic/Mists oUF only (duration is a number); retail oUF drives Time via Time.binding
