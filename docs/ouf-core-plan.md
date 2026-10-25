@@ -50,7 +50,7 @@ Spike = steps 1–4 + gate. Tick a box in the same edit as the change.
 - [x] 12: AdditionalPower display pairs (pulled before the gate)
 - [x] 13: Tags without UnitFrameUtil
 - [x] 13b: Happiness and MasterLooterIndicator
-- [ ] 14: in-game failures only (range, castbar, health, role indicators)
+- [x] 14: in-game failures only (range, castbar, health, role indicators; none needed)
 - [x] 15: oUF cleanup
 - [x] 16: Tainted (indicator gates moved to 13b)
 - [ ] Publish: overwrite `classic`
@@ -316,11 +316,11 @@ All work → continue with step 5. Any is a stub → abort (step 0): delete `ref
 - `_G.ALT_POWER_BAR_PAIR_DISPLAY_INFO` is absent, which crashes `CopyTable(nil)`. Use
   `Private.altPowerBarPairDisplayInfo`, which is the global when it exists.
 - Otherwise a per-client table following Blizzard `Wrath/AlternatePowerBar.lua`:
-  - WotLK/MoP druid Rage/Energy → Mana
+  - druid Rage/Energy → Mana on all 4 (Era/TBC added by choice; Blizzard has no bar there)
   - MoP Mistweaver Energy → Mana
-  - empty on Era/TBC (idea from legacy `05e51cb`; MoP spec restriction **UNVERIFIED**)
+  - MoP spec restriction **UNVERIFIED** (idea from legacy `05e51cb`)
 - Commit: `additionalpower: Classic display pairs`
-- Verify: druid shapeshift mana bar (WotLK/MoP); none on Era/TBC; MoP Mistweaver.
+- Verify: druid shapeshift mana bar (WotLK/MoP); druid also on Era/TBC; MoP Mistweaver.
 
 **Step 13: Tags without UnitFrameUtil** (shim)
 - Files: `elements/tags.lua:155,353`.
@@ -351,6 +351,8 @@ All work → continue with step 5. Any is a stub → abort (step 0): delete `ref
   - party/raid with master loot (all 4): icon on the looter, moves on change
 
 **Step 14: only if in-game fails (placeholders, no speculative work)**
+- **Result (2026-10-25):** not needed. Range, castbar and health (incl. heal prediction) passed in-game on
+  Era/TBC/WotLK/MoP; the castbar drain-then-fill came from Tainted's `smoothing` (now Retail only).
 - `range`: if `UNIT_IN_RANGE_UPDATE` alone leaves stale alpha, add a gated shared timer
   (`if not GameVersion.Retail`), with the legacy 0.2 s poll as the idea.
   Commit `range: poll on Classic`.
@@ -407,7 +409,7 @@ worktree.
 | `colors.lua:25` | `C_CurveUtil.CreateColorCurve` | D all; used by Tainted on Classic | — | none |
 | `elements/auras.lua:250,251,370,407` | `AuraContainerSort*`, `CustomAuraContainerTemplate`, `…ProcessingPolicy`, `:GetUnit` | E T W M | no | skip + classic file (step 10) |
 | `elements/castbar.lua:109` | `CastingBarFrameStagePipTemplate` | E T W M | dormant (empower only) | none / step 14 |
-| `elements/castbar.lua` | `UnitCastingDuration`, `UnitChannelDuration`, `SetTimerDuration`, `C_DurationUtil.*`, `C_StringUtil.CreateSecondsFormatter` | D all, no Classic Blizzard user | — | **UNVERIFIED** → step 14 |
+| `elements/castbar.lua` | `UnitCastingDuration`, `UnitChannelDuration`, `SetTimerDuration`, `C_DurationUtil.*`, `C_StringUtil.CreateSecondsFormatter` | D all, no Classic Blizzard user | — | none (passed in-game, step 14) |
 | `elements/castbar.lua:683-750` | `PlayerCastingBarFrame`, `PetCastingBarFrame` | present (X `Classic/CastingBarFrame.xml`, `PetFrame.xml`) | — | none |
 | `elements/classpower.lua:104` | `GetUnitChargedPowerPoints` | E T W M | no | shim (8a) |
 | `elements/classpower.lua:437` | `PlayerVehicleHasComboPoints` | E T W M | no | shim (8a) |
@@ -430,7 +432,7 @@ worktree.
 | `elements/masterlooterindicator.lua:103` | `C_PartyInfo.GetLootMethod` | D all | yes (`Forever` gate, never true) | guard (step 13b) |
 | `elements/tags.lua:155,353` | `UnitFrameUtil.GetArenaOpponentSpecDisplayInfo` | E T W M | lazy (tag use only) | shim (step 13) |
 | `elements/tags.lua` | `UnitHealthPercent`, `UnitPowerPercent`, `UnitHealthMissing`, `C_StringUtil.WrapString` | D all; `WrapString` used by Tainted | — | **UNVERIFIED** (percent APIs) |
-| `elements/range.lua` | `UNIT_IN_RANGE_UPDATE` only | D all | — | **UNVERIFIED** cadence → step 14 |
+| `elements/range.lua` | `UNIT_IN_RANGE_UPDATE` only | D all | — | none (passed in-game, step 14) |
 | `elements/privateauras.lua` | `C_UnitAuras.Add/RemovePrivateAuraAnchor` | D all | Tainted creates mainline only | none |
 
 ## 4. Legacy checklist
@@ -463,7 +465,7 @@ worktree.
 | Era `TotemFrame` (`7377f7c`) | guard | step 7 |
 | Aura growth direction (`5fd0303`) | `growthX/Y` | step 10 |
 | Player castbar hide without `CastingBarFrame_SetUnit` (`51b3f32`) | fallback | master uses `PlayerCastingBarFrame` (exists) → already handled |
-| Range on Classic | 0.2 s shared poll | step 14, only if needed |
+| Range on Classic | 0.2 s shared poll | not needed (step 14) |
 | Combo points on target, MoP class powers | `GetComboPoints(unit,'target')`, `COMBO_TARGET_CHANGED`, `isMoP` branches | step 8b/8c |
 | `RegisterCombatEvent` (`combatevents.lua`) | base leftover | no caller anywhere → drop |
 | Patch bumps (`3b65657`, `21bdcbd`) | TOC interface | step 1 |
