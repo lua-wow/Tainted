@@ -48,7 +48,7 @@ Spike = steps 1–4 + gate. Tick a box in the same edit as the change.
 - [x] 10: classic aura element
 - [x] 11: Runes on WotLK/MoP
 - [x] 12: AdditionalPower display pairs (pulled before the gate)
-- [ ] 13: Tags without UnitFrameUtil
+- [x] 13: Tags without UnitFrameUtil
 - [ ] 13b: Happiness and MasterLooterIndicator
 - [ ] 14: in-game failures only (range, castbar, health, role indicators)
 - [ ] 15: oUF cleanup
@@ -359,8 +359,10 @@ All work → continue with step 5. Any is a stub → abort (step 0): delete `ref
   absent) stay dormant unless `UnitEmpoweredStagePercentages` returns stages.
 - `health`: if `calculator:GetCurrentHealth`/`EvaluateCurrentHealthPercent` fail, fall back to
   `UnitHealth`/`UnitHealthMax` behind a capability check.
-- `grouproleindicator`/`raidroleindicator`: no change now (the `else` branch runs on Classic). Add a
-  `-- Classic` comment so the upstream 12.1.5 removal conflicts visibly.
+- `grouproleindicator`/`raidroleindicator`: no change (the `else` branch runs on Classic; its APIs
+  `UnitGroupRolesAssignedEnum`, `Enum.LFGRole` (D), `GetPartyAssignment`, `UnitHasVehicleUI` (X) exist
+  on all 4). **Merge note:** upstream's 12.1.5 cleanup (`-- TODO: remove in 12.1.5`) will delete that
+  `else` branch; keep it on `classic` when merging.
 
 ### Phase 4: cleanup and Tainted
 
