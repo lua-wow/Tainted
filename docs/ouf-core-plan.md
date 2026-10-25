@@ -26,7 +26,7 @@ the legacy branch (`oUF_Classic/oUF.toc`; `init.lua`: `WOW_PROJECT_CLASSIC`,
 | Q5 | Runes | Port rune types (`GetRuneType`) on WotLK/MoP |
 | Q6 | MoP ClassPower | Chi for all monks (`not GameCompatibility.Legion`) only; warlock/mage changed only if in-game shows them wrong |
 | Q7 | Happiness, MasterLooter | **Enable both on Classic** (step 13b) |
-| Q8 | Retail files | Keep everything, including `happiness.lua`/`masterlooterindicator.lua`; **delete `questindicator.lua`** (step 15) |
+| Q8 | Retail files | Keep everything, including `happiness.lua`/`masterlooterindicator.lua` and `questindicator.lua` (inert: Tainted skips the widget without `UnitIsQuestBoss`; deleting it would conflict on every upstream edit) |
 | — | Old plan doc | This plan replaces `docs/ouf-core-plan.md` (tracked) |
 | — | Go/no-go | Gate after step 4 on `refactor/classic`; `classic` is overwritten only after step 16 passes |
 
@@ -51,8 +51,8 @@ Spike = steps 1–4 + gate. Tick a box in the same edit as the change.
 - [x] 13: Tags without UnitFrameUtil
 - [ ] 13b: Happiness and MasterLooterIndicator
 - [ ] 14: in-game failures only (range, castbar, health, role indicators)
-- [ ] 15: oUF cleanup
-- [ ] 16: Tainted
+- [x] 15: oUF cleanup
+- [x] 16: Tainted (indicator gates moved to 13b)
 - [ ] Publish: overwrite `classic`
 
 Later (found in-game, outside the port steps):
@@ -343,7 +343,7 @@ All work → continue with step 5. Any is a stub → abort (step 0): delete `ref
 - MasterLooter (`elements/masterlooterindicator.lua:103`): gate `GameVersion.Forever` → the API
   check (`C_PartyInfo.GetLootMethod`, D on all 4; `PARTY_LOOT_METHOD_CHANGED` in all 4 docs).
   - Commit: `masterlooterindicator: enable where GetLootMethod exists`
-- Tainted (step 16): relax the mainline gates for `CreateHappinessIndicator` /
+- Tainted (part of 13b, not step 16): relax the mainline gates for `CreateHappinessIndicator` /
   `CreateMasterLooterIndicator` (`modules/unitframes/elements/indicators.lua:99,137`).
 - Verify:
   - hunter pet on Era/TBC/WotLK: icon and health colour change with feeding/unhappy
@@ -367,19 +367,15 @@ All work → continue with step 5. Any is a stub → abort (step 0): delete `ref
 ### Phase 4: cleanup and Tainted
 
 **Step 15: oUF cleanup**
-- `git rm elements/questindicator.lua` and drop its `oUF.xml` line (Q8, decided: `UnitIsQuestBoss`
-  is absent on all 4, so the element can never work). Tainted already skips the widget when
-  `UnitIsQuestBoss` is nil.
-- Expect a modify/delete conflict whenever upstream edits that file: resolve by deleting again.
-- `.luacheckrc` final pass; README note "classic branch = master + Classic compat".
-- Commits: `questindicator: remove, UnitIsQuestBoss doesn't exist on Classic`;
-  `classic: lint config and README`.
+- Keep `elements/questindicator.lua` unchanged (Q8): `UnitIsQuestBoss` is absent on all 4, but Tainted
+  skips the widget when it is nil, so the element never enables.
+- `.luacheckrc` final pass (clean; leave master's entries); README note "classic branch = master + Classic compat".
+- Commit: `classic: README note`.
 
 **Step 16: Tainted** (one commit you group)
 - Files:
   - `libs/oUF_Classic` pointer
   - `modules/unitframes/elements/auras.lua:155` (`"none"` → `"None"`, Q2b)
-  - `modules/unitframes/elements/indicators.lua` Happiness/MasterLooter gates (step 13b)
   - `docs/compatibility.md` "oUF variants" section
   - `docs/ouf-core-plan.md` (this plan): mark done or trim to the remaining notes
 - Plugins: `oUF_RaidDebuffs`/`oUF_AuraTrack` need no change (Q1: legacy flag names).
@@ -429,7 +425,7 @@ worktree.
 | `elements/totems.lua:160-179` | `TotemFrame` | Era (not in Era TOC; legacy `7377f7c`) | no | guard (step 7) |
 | `elements/stagger.lua:195-232` | `MonkStaggerBar` | E T W (no monks) | yes (monk only) | none |
 | `elements/runes.lua:79` | `C_SpecializationInfo.GetSpecialization` on WotLK | D all; WotLK spec semantics **UNVERIFIED** | — | real delta (step 11) |
-| `elements/questindicator.lua:42` | `UnitIsQuestBoss` | E T W M (commented-out ref only) | Tainted gates widget creation | delete (step 15) |
+| `elements/questindicator.lua:42` | `UnitIsQuestBoss` | E T W M (commented-out ref only) | Tainted gates widget creation | none (kept, Q8) |
 | `elements/happiness.lua:45`, `health.lua:175`, `tags.lua:228` | `C_PetInfo.GetPetHappiness` | E T W M | yes (`Forever`) | shim (step 13b) |
 | `elements/masterlooterindicator.lua:103` | `C_PartyInfo.GetLootMethod` | D all | yes (`Forever` gate, never true) | guard (step 13b) |
 | `elements/tags.lua:155,353` | `UnitFrameUtil.GetArenaOpponentSpecDisplayInfo` | E T W M | lazy (tag use only) | shim (step 13) |
@@ -489,7 +485,7 @@ worktree.
 | Runes | real classic delta | rune types (step 11) |
 | Auras | real classic delta → Retail-only master file | replaced by the button element (step 10) |
 | Stagger | API availability | MoP monks only; loads fine elsewhere |
-| QuestIndicator | Retail-only | **deleted** on classic (step 15) |
+| QuestIndicator | Retail-only | kept, inert on Classic (Q8) |
 | Happiness, MasterLooterIndicator | shim candidate | enabled on Classic (step 13b) |
 | FocusIndicator, PrivateAuras | load and run; unused by Tainted on Classic | keep |
 | `combatevents.lua`, gradient helpers, `.bg`/`.multiplier` | classic-only (legacy) | recommend drop (no user) |
@@ -550,7 +546,7 @@ merges.
 oUF `classic`:
 - **~18–21 commits**: setup 0, manifests/compat 2, core 4, elements 10–12, cleanup 2
 - **~16 files**: `oUF.toc`, `oUF.xml`, `.luacheckrc`, `compat.lua` (new, ~80–120 lines),
-  `blizzard.lua`, `ouf.lua`, `units.lua`, `private.lua`, `colors.lua`, `elements/{totems,classpower,pvpindicator,runes,additionalpower,tags,happiness,masterlooterindicator,health}.lua`, `elements/questindicator.lua` (deleted),
+  `blizzard.lua`, `ouf.lua`, `units.lua`, `private.lua`, `colors.lua`, `elements/{totems,classpower,pvpindicator,runes,additionalpower,tags,happiness,masterlooterindicator,health}.lua`,
   `elements/auras.lua` (replaced, ~900 lines from `9d557b4`), plus 0–3 from step 14
 - Expected diff vs master outside the new files: **~150–250 lines**
 

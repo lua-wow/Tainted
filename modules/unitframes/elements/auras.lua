@@ -152,7 +152,7 @@ function aura_proto:PostUpdateButton(button, unit, data, position)
     if button.Backdrop then
         -- only Classic/MoP oUF call this, and they provide plain AuraData flags
         if (data.isHarmful and UnitCanAssist(unit, "player")) or (data.isHelpful and UnitCanAttack(unit, "player") and UnitCanAttack("player", unit)) then
-            local color = E.colors.dispel[data.dispelName or "none"] or C.general.border.color
+            local color = E.colors.dispel[data.dispelName or "None"] or C.general.border.color
             button.Backdrop:SetBackdropBorderColor(color.r, color.g, color.b, color.a or 1)
         else
             local color = C.general.border.color

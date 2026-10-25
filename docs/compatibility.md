@@ -98,12 +98,16 @@ Agreed during the rebuild; don't re-litigate without a new reason.
 
 - `libs/oUF` (Retail, read-only): `colors.debuff` is `colors.dispel`. `AddGroup` groups aren't
   exclusive (later groups need `!` negations); spell-ID filters are ignored for debuffs on friendly units.
-- `libs/oUF_Classic` (branch `classic`): Era, TBC, WotLK, MoP; game content gated by `oUF.isMoP`;
-  ClassPower `PostUpdate` uses the Retail signature. Mirrors Retail: frames set `__unit`/`__realUnit`
-  and `__unitIndex` (number), never `frame.unit`; Target, Phase, Summon and PvPClassification
-  indicators are the Retail elements (no `oUF_TargetIndicator` plugin). Absent: Auras container
-  (`AddGroup`), QuestIndicator (`UnitIsQuestBoss`); selection colour comes from `UnitSelectionColor`. So
-  nameplate health colour (`units/nameplate.lua`) is the one remaining oUF-variant branch.
+- `libs/oUF_Classic` (branch `classic`): Era, TBC, WotLK, MoP. Retail `master` plus small Classic
+  commits; shims live in `compat.lua`, game content is gated by master's `GameVersion`. Public flags
+  for plugins keep the legacy names: `oUF.isRetail`, `isClassic` (Era only), `isTBC`, `isWrath`,
+  `isCata`, `isMoP`. ClassPower `PostUpdate` uses the Retail signature. Mirrors Retail: frames set
+  `__unit`/`__realUnit` and `__unitIndex` (number), never `frame.unit`; Target, Phase, Summon and
+  PvPClassification indicators are the Retail elements (no `oUF_TargetIndicator` plugin). `Auras` is
+  the button-based Buffs/Debuffs element (no container, no `AddGroup`); dispel colour keys come from
+  `AuraUtil` (`None` for undispellable). QuestIndicator loads but never enables (`UnitIsQuestBoss`
+  absent); selection colour comes from `UnitSelectionColor`. So nameplate health colour
+  (`units/nameplate.lua`) is the one remaining oUF-variant branch.
 
 ## Runtime client checks
 
