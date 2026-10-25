@@ -43,8 +43,8 @@ Spike = steps 1–4 + gate. Tick a box in the same edit as the change.
 - [x] 5: arena preparation
 - [x] 6: selection colour (pulled before the gate)
 - [x] 7: Totems
-- [ ] 8: ClassPower (8a guards, 8b target combo points, 8c MoP)
-- [ ] 9: PvPIndicator
+- [x] 8: ClassPower (8a guards, 8b target combo points, 8c MoP)
+- [x] 9: PvPIndicator
 - [ ] 10: classic aura element
 - [ ] 11: Runes on WotLK/MoP
 - [x] 12: AdditionalPower display pairs (pulled before the gate)
@@ -264,9 +264,9 @@ All work → continue with step 5. Any is a stub → abort (step 0): delete `ref
 - 8b, real delta (`classpower: Classic combo points on target`): Classic combo points belong to the
   target (Blizzard `Classic/ComboFrame.lua` uses `GetComboPoints('player','target')`).
   `UnitPower('player', ComboPoints)` behaviour is **UNVERIFIED**.
-  - Port the idea, not legacy code: when `not GameCompatibility.Cataclysm` (or test-driven), use
-    `GetComboPoints(unit, 'target')` and register `PLAYER_TARGET_CHANGED`.
-  - `COMBO_TARGET_CHANGED` exists? **UNVERIFIED**; legacy used it.
+  - Port the idea, not legacy code: when `not GameCompatibility.Warlords` (MoP Classic loads the same
+    `Classic/ComboFrame.lua`), use `GetComboPoints(unit, 'target')` and register `PLAYER_TARGET_CHANGED` +
+    `COMBO_TARGET_CHANGED` (documented on all 4) while combo points are the active power.
 - 8c, MoP content (`classpower: MoP class powers`):
   - Master gates Monk chi to Windwalker (`:245`). MoP chi is shared by all monk specs, and master's
     own tags already know this (`tags.lua:160`, `not GameCompatibility.Legion`). Gate it the same way.

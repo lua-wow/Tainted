@@ -202,11 +202,6 @@ do
     local element_proto = {}
 
     function UnitFrames:CreatePvPIndicator(frame, sublevel)
-        -- oUF_Classic calls UnitHonorLevel unguarded
-        if not E.isMainline then
-            return nil
-        end
-
         local element = CreateIndicator(frame, "PvPIndicator", frame.Health, element_proto)
         element:SetPoint("CENTER", frame.Health, "TOPRIGHT", -18, 0)
         return element
