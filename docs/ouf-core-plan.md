@@ -56,8 +56,8 @@ Spike = steps 1–4 + gate. Tick a box in the same edit as the change.
 - [ ] Publish: overwrite `classic`
 
 Later (found in-game, outside the port steps):
-- [ ] `oUF_RaidDebuffs`: border colour missing for some debuffs
-- [ ] Focus range: `C.unitframes.focus.range` constant for the focus `Range` element
+- [x] `oUF_RaidDebuffs`: border colour missing for some debuffs
+- [x] Focus range: `C.unitframes.focus.range` constant for the focus `Range` element
 - [ ] Classic nameplates use the Retail layout; restore the Classic one
 
 ---

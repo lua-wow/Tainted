@@ -274,6 +274,7 @@ C["unitframes"] = {
         ["width"] = 205,
         ["height"] = 25,
         ["auras"] = true,
+        ["range"] = true,
         ["castbar"] = {
             ["mode"] = "embedded",
             ["icon"] = true
