@@ -10,15 +10,6 @@ local element_proto = {
     smoothing = E.isStandard and Enum.StatusBarInterpolation.ExponentialEaseOut or nil,
 }
 
--- Classic/Mists oUF only (duration is a number); retail oUF drives Time via Time.binding
-function element_proto:CustomDelayText(duration)
-    self.Time:SetFormattedText("%.1f |cffaf5050%s %.1f|r", self.channeling and duration or (self.max - duration), self.channeling and "- " or "+", self.delay)
-end
-
-function element_proto:CustomTimeText(duration)
-    self.Time:SetFormattedText("%.1f / %.1f", self.channeling and duration or (self.max - duration), self.max)
-end
-
 function element_proto:UpdateStatusBarColor(color)
     local element = self
     element:SetStatusBarColor(color.r, color.g, color.b, color.a or 1)
