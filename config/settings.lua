@@ -343,7 +343,8 @@ C["unitframes"] = {
         ["auras"] = true,
         ["castbar"] = {
             ["mode"] = "detached",
-            ["icon"] = true
+            ["icon"] = true,
+            ["height"] = 18
         },
         ["tags"] = {
             -- ["name"] = "[classification][difficulty][level]|r [hostility][name]|r",
