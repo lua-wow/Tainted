@@ -29,14 +29,6 @@ function element_proto:PostUpdateDirection(direction)
     self:UpdateText()
 end
 
-local function CreateBar(parent, texture, color, width, height)
-    local bar = CreateFrame("StatusBar", nil, parent)
-    bar:SetSize(width, height)
-    bar:SetStatusBarTexture(texture)
-    bar:SetStatusBarColor(color:GetRGB())
-    return bar
-end
-
 function UnitFrames:CreateEclipseBar(frame)
     if (not E.isMists) then return end
 
@@ -53,7 +45,6 @@ function UnitFrames:CreateEclipseBar(frame)
     element:CreateBackdrop()
 
     -- lunar fills from the left up to the current power, solar fills the rest
-    -- local lunar = CreateBar(element, texture, colors.moon, width, height)
     local lunar = CreateFrame("StatusBar", nil, element)
     lunar:SetPoint("LEFT", element, "LEFT", 0, 0)
     lunar:SetSize(width, height)
@@ -61,7 +52,6 @@ function UnitFrames:CreateEclipseBar(frame)
     lunar:SetStatusBarColor(colors.moon:GetRGB())
     element.LunarBar = lunar
 
-    -- local solar = CreateBar(element, texture, colors.sun, width, height)
     local solar = CreateFrame("StatusBar", nil, element)
     solar:SetPoint("LEFT", lunar:GetStatusBarTexture(), "RIGHT", 0, 0)
     solar:SetSize(width, height)
