@@ -16,7 +16,7 @@ One `Tainted.toc` (`## Interface: 11509, 20506, 38002, 50504, 120105, 16001`):
 | Classic MoP     | `50504`   | `mists`    | `classic`  | `libs\oUF_Classic` |
 
 - WotLK is Titan 3.80.x (`Wrath` flavor, `WOW_PROJECT_WRATH_CLASSIC`), not retired 3.4.x; don't assume
-  3.4.x behavior. Cata is not supported.
+  3.4.x behavior. Tainted does not support Cata; `libs/oUF_Classic` also loads on Cata (`40402`).
 
 ## TOC rules
 
@@ -98,7 +98,7 @@ Agreed during the rebuild; don't re-litigate without a new reason.
 
 - `libs/oUF` (Retail, read-only): `colors.debuff` is `colors.dispel`. `AddGroup` groups aren't
   exclusive (later groups need `!` negations); spell-ID filters are ignored for debuffs on friendly units.
-- `libs/oUF_Classic` (branch `classic`): Era, TBC, WotLK, MoP. Retail `master` plus small Classic
+- `libs/oUF_Classic` (branch `classic`): Era, TBC, WotLK, Cata, MoP. Retail `master` plus small Classic
   commits; shims live in `compat.lua`, game content is gated by master's `GameVersion`. Public flags
   for plugins keep the legacy names: `oUF.isRetail`, `isClassic` (Era only), `isTBC`, `isWrath`,
   `isCata`, `isMoP`. ClassPower `PostUpdate` uses the Retail signature. Mirrors Retail: frames set
