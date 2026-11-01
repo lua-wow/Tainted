@@ -90,7 +90,8 @@ do
 	local INSANITY = oUF:CreateColor(0.40, 0.00, 0.80)
 	oUF.colors.power[Enum.PowerType.Insanity or 13] = INSANITY
 	oUF.colors.power.INSANITY = INSANITY
-	
+	oUF.colors.power.SHADOW_ORBS = INSANITY
+
 	-- local ARCANE_CHARGES = nil
 	-- oUF.colors.power[Enum.PowerType.ArcaneCharges or 16] = ARCANE_CHARGES
 	-- oUF.colors.power.ARCANE_CHARGES = ARCANE_CHARGES
