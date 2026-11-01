@@ -43,9 +43,7 @@ do
     local element_proto = {}
 
     function UnitFrames:CreateFocusIndicator(frame, sublevel)
-        if not E.isMainline then
-            return nil
-        end
+        if E.isVanilla then return nil end
 
         local element = CreateIndicator(frame, "FocusIndicator", frame.Health, element_proto)
         element:SetPoint("CENTER", frame.Health, "TOPRIGHT", 0, 0)
