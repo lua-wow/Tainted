@@ -66,6 +66,12 @@ do
 	local SOUL_SHARDS = oUF:CreateColor(0.50, 0.32, 0.55)
 	oUF.colors.power[Enum.PowerType.SoulShards or 7] = SOUL_SHARDS
 	oUF.colors.power.SOUL_SHARDS = SOUL_SHARDS
+
+	local BURNING_EMBERS = oUF:CreateColor(0.95, 0.50, 0.10)
+	oUF.colors.power.BURNING_EMBERS = BURNING_EMBERS
+
+	local DEMONIC_FURY = oUF:CreateColor(0.58, 0.35, 0.79)
+	oUF.colors.power.DEMONIC_FURY = DEMONIC_FURY
 	
 	local LUNAR_POWER = oUF:CreateColor(0.93, 0.51, 0.93)
 	oUF.colors.power[Enum.PowerType.LunarPower or 8] = LUNAR_POWER

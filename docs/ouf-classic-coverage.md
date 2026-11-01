@@ -66,7 +66,8 @@ Verified evidence for the "handled" and "ok" rows that matter:
    - Legacy: `legacy/cata` `oUF.toc` = 40300.
    - Upstream shape: n/a.
    - Where: `oUF.toc`, add the Cata Classic interface (40402). Inferred.
-2. **ClassPower soul shards, MoP spec gate.**
+2. **ClassPower soul shards, MoP spec gate.** **Done.**
+   - Done: Cata shows shards for every spec; MoP only for affliction, and destruction shows burning embers once `WARLOCK_BURNING_EMBERS` (108647) is known (`SPELLS_CHANGED` re-checks visibility). `GetSoulShardsDestruction` is gated to Legion+.
    - Legacy: `legacy/mists` `elements/classicons.lua` shows SOUL_SHARDS only with `RequireSpec = SPEC_WARLOCK_AFFLICTION` (+ `RequireSpell` Soulburn). Blizzard does the same, verified: `classic/.../Mists/ShardBar.lua:68` `if ( spec == SPEC_WARLOCK_AFFLICTION )`.
    - Master: the `elements/classpower.lua` WARLOCK branch shows shards for every spec, and destruction gets the fractional `GetSoulShardsDestruction`.
    - Upstream shape: keep `ClassPower`, `PostUpdate(cur, max, hasMaxChanged, powerType)` and the `GetPowerInfo` return contract.
@@ -102,16 +103,16 @@ Verified evidence for the "handled" and "ok" rows that matter:
 ## 3. Top 10 fixes, ranked by classic functionality lost
 1. Cata Interface in `oUF.toc`. Without it, nothing loads on Cata (inferred number).
 2. `[cpoints]` target-owned combo points via `compat.lua`. Wrong for every rogue and feral druid on all 5 clients.
-3. ClassPower: soul shards only for affliction on MoP. Destruction and demonology currently show bogus pips (verified).
+3. **Done.** ClassPower: soul shards only for affliction on MoP. Destruction and demonology currently show bogus pips (verified).
 4. EclipseBar enabled on Cata. Blizzard supports Cata in the same mixin (verified).
 5. `[arcanecharges]` on MoP via the shared `Private.getArcaneCharges`.
 6. `[shadoworbs]` tag on MoP.
 7. `[pereclipse]` tag on Cata and MoP.
 8. Inferred risk: MoP tag events `[chi]`, `[holypower]` and `[soulshards]` use `UNIT_POWER_UPDATE`. The refactor found that some pre-Warlords powers only fire `UNIT_POWER_FREQUENT`. Check in game and switch where needed.
-9. Inferred risk: ClassPower on Cata has no spec-change event. `Enable` registers `PLAYER_SPECIALIZATION_CHANGED` only for Mists, so a Cata warlock's destruction shard formula doesn't refresh on respec. Register `PLAYER_TALENT_UPDATE` there.
+9. **Done** (no event needed: Cata uses whole shards for every spec). Inferred risk: ClassPower on Cata has no spec-change event. `Enable` registers `PLAYER_SPECIALIZATION_CHANGED` only for Mists, so a Cata warlock's destruction shard formula doesn't refresh on respec. Register `PLAYER_TALENT_UPDATE` there.
 10. `[pvprank]` / `[pvpranknum]` on Era.
 
-Optional, not in any legacy snapshot so not counted: MoP burning embers and demonic fury (Blizzard `Mists/ShardBar.lua` `BurningEmbersBarMixin` / `DemonicFuryBarMixin`).
+Optional, not in any legacy snapshot so not counted: MoP burning embers (**done**, orange `BURNING_EMBERS` in `core/colors.lua`) and demonic fury (**done**, one full-width ClassPower segment with a `cur / max` text, purple `DEMONIC_FURY`) (Blizzard `Mists/ShardBar.lua` `BurningEmbersBarMixin` / `DemonicFuryBarMixin`).
 
 ## Verification (if fixes are implemented later)
 - `git diff master refactor/classic --stat` stays minimal; `luacheck .` per `.luacheckrc`.
