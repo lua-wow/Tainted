@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+-   Eclipse bar, burning embers, demonic fury, arcane charges and shadow orbs (MoP)
+-   Pet happiness and master looter indicators (Classic)
+-   Druid mana bar while shapeshifted on Era and TBC
+
+### Changed
+
+-   Classic unit frames run on Retail oUF plus Classic compatibility (`libs/oUF_Classic`)
+-   Castbar smoothing is Retail only
+-   Fix Classic debuff tooltips showing the buff tooltip
+-   Fix missing border colour on typeless raid debuffs
+
 ## [1.5.0] - 2026-10-20
 
 ### Added

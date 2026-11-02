@@ -108,6 +108,11 @@ Agreed during the rebuild; don't re-litigate without a new reason.
   `AuraUtil` (`None` for undispellable). QuestIndicator loads but never enables (`UnitIsQuestBoss`
   absent); selection colour comes from `UnitSelectionColor`. So nameplate health colour
   (`units/nameplate.lua`) is the one remaining oUF-variant branch.
+  - Upstream sync: `git merge origin/master` on `classic`. Keep the Classic `else` branches marked
+    `-- TODO: remove in 12.1.5` (`pvpindicator.lua`, `grouproleindicator.lua`, `raidroleindicator.lua`)
+    when upstream deletes them: Classic has no `UnitFrameUtil`.
+  - `classic-legacy` (the legacy port) and `refactor/classic-bkp` hold commits that old Tainted
+    gitlinks pin; never delete them.
 
 ## Runtime client checks
 
