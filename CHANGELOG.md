@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   Eclipse bar, burning embers, demonic fury, arcane charges and shadow orbs (MoP)
 -   Pet happiness and master looter indicators (Classic)
 -   Druid mana bar while shapeshifted on Era and TBC
+-   ItemID line on item tooltips, like SpellID ([#20](https://github.com/lua-wow/Tainted/issues/20))
+-   TalentID line on talent tooltips (Classic) and PvP talent tooltips (Retail), like SpellID
 
 ### Changed
 
