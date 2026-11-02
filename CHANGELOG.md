@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   Druid mana bar while shapeshifted on Era and TBC
 -   ItemID line on item tooltips, like SpellID ([#20](https://github.com/lua-wow/Tainted/issues/20))
 -   TalentID line on talent tooltips (Classic) and PvP talent tooltips (Retail), like SpellID
+-   Sell price on item tooltips on TBC, like Era
 
 ### Changed
 
@@ -22,6 +23,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   Fix Classic debuff tooltips showing the buff tooltip
 -   Fix missing border colour on typeless raid debuffs
 -   Fix bag window close button hiding the items but leaving the window open ([#19](https://github.com/lua-wow/Tainted/issues/19))
+-   Era/TBC sell price uses Blizzard's `Sell Price` line, right under the item text like MoP, and is skipped at a merchant where the client shows the stack price
+-   "In Bag" count shows on every stackable item you carry instead of only crafting reagents, which were not detected on Classic
+-   Fix a Lua error when hovering an item in the Classic Auction House
 
 ## [1.5.0] - 2026-10-20
 

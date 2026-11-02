@@ -190,6 +190,7 @@ read_globals = {
     'FCFDock_GetChatFrames',
     'GameTime_GetFormattedTime',
     'GameTimeFrame_OnClick',
+    'GameTooltip_OnTooltipAddMoney',
     'GameTooltip_SetDefaultAnchor',
     'GameTooltip',
     'GetActionBarToggles',

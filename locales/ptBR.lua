@@ -22,7 +22,6 @@ L.PET_HAPPINESS_STATES = { "Infeliz", "Contente", "Feliz" } -- REVIEW: client ha
 L.PET_LOYALTY_GAINING = "ganhando"
 L.PET_LOYALTY_LOSING = "perdendo"
 L.IN_BAG = "Na Bolsa"
-L.VENDOR_PRICE = "Preço de Venda: %s"
 
 -- experience
 L.PET_EXPERIENCE = "Experiência do Mascote"

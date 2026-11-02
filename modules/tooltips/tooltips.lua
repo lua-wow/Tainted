@@ -255,9 +255,9 @@ local SetItemTooltipBorderColorByQuality = function(tooltip)
     end
 end
 
-local SetCraftingReagentsQuantityInBag = function(tooltip, id)
+local SetQuantityInBag = function(tooltip, id)
     local count = C_Item.GetItemCount(id)
-    if count then
+    if count and count > 0 then
         tooltip:AddLine(" ")
         tooltip:AddLine(IN_BAG:format(count), 1.0, 1.0, 1.0)
     end
@@ -275,12 +275,13 @@ local UpdateItemTooltip = function(tooltip, data)
     end
     if not link then return end
 
-    local _, _, quality, _, _, _, _, _, _, _, _, _, _, _, _, _, isCraftingReagent = C_Item.GetItemInfo(link)
+    local _, _, quality, _, _, _, _, stackCount = C_Item.GetItemInfo(link)
 
     SetItemBorderColor(tooltip, quality)
 
-    if isCraftingReagent and (tooltip == _G.GameTooltip or tooltip == _G.ItemRefTooltip) then
-        SetCraftingReagentsQuantityInBag(tooltip, link)
+    -- isCraftingReagent is unreliable on Classic (false for herbs and cloth): use stackable instead
+    if stackCount and stackCount > 1 and (tooltip == _G.GameTooltip or tooltip == _G.ItemRefTooltip) then
+        SetQuantityInBag(tooltip, link)
     end
 end
 
@@ -489,7 +490,31 @@ local UpdateUnitTooltip = function(tooltip, data)
     end
 end
 
+-- tooltip -> true once the client added its own sell price (Era/TBC only do it at a merchant, for the stack)
+local hasSellPrice = {}
+
+local OnTooltipAddMoney = function(tooltip)
+    hasSellPrice[tooltip] = true
+end
+
+local OnSellPriceCleared = function(tooltip)
+    hasSellPrice[tooltip] = nil
+end
+
+-- Era/TBC: elsewhere the client adds no sell price; draw Blizzard's line, as the client does on MoP
+local AddSellPrice = function(tooltip)
+    if hasSellPrice[tooltip] then return end
+
+    local _, link = tooltip:GetItem()
+    local sellPrice = link and select(11, C_Item.GetItemInfo(link))
+    if sellPrice and sellPrice > 0 then
+        GameTooltip_OnTooltipAddMoney(tooltip, sellPrice)
+    end
+end
+
 local GameTooltip_ShowCompareItem = function(tooltip, anchorFrame)
+    -- Blizzard falls back to GameTooltip when called without one (e.g. the Classic AH)
+    tooltip = tooltip or _G.GameTooltip
     for index, element in next, (tooltip.shoppingTooltips or {}) do
         SetItemTooltipBorderColorByQuality(element or _G["ShoppingTooltip" .. index])
     end
@@ -512,6 +537,19 @@ function tooltip_proto:SetupHooks(owner)
         -- unit tooltip customization
         TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Unit, UpdateUnitTooltip)
     else
+        -- hooked first: the sell price stays right under the item text, above In Bag and ItemID
+        if E.isVanilla or E.isTBC then
+            for _, name in ipairs({ "GameTooltip", "ItemRefTooltip", "ShoppingTooltip1", "ShoppingTooltip2", "ItemRefShoppingTooltip1", "ItemRefShoppingTooltip2" }) do
+                local tooltip = _G[name]
+                if tooltip then
+                    -- the client's line comes before OnTooltipSetItem
+                    tooltip:HookScript("OnTooltipAddMoney", OnTooltipAddMoney)
+                    tooltip:HookScript("OnTooltipCleared", OnSellPriceCleared)
+                    tooltip:HookScript("OnTooltipSetItem", AddSellPrice)
+                end
+            end
+        end
+
         hooksecurefunc("GameTooltip_ShowCompareItem", GameTooltip_ShowCompareItem)
 		GameTooltip:HookScript("OnTooltipSetItem", UpdateItemTooltip)
         GameTooltip:HookScript("OnTooltipSetUnit", UpdateUnitTooltip)

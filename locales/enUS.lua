@@ -46,7 +46,6 @@ L.PET_HAPPINESS_STATES = { "Unhappy", "Content", "Happy" }
 L.PET_LOYALTY_GAINING = "gaining"
 L.PET_LOYALTY_LOSING = "losing"
 L.IN_BAG = "In Bag"
-L.VENDOR_PRICE = "Vendor Price: %s"
 
 -- experience
 L.PET_EXPERIENCE = "Pet Experience"

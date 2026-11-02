@@ -10,7 +10,6 @@ local METADATA = E.colors.yellow:WrapTextInColorCode("%s") .. " %s"
 local SPELL_ID = "SpellID"
 local ITEM_ID = "ItemID"
 local TALENT_ID = "TalentID"
-local VENDOR_PRICE = L.VENDOR_PRICE
 
 local TooltipDataAccessor = {
     ["GetUnitAura"] = function(...)
@@ -133,40 +132,9 @@ local function OnTooltipSetSpell(tooltip)
     AddLine(tooltip, SPELL_ID, id)
 end
 
-local function AddVendorPrice(self, itemLink)
-    local _, _, _, _, _, _, _, _, _, _, vendorPrice = C_Item.GetItemInfo(itemLink)
-    if vendorPrice and vendorPrice > 0 then
-        -- Format the price into gold, silver, and copper
-        local gold = math.floor(vendorPrice / 10000)
-        local silver = math.floor((vendorPrice % 10000) / 100)
-        local copper = vendorPrice % 100
-
-        -- Create a formatted price string
-        local priceText = ""
-        if gold > 0 then
-            priceText = priceText .. gold .. " |TInterface\\MoneyFrame\\UI-GoldIcon:0:0:2:0|t "
-        end
-        if silver > 0 then
-            priceText = priceText .. silver .. " |TInterface\\MoneyFrame\\UI-SilverIcon:0:0:2:0|t "
-        end
-        if copper > 0 then
-            priceText = priceText .. copper .. " |TInterface\\MoneyFrame\\UI-CopperIcon:0:0:2:0|t"
-        end
-
-        -- Add the vendor price to the tooltip
-        self:AddLine(VENDOR_PRICE:format(priceText), 1, 1, 1)
-        self:Show()
-    end
-end
-
 local function OnTooltipSetItem(tooltip)
     local _, link = tooltip:GetItem()
     if not link then return end
-
-    -- vendor price first: the ItemID line stays last
-    if E.isVanilla then
-        AddVendorPrice(tooltip, link)
-    end
 
     local id = link:match("item:(%d+)")
     if id ~= "0" then
@@ -280,7 +248,7 @@ function MODULE:AddMetadata()
     hookscript(GameTooltip, "OnTooltipSetSpell", OnTooltipSetSpell)
     hookscript(ItemRefTooltip, "OnTooltipSetSpell", OnTooltipSetSpell)
 
-    -- display itemID (and the vendor price on Era)
+    -- display itemID
     for _, name in ipairs(ITEM_TOOLTIPS) do
         hookscript(_G[name], "OnTooltipSetItem", OnTooltipSetItem)
     end
