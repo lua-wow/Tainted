@@ -4,6 +4,7 @@ local UnitFrames = E:GetModule("UnitFrames")
 
 -- Constants
 local POWER_TYPE_MAELSTROM = 'MAELSTROM'
+local POWER_TYPE_DEMONIC_FURY = 'DEMONIC_FURY'
 
 local SPELL_MAELSTROM_WEAPON = 344179
 
@@ -46,6 +47,17 @@ function element_proto:PostUpdate(cur, max, _, hasMaxChanged, powerType)
 
         for i = 1, #element do
             element[i]:SetWidth(sizes[i] or 0)
+        end
+    end
+
+    local value = element.Value
+    if value then
+        if powerType == POWER_TYPE_DEMONIC_FURY and cur then
+            value:SetFormattedText("%d / %d", UnitPower("player", Enum.PowerType.DemonicFury), UnitPowerMax("player", Enum.PowerType.DemonicFury))
+            element.hasValue = true
+        elseif element.hasValue then
+            value:SetText("")
+            element.hasValue = nil
         end
     end
 
@@ -108,6 +120,16 @@ function UnitFrames:CreateClassPower(frame)
         end
 
         element[i] = segment
+    end
+
+    -- MoP demonic fury value; on the first segment so it draws above the fill
+    if E.isMists and element.__class == "WARLOCK" then
+        local value = element[1]:CreateFontString(nil, "OVERLAY")
+        value:SetPoint("CENTER", element, "CENTER", 0, 0)
+        value:SetFontObject(E.GetFont(C.unitframes.font))
+        value:SetTextColor(0.84, 0.75, 0.65)
+        value:SetJustifyH("CENTER")
+        element.Value = value
     end
 
     return element

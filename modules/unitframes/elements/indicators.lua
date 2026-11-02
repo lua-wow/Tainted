@@ -43,9 +43,7 @@ do
     local element_proto = {}
 
     function UnitFrames:CreateFocusIndicator(frame, sublevel)
-        if not E.isMainline then
-            return nil
-        end
+        if E.isVanilla then return nil end
 
         local element = CreateIndicator(frame, "FocusIndicator", frame.Health, element_proto)
         element:SetPoint("CENTER", frame.Health, "TOPRIGHT", 0, 0)
@@ -97,10 +95,6 @@ do
     local element_proto = {}
 
     function UnitFrames:CreateHappinessIndicator(frame, sublevel)
-        if not E.isMainline then
-            return nil
-        end
-
         local element = CreateIndicator(frame, "Happiness", frame.Health, element_proto)
         element:SetPoint("CENTER", frame.Health, "TOPRIGHT", 0, 0)
         return element
@@ -135,10 +129,6 @@ do
     local element_proto = {}
 
     function UnitFrames:CreateMasterLooterIndicator(frame, sublevel)
-        if not E.isMainline then
-            return nil
-        end
-
         local element = CreateIndicator(frame, "MasterLooterIndicator", frame.Health, element_proto)
         element:SetPoint("CENTER", frame.Health, "TOPLEFT", 16, 0)
         return element
@@ -202,11 +192,6 @@ do
     local element_proto = {}
 
     function UnitFrames:CreatePvPIndicator(frame, sublevel)
-        -- oUF_Classic calls UnitHonorLevel unguarded
-        if not E.isMainline then
-            return nil
-        end
-
         local element = CreateIndicator(frame, "PvPIndicator", frame.Health, element_proto)
         element:SetPoint("CENTER", frame.Health, "TOPRIGHT", -18, 0)
         return element

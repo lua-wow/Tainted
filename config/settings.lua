@@ -7,7 +7,7 @@ C["general"] = {
     ["uiScale"] = 0.64, -- 0.52,
     -- taint.log level set on install, ignored on Retail (always 0): 0 off, 1 blocked actions and the taint
     -- leading up to them, 2 + global variables, 3 + upvalues, 4 + table fields, 5 + secret value writes, 11 + everything
-    ["taintLog"] = 0,
+    ["taintLog"] = 1,
     ["backdrop"] = {
         ["color"] = E:CreateColor(0.15, 0.15, 0.15),
         ["texture"] = blankTex
@@ -274,6 +274,7 @@ C["unitframes"] = {
         ["width"] = 205,
         ["height"] = 25,
         ["auras"] = true,
+        ["range"] = true,
         ["castbar"] = {
             ["mode"] = "embedded",
             ["icon"] = true
@@ -342,7 +343,8 @@ C["unitframes"] = {
         ["auras"] = true,
         ["castbar"] = {
             ["mode"] = "detached",
-            ["icon"] = true
+            ["icon"] = true,
+            ["height"] = 18
         },
         ["tags"] = {
             -- ["name"] = "[classification][difficulty][level]|r [hostility][name]|r",
