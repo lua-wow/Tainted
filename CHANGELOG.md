@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   ItemID line on item tooltips, like SpellID ([#20](https://github.com/lua-wow/Tainted/issues/20))
 -   TalentID line on talent tooltips (Classic) and PvP talent tooltips (Retail), like SpellID
 -   Sell price on item tooltips on TBC, like Era
+-   Addon minimap buttons (LibDBIcon) hidden and listed below the minimap, opened by a "+" shown on minimap hover
 
 ### Changed
 

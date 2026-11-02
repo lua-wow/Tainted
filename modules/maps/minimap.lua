@@ -108,7 +108,11 @@ do
         local Minimap = _G.Minimap
 
         local button = Mixin(CreateFrame("Button", nil, Minimap), invite_proto)
-        button:SetPoint("BOTTOMRIGHT", Minimap, "BOTTOMRIGHT", -3, 3)
+        if self.AddonButtons then
+            button:SetPoint("RIGHT", self.AddonButtons, "LEFT", -3, 0)
+        else
+            button:SetPoint("BOTTOMRIGHT", Minimap, "BOTTOMRIGHT", -3, 3)
+        end
         button:SetSize(14, 16)
         button:SetFrameLevel(Minimap:GetFrameLevel() + 10)
         button:RegisterForClicks("AnyUp")
@@ -258,6 +262,7 @@ function MODULE:Init()
     self:Style()
     self:CreateZoneButton()
     self:CreateDataText()
+    self.AddonButtons = self:CreateAddonButtons()
     self.InviteIndicator = self:CreateInviteIndicator()
     self.TaxiRequestEarlyLandingButton = self:AddTaxiRequestEarlyLandingButton()
 

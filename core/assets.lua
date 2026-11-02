@@ -32,7 +32,8 @@ A["textures"] = {
     ["simpy 2"]     = [[Interface\AddOns\Tainted\assets\textures\simpy_2]],
     ["simpy 3"]     = [[Interface\AddOns\Tainted\assets\textures\simpy_3]],
     ["reduction"]   = [[Interface\AddOns\Tainted\assets\textures\reduction]],
-    ["close"]       = [[Interface\AddOns\Tainted\assets\textures\close]]
+    ["close"]       = [[Interface\AddOns\Tainted\assets\textures\close]],
+    ["plus"]        = [[Interface\AddOns\Tainted\assets\textures\plus]]
 }
 
 A["icons"] = {
