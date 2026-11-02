@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   Castbar smoothing is Retail only
 -   Fix Classic debuff tooltips showing the buff tooltip
 -   Fix missing border colour on typeless raid debuffs
+-   Fix bag window close button hiding the items but leaving the window open ([#19](https://github.com/lua-wow/Tainted/issues/19))
 
 ## [1.5.0] - 2026-10-20
 

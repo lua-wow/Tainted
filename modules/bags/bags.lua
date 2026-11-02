@@ -26,7 +26,6 @@ local CooldownFrame_Set = _G.CooldownFrame_Set
 local GameTooltip = _G.GameTooltip
 local GameTooltip_Hide = _G.GameTooltip_Hide
 local BAG_CLEANUP_BAGS = _G.BAG_CLEANUP_BAGS
-local CloseAllBags = _G.CloseAllBags
 local CloseBag = _G.CloseBag
 local OpenBag = _G.OpenBag
 local IsBagOpen = _G.IsBagOpen
@@ -288,7 +287,8 @@ do
 
     -- the Update hook in Init hides the window; the bank window ends its bank session instead (bank.lua)
     function element_proto:Close()
-        CloseAllBags()
+        -- not cached: MODULE:Init hooks CloseAllBags after this file loads
+        _G.CloseAllBags()
     end
 
     function element_proto:AddSection(extra)
