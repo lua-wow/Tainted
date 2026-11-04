@@ -19,7 +19,6 @@ local tinsert = table.insert
 local tremove = table.remove
 
 -- Mine
-local RESET_ATTEMPTS = 10
 local SENT_HISTORY_SIZE = 32 -- same as Blizzard's edit box historyLines
 
 -- Session-only, shared by every edit box. 'sentIndex' 0 is the line being typed ('draft').
@@ -192,24 +191,12 @@ function CHAT:SetupChatFrame(index, config, channels)
 	end
 end
 
-function CHAT:Reset(attempt)
-	attempt = attempt or 1
-
+function CHAT:Reset()
 	-- joined channels: Retail's EnumerateServerChannels misses Trade/Services and lists unjoined ones
 	local list = { GetChannelList() } -- id, name, disabled, ...
 	local channels = {}
 	for i = 2, #list, 3 do
 		channels[#channels + 1] = list[i]
-	end
-
-	if (#channels == 0) then
-		-- channels are not joined yet right after login
-		if (attempt < RESET_ATTEMPTS) then
-			C_Timer.After(1, function() CHAT:Reset(attempt + 1) end)
-		else
-			E:print("Chat reset postponed: no joined channels found.")
-		end
-		return
 	end
 
 	-- reset chat frames
@@ -643,10 +630,15 @@ function CHAT:Init()
 
 	if not E.db.chat then
 		local frame = CreateFrame("Frame")
+		-- new characters join channels late (intro cinematic, zone load): wait for the first join
 		frame:RegisterEvent("PLAYER_ENTERING_WORLD")
+		frame:RegisterEvent("CHAT_MSG_CHANNEL_NOTICE")
+		frame:RegisterEvent("CHANNEL_UI_UPDATE") -- the channel list changed
 		frame:SetScript("OnEvent", function(f)
+			if not GetChannelList() then return end
 			f:UnregisterAllEvents()
-			CHAT:Reset()
+			-- let the rest of the join burst (General, LocalDefense, ...) arrive
+			C_Timer.After(2, function() CHAT:Reset() end)
 		end)
 	end
 end

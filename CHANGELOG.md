@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   TalentID line on talent tooltips (Classic) and PvP talent tooltips (Retail), like SpellID
 -   Sell price on item tooltips on TBC, like Era
 -   Addon minimap buttons (LibDBIcon) hidden and listed below the minimap, opened by a "+" shown on minimap hover
+-   Druids leave their form when clicking a flight path, instead of the flight failing and the map closing (Classic) ([#21](https://github.com/lua-wow/Tainted/issues/21))
 
 ### Changed
 
@@ -27,6 +28,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   Era/TBC sell price uses Blizzard's `Sell Price` line, right under the item text like MoP, and is skipped at a merchant where the client shows the stack price
 -   "In Bag" count shows on every stackable item you carry instead of only crafting reagents, which were not detected on Classic
 -   Fix a Lua error when hovering an item in the Classic Auction House
+-   Fix `taintLog` being reset to 0 by the client: reapplied on every login (not Retail)
+-   Fix new characters keeping Blizzard's default chat windows: chat setup now waits for the channels to be joined
 
 ## [1.5.0] - 2026-10-20
 
