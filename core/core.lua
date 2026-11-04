@@ -104,6 +104,8 @@ function E:PLAYER_LOGIN()
 		self:ApplyUiScale()
 	end
 
+	self:ApplyTaintLog()
+
 	-- load modules
 	self:InitModules()
 end

@@ -136,9 +136,20 @@ function E:SetupDefaultsCVars()
 	end
 
 	-- always 0 on Retail: turning it on mid-session breaks frame-method hooksecurefunc hooks until /reload (#13)
-	SetCVar("taintLog", E.isStandard and 0 or C.general.taintLog)
+	if E.isStandard then
+		SetCVar("taintLog", 0)
+	end
 
 	if SetAutoDeclineGuildInvites then
 		SetAutoDeclineGuildInvites(true)
+	end
+end
+
+-- the client resets taintLog to 0 now and then, so reapply it on every login (not Retail, see above)
+function E:ApplyTaintLog()
+	if E.isStandard then return end
+	local value = tostring(C.general.taintLog)
+	if GetCVar("taintLog") ~= value then
+		SetCVar("taintLog", value)
 	end
 end
