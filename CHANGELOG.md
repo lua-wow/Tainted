@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.6.0] - 2026-11-04
+
 ### Added
 
 -   Eclipse bar, burning embers, demonic fury, arcane charges and shadow orbs (MoP)
