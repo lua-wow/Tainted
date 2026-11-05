@@ -72,8 +72,9 @@ Agreed during the rebuild; don't re-litigate without a new reason.
   the minimap strip (`C.blizzard.durability`). Ghost uses the taxi button's anchor (Retail, Forever,
   MoP); talking head Retail/Forever. Raid utility dropped (Blizzard `/wm`, `/readycheck`, keybinds);
   unit frames hide the raid manager.
-- **Bags:** one implementation; clients differ only in data (bag IDs, sort, Classic bank and bag-slot
-  strip). Blizzard slot templates, nothing secure. Classic shows Blizzard's own container-frame item
+- **Bags:** one implementation; clients differ only in data (bag IDs, sort, Classic bank). Every client
+  shows Blizzard's bag-slot buttons as a strip (mainline adds the reagent slot); Blizzard's bags bar
+  is hidden. Blizzard slot templates, nothing secure. Classic shows Blizzard's own container-frame item
   buttons (their frames become invisible holders): addon-created slots run the template's inline
   `OnClick` tainted and can't use items in combat. The Classic bank container keeps Tainted buttons.
   Toggles hooked, never replaced. `BAG_UPDATE` marks

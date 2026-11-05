@@ -154,7 +154,7 @@ function gold_proto:GetBagUsage()
 end
 
 function gold_proto:OnMouseDown()
-    if IsShiftKeyDown() and E.isMainline and ActionBars then
+    if IsShiftKeyDown() and E.isMainline and ActionBars and not C.bags.enabled then
         ActionBars:ToggleBagsBar()
     else
         ToggleAllBags()

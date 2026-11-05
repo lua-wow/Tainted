@@ -18,6 +18,7 @@ local GetContainerNumFreeSlots = _G.C_Container.GetContainerNumFreeSlots
 local GetContainerNumSlots = _G.C_Container.GetContainerNumSlots
 local SortBags = _G.C_Container.SortBags
 local GetKeyRingSize = _G.GetKeyRingSize
+local GetInventoryItemTexture = _G.GetInventoryItemTexture
 local GetItemQualityColor = _G.C_Item.GetItemQualityColor
 local GetAtlasInfo = _G.C_Texture.GetAtlasInfo
 local GetMoney = _G.GetMoney
@@ -541,18 +542,20 @@ function MODULE:CreateBags()
         element.SortButton = self:CreateSortButton(element)
     end
 
-    if E.isClassic then
-        local buttons = {}
-        for _, name in ipairs(BLIZZARD_BAG_SLOTS) do
-            buttons[#buttons + 1] = _G[name]
-        end
-        element.BagSlots = self:CreateBagSlots(element, buttons, BACKPACK_CONTAINER + 1)
+    local buttons = {}
+    for _, name in ipairs(BLIZZARD_BAG_SLOTS) do
+        buttons[#buttons + 1] = _G[name]
+    end
+    -- mainline: holds bag NUM_BAG_SLOTS + 1, right after the bag slots
+    if _G.CharacterReagentBag0Slot then
+        buttons[#buttons + 1] = _G.CharacterReagentBag0Slot
+    end
+    element.BagSlots = self:CreateBagSlots(element, buttons, BACKPACK_CONTAINER + 1, true)
 
-        -- the rest of blizzard's bags bar (backpack and keyring buttons) has no use with the window.
-        -- Hide alone is not enough: BagsBarMixin shows it again.
-        if _G.BagsBar then
-            _G.BagsBar:SetParent(E.Hider)
-        end
+    -- the rest of blizzard's bags bar (backpack and keyring buttons) has no use with the window.
+    -- Hide alone is not enough: BagsBarMixin shows it again.
+    if _G.BagsBar then
+        _G.BagsBar:SetParent(E.Hider)
     end
 
     local section = element:AddSection(false)
@@ -643,9 +646,39 @@ local function HighlightBag(window, bagID, highlight)
     end
 end
 
--- classic only: blizzard's bag slot buttons (equipped or bank bags), shown as a row under the item slots.
--- button i holds the bag firstBagID + i - 1
-function MODULE:CreateBagSlots(window, buttons, firstBagID)
+-- mainline UpdateTextures runs on every bag update: it sets the frame atlases again (highlight alpha
+-- 0.4); forever icons were still rounded after removing their masks once
+local function StripBagSlot(button)
+    local icon = button.icon
+    if icon then
+        for i = icon:GetNumMaskTextures(), 1, -1 do
+            icon:RemoveMaskTexture(icon:GetMaskTexture(i))
+        end
+    end
+
+    for _, texture in next, { button:GetNormalTexture(), button:GetPushedTexture(), button:GetHighlightTexture() } do
+        texture:SetAlpha(0)
+    end
+end
+
+-- mainline runs UpdateTextures after every icon change. An empty slot's icon is blizzard's slot art,
+-- an atlas whose SetAtlas also resets the crop of the next bag icon: empty slots show only the
+-- backdrop, like empty item slots
+local function UpdateBagSlot(button)
+    StripBagSlot(button)
+
+    local icon = button.icon
+    if GetInventoryItemTexture("player", button:GetID()) then
+        icon:SetTexCoord(unpack(E.IconCoord))
+        icon:Show()
+    else
+        icon:Hide()
+    end
+end
+
+-- blizzard's bag slot buttons (equipped or classic bank bags), shown as a row under the item slots.
+-- button i holds the bag firstBagID + i - 1; rightToLeft puts button 1 on the right, as blizzard does
+function MODULE:CreateBagSlots(window, buttons, firstBagID, rightToLeft)
     local size = C.bags.buttons.size
     local spacing = C.bags.buttons.spacing
 
@@ -670,13 +703,30 @@ function MODULE:CreateBagSlots(window, buttons, firstBagID)
             normal:SetAlpha(0)
         end
 
+        if button.UpdateTextures then
+            UpdateBagSlot(button)
+            hooksecurefunc(button, "UpdateTextures", UpdateBagSlot)
+        else
+            StripBagSlot(button)
+        end
+
         if button.IconBorder then
             button.IconBorder:SetAlpha(0)
         end
 
-        -- bank bag slots glow while their (hidden) blizzard container frame is open (UpdateBagButtonHighlight)
+        -- slots glow while their (hidden) blizzard container frame is open (UpdateBagButtonHighlight):
+        -- HighlightFrame on classic bank bags, SlotHighlightTexture on mainline
         if button.HighlightFrame then
             button.HighlightFrame:Hide()
+        end
+        if button.SlotHighlightTexture then
+            button.SlotHighlightTexture:SetAlpha(0)
+        end
+
+        -- retail hides bags 0-3 while blizzard's bags bar is collapsed (expandBagBar)
+        if button.SetBarExpanded then
+            button:Show()
+            hooksecurefunc(button, "SetBarExpanded", button.Show)
         end
 
         button:SetNormalTexture(0)
@@ -699,7 +749,8 @@ function MODULE:CreateBagSlots(window, buttons, firstBagID)
     end
 
     for index, button in ipairs(buttons) do
-        offsets[button] = (index - 1) * (size + spacing)
+        local position = rightToLeft and (#buttons - index) or (index - 1)
+        offsets[button] = position * (size + spacing)
         Anchor(button)
         hooksecurefunc(button, "SetPoint", Anchor)
 
@@ -842,8 +893,34 @@ function MODULE:DisableBlizzard(window, bank)
     end
 end
 
+-- bags disabled: blizzard's bags stack above the right chat instead of the screen's bottom right.
+-- Only the bags anchored to the screen (each column's first) move; the rest follow them
+local function AnchorBlizzardBags()
+    local chat = _G.TaintedChatRight
+    if not chat then return end
+
+    -- mainline lists frames, classic their names
+    local manager = _G.ContainerFrameSettingsManager
+    local bags = manager and manager:GetBagsShown() or _G.ContainerFrame1.bags
+
+    local first
+    for _, frame in ipairs(bags) do
+        frame = _G[frame] or frame
+        local _, relativeTo, _, x = frame:GetPoint()
+        if relativeTo == frame:GetParent() then
+            -- classic columns: x is -(column * CONTAINER_WIDTH) from the first bag
+            first = first or x
+            frame:ClearAllPoints()
+            frame:SetPoint("BOTTOMRIGHT", chat, "TOPRIGHT", x - first, C.chat.margin / frame:GetScale())
+        end
+    end
+end
+
 function MODULE:Init()
-    if not C.bags.enabled then return end
+    if not C.bags.enabled then
+        hooksecurefunc("UpdateContainerFrameAnchors", AnchorBlizzardBags)
+        return
+    end
 
     local window = self:CreateBags()
     self.Bags = window
