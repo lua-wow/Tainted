@@ -265,14 +265,16 @@ function MODULE:DisableBlizzard()
     self:Hide(_G.MainMenuBarArtFrame, true)
     self:Hide(_G.OverrideActionBar, true)
 
-    -- Retail
+    -- Retail, Forever: hides its Main/Secondary bar containers too; they must keep the manager as
+    -- parent, Forever's UpdateShownState (Edit Mode) calls GetParent():CheckForLayoutChange()
     self:Hide(_G.StatusTrackingBarManager, true)
-    self:Hide(_G.MainStatusTrackingBarContainer, true)
-    self:Hide(_G.SecondaryStatusTrackingBarContainer, true)
 
     -- reparent only: MultiActionBar_Update hides every multi-bar while MainActionBar:IsShown() is false
     if _G.MainActionBar then
         _G.MainActionBar:SetParent(E.Hider)
+        -- Forever: its PLAYER_ENTERING_WORLD registers an input-device init that shows MicroMenu and
+        -- BagsBar on every loading screen. Retail doesn't register it.
+        _G.MainActionBar:UnregisterEvent("PLAYER_ENTERING_WORLD")
     end
 
     local MicroMenu = _G.MicroMenu
