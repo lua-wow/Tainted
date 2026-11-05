@@ -273,6 +273,9 @@ function MODULE:DisableBlizzard()
     -- reparent only: MultiActionBar_Update hides every multi-bar while MainActionBar:IsShown() is false
     if _G.MainActionBar then
         _G.MainActionBar:SetParent(E.Hider)
+        -- Forever: its PLAYER_ENTERING_WORLD registers an input-device init that shows MicroMenu and
+        -- BagsBar on every loading screen. Retail doesn't register it.
+        _G.MainActionBar:UnregisterEvent("PLAYER_ENTERING_WORLD")
     end
 
     local MicroMenu = _G.MicroMenu
