@@ -8,6 +8,9 @@ C["general"] = {
     -- taint.log level set on install, ignored on Retail (always 0): 0 off, 1 blocked actions and the taint
     -- leading up to them, 2 + global variables, 3 + upvalues, 4 + table fields, 5 + secret value writes, 11 + everything
     ["taintLog"] = 1,
+    -- Mainline (Retail, Forever) movement keys set on install: "legacy" Q/E strafe, "modern" Q/E turn.
+    -- custom movement bindings are left alone
+    ["turnStrafeStyle"] = "legacy",
     ["backdrop"] = {
         ["color"] = E:CreateColor(0.15, 0.15, 0.15),
         ["texture"] = blankTex
