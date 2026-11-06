@@ -5,6 +5,9 @@ local E, C = ns.E, ns.C
 local GetCVar = C_CVar and C_CVar.GetCVar or _G.GetCVar
 local SetCVar = C_CVar and C_CVar.SetCVar or _G.SetCVar
 local SetAutoDeclineGuildInvites = _G.SetAutoDeclineGuildInvites
+local C_KeyBindings = _G.C_KeyBindings
+local SaveBindings = _G.SaveBindings
+local GetCurrentBindingSet = _G.GetCurrentBindingSet
 
 --------------------------------------------------
 -- CVars
@@ -113,6 +116,13 @@ local variables = {
 	-- ["lossOfControlRoot"] = 2,
 	-- ["lossOfControlSilence"] = 2,
 
+	-- targeting
+	["deselectOnClick"] = 1,				-- 1 = Sticky Targeting off (the setting is its inverse)
+
+	-- target (blizzard's target frame only)
+	["showTargetOfTarget"] = 1,
+	["showTargetCastbar"] = 1,
+
 	-- arena
 	["showArenaEnemyFrames"] = 0,
 	["showArenaEnemyPets"] = 0,
@@ -127,12 +137,31 @@ local variables = {
 	["showNPETutorials"] = 0
 }
 
+local TURN_STRAFE_STYLES = {
+	["modern"] = Enum.TurnStrafeStyle.Modern,
+	["legacy"] = Enum.TurnStrafeStyle.Legacy,
+}
+
+-- Custom means the user rebound movement keys: leave them alone
+function E:SetupTurnStrafeStyle()
+	local style = TURN_STRAFE_STYLES[C.general.turnStrafeStyle]
+	local current = C_KeyBindings.GetTurnStrafeStyle()
+	if style and (current ~= style) and (current ~= Enum.TurnStrafeStyle.Custom) then
+		C_KeyBindings.SetTurnStrafeStyle(style)
+		SaveBindings(GetCurrentBindingSet())
+	end
+end
+
 function E:SetupDefaultsCVars()
 	for name, value in next, variables do
 		-- not every cvar exists on every game version
 		if (GetCVar(name) ~= nil) then
 			SetCVar(name, value)
 		end
+	end
+
+	if E.isMainline then
+		E:SetupTurnStrafeStyle()
 	end
 
 	-- always 0 on Retail: turning it on mid-session breaks frame-method hooksecurefunc hooks until /reload (#13)
