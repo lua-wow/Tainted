@@ -116,6 +116,9 @@ local variables = {
 	-- ["lossOfControlRoot"] = 2,
 	-- ["lossOfControlSilence"] = 2,
 
+	-- swing timer (Forever only; Options > Advanced)
+	["showSwingTimer"] = C.blizzard.swingtimer and 1 or 0,
+
 	-- targeting
 	["deselectOnClick"] = 1,				-- 1 = Sticky Targeting off (the setting is its inverse)
 

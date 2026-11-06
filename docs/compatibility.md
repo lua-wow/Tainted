@@ -70,7 +70,8 @@ Agreed during the rebuild; don't re-litigate without a new reason.
 - **Blizzard tweaks:** experience keeps every bar that can have data (Azerite, Artifact, Anima, house
   favor on Retail). Objective tracker: Tainted anchor on mainline, Edit Mode fallback. Durability below
   the minimap strip (`C.blizzard.durability`). Ghost uses the taxi button's anchor (Retail, Forever,
-  MoP); talking head Retail/Forever. Raid utility dropped (Blizzard `/wm`, `/readycheck`, keybinds);
+  MoP); talking head Retail/Forever; swing timer Forever only, a skin of Blizzard's, sized and stacked
+  below the class power. Raid utility dropped (Blizzard `/wm`, `/readycheck`, keybinds);
   unit frames hide the raid manager.
 - **Bags:** one implementation; clients differ only in data (bag IDs, sort, Classic bank). Every client
   shows Blizzard's bag-slot buttons as a strip (mainline adds the reagent slot); Blizzard's bags bar
