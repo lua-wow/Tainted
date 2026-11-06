@@ -345,7 +345,8 @@ local UpdateUnitTooltip = function(tooltip, data)
 
             text = color:WrapTextInColorCode(text)
 
-            if realm and realm ~= "" then
+            -- Forever: UnitName's second return is the surname, already in the name
+            if not E.isCamelot and realm and realm ~= "" then
                 text = NAME_FORMAT:format(text, " - " .. realm)
                 -- if isShiftKeyDown then
                 --     name = NAME_FORMAT:format(name, "-" .. realm)
@@ -397,7 +398,8 @@ local UpdateUnitTooltip = function(tooltip, data)
                 offset = _offset
 
                 local guildText = guildName
-                if guildRealm and guildRealm ~= "" and guildRealm ~= realm then
+                -- Forever: guild name only
+                if not E.isCamelot and guildRealm and guildRealm ~= "" and guildRealm ~= realm then
                     guildText = guildName .. " - " .. guildRealm
                 end
 
