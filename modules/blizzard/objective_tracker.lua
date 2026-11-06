@@ -67,7 +67,9 @@ else
         end)
 
         hooksecurefunc(frame, "SetPoint", function(self)
-            if InCombatLockdown() then
+            -- ManageFramePositions re-lays out the right container in combat too; only a protected
+            -- tracker has to wait
+            if InCombatLockdown() and self:IsProtected() then
                 element:RegisterEvent("PLAYER_REGEN_ENABLED")
                 return
             end
