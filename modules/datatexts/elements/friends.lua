@@ -31,6 +31,15 @@ local GAMES = {
 	["ZEUS"] = "Call of Duty: Black Ops Cold War",
 	["W3"] = "Warcraft III: Reforged",
 }
+-- suffix by wowProjectID; numeric because most WOW_PROJECT_* globals only exist on some clients
+local PROJECTS = {
+	[2] = " Classic",
+	[5] = " Classic (TBC)",
+	[11] = " Classic (Wrath)",
+	[14] = " Classic (Cataclysm)",
+	[18] = " Forever",
+	[19] = " Classic (Mists)",
+}
 local GAMES_PRIORITY = {
     ["WoW"] = 10,
 	["W3"] = 9,
@@ -174,16 +183,7 @@ function friends_proto:CreateTooltip(tooltip)
                             local difficultyColor = E.GetRelativeDifficultyColor(self.level, tag.level)
                             left = left .. " " .. difficultyColor:WrapTextInColorCode(tag.level) .. ")"
 
-                            -- if (tag.wowProjectID == WOW_PROJECT_MAINLINE) then
-                            if (tag.wowProjectID == WOW_PROJECT_CLASSIC) then
-                                right = right .. " Classic"
-                            elseif (tag.wowProjectID == WOW_PROJECT_BURNING_CRUSADE_CLASSIC) then
-                                right = right .. " Classic (TBC)"
-                            elseif (tag.wowProjectID == WOW_PROJECT_WRATH_CLASSIC) then
-                                right = right .. " Classic (Wrath)"
-                            elseif (tag.wowProjectID == WOW_PROJECT_CATACLYSM_CLASSIC) then
-                                right = right .. " Classic (Cataclysm)"
-                            end
+                            right = right .. (PROJECTS[tag.wowProjectID] or "")
 
                             if tag.area then
                                 right = tag.area .. " - " .. right
