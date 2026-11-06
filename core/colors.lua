@@ -170,6 +170,13 @@ oUF.colors.mirror = {
 	FEIGNDEATH	= oUF:CreateColor(1.0, 0.70, 0.0)
 }
 
+-- keyed by Enum.PlayerSwingType (Forever only, so the Enum isn't referenced here)
+oUF.colors.swing = {
+	[0] = oUF:CreateColor(0.78, 0.61, 0.43),	-- MainHand
+	[1] = oUF:CreateColor(0.65, 0.63, 0.35),	-- OffHand
+	[2] = oUF:CreateColor(0.33, 0.59, 0.33)		-- Ranged
+}
+
 oUF.colors.stagger = oUF.colors.power.STAGGER
 
 oUF.colors.combopoints = {

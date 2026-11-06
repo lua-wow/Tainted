@@ -79,6 +79,7 @@ C["blizzard"] = {
     ["durability"] = true,
     ["ghost"] = true,
     ["mirrortimers"] = true,
+    ["swingtimer"] = true,
     ["talkinghead"] = true,
     ["uiwidgets"] = true
 }
