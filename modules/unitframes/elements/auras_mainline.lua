@@ -177,9 +177,14 @@ local function CreateRaidBuffs(frame)
     element.showCount = true
     element.PostCreateButton = PostCreateButton
 
-    element:AddGroup("HELPFUL|BIG_DEFENSIVE", { maxFrameCount = 1 })
-    element:AddGroup("HELPFUL|EXTERNAL_DEFENSIVE|!BIG_DEFENSIVE", { maxFrameCount = 1 })
-    element:AddGroup("HELPFUL|PLAYER|RAID_IN_COMBAT|!BIG_DEFENSIVE|!EXTERNAL_DEFENSIVE", { maxFrameCount = 4 })
+    if E.isCamelot then
+        -- Forever (1.60.1) ignores PLAYER/BIG_DEFENSIVE/EXTERNAL_DEFENSIVE: every group would show the
+        -- same buffs. Short buffs only instead, which hides armors, tracking, raid buffs and elixirs.
+        element:AddGroup("HELPFUL", { maxFrameCount = 2, candidateFilters = { maxDuration = 60 } })
+    else
+        element:AddGroup("HELPFUL|BIG_DEFENSIVE", { maxFrameCount = 1 })
+        element:AddGroup("HELPFUL|EXTERNAL_DEFENSIVE|!BIG_DEFENSIVE", { maxFrameCount = 1 })
+    end
 
     return element
 end
@@ -209,8 +214,19 @@ local function CreateRaidDebuffs(frame, config)
     element.showDebuffType = true
     element.PostCreateButton = PostCreateButton
 
-    for i = 1, num do
-        element:AddGroup(raidDebuffFilters[i], GetRaidDebuffOptions(i))
+    if E.isCamelot then
+        -- Forever (1.60.1) ignores RAID_PLAYER_DISPELLABLE/CROWD_CONTROL: the groups would repeat the same
+        -- debuffs. One group instead, dispel types first. The duration cap hides permanent and hour-long
+        -- debuffs such as the camp's Boosted Rest (spell-ID filters don't apply to friendly debuffs).
+        element:AddGroup("HARMFUL", {
+            maxFrameCount = num,
+            sortMethod = AuraContainerSortMethod.UnitFrameDebuff,
+            candidateFilters = { maxDuration = 600 }
+        })
+    else
+        for i = 1, num do
+            element:AddGroup(raidDebuffFilters[i], GetRaidDebuffOptions(i))
+        end
     end
 
     return element

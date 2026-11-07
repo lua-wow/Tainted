@@ -92,8 +92,11 @@ Agreed during the rebuild; don't re-litigate without a new reason.
   check, not a client flag. AlternativePower on every client. Adapter ports skipped: castbar duration
   objects, colour curves, range without polling, Auras shim.
 - **Raid auras:** Retail/Forever use oUF `Auras` groups with Blizzard filters. Buffs:
-  `BIG_DEFENSIVE`, `EXTERNAL_DEFENSIVE`, own `RAID_IN_COMBAT` HoTs. Debuffs: `RAID_PLAYER_DISPELLABLE`,
-  boss, `CROWD_CONTROL`, `IMPORTANT`. Classic keeps AuraTrack and RaidDebuffs.
+  `BIG_DEFENSIVE`, `EXTERNAL_DEFENSIVE` (Forever ignores these and `PLAYER`: one `HELPFUL` group with
+  `maxDuration` 60 instead). Debuffs: `RAID_PLAYER_DISPELLABLE`,
+  boss, `CROWD_CONTROL`, `IMPORTANT` (Forever ignores `RAID_PLAYER_DISPELLABLE` and `CROWD_CONTROL`:
+  one `HARMFUL` group sorted by `UnitFrameDebuff`, `maxDuration` 600, instead). Classic keeps
+  AuraTrack and RaidDebuffs.
 - **Miscellaneous:** dispels on all Classic clients with per-client data; dungeon portals accept
   per-season data upkeep.
 
