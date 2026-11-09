@@ -117,6 +117,9 @@ E.API.CreateBackdrop = function(self, template)
 	self.Backdrop:SetPoint("TOPLEFT", -inset, inset)
 	self.Backdrop:SetPoint("BOTTOMRIGHT", inset, -inset)
 	self.Backdrop:SetBackdrop(backdrop)
+	-- solid textures need no re-tiling on resize; Blizzard's handler does arithmetic on the parent's
+	-- size, which is secret on Retail/Forever (e.g. tooltips sized to secret text) and errors under taint
+	self.Backdrop:SetScript("OnSizeChanged", nil)
 	self.Backdrop:SetBackdropColor(backdropColor.r, backdropColor.g, backdropColor.b, backdropAlpha)
 	self.Backdrop.__alpha = backdropAlpha
 	self.Backdrop:SetBackdropBorderColor(borderColor.r, borderColor.g, borderColor.b)
