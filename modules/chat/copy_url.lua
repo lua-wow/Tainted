@@ -8,6 +8,7 @@ local ChooseBoxForSend = _G.ChatFrameUtil.ChooseBoxForSend
 local ActivateChat = _G.ChatFrameUtil.ActivateChat
 local AddMessageEventFilter = _G.ChatFrameUtil.AddMessageEventFilter
 local RegisterLinkHandler = _G.LinkUtil.RegisterLinkHandler
+local issecretvalue = _G.issecretvalue
 
 -- Lua
 local gsub = string.gsub
@@ -21,7 +22,9 @@ local CreatePattner = function(url)
 end
 
 function CHAT:HyperlinkFilter(event, msg, ...)
-	local text, replacements 
+	if issecretvalue and issecretvalue(msg) then return end
+
+	local text, replacements
 	
 	text, replacements = gsub(msg, "(%a+)://(%S+)%s?", CreatePattner("%1://%2"))
 	if (replacements > 0) then
