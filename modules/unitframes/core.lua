@@ -202,6 +202,14 @@ local function CreateUnit(unit, parent, num)
     return units[unit]
 end
 
+-- styling a header child is insecure (RegisterForClicks) and blocked in combat:
+-- create all of them now so the header never spawns one mid-fight
+local function CreateHeaderChildren(header, count)
+    header:SetAttribute("startingIndex", 1 - count)
+    header:Show() -- template is hidden; OnShow runs SecureGroupHeader_Update
+    header:SetAttribute("startingIndex", 1)
+end
+
 function UnitFrames:GetPartyAttributes()
     return addon .. "Party",
         nil,
@@ -219,12 +227,13 @@ function UnitFrames:GetPartyAttributes()
 end
 
 function UnitFrames:GetRaidVisibility()
-    local visibility = "custom [group:raid, @raid21, noexists] show; "
+    -- unit conditions, not [group]: on forever [group] stays stale when joining in combat
+    local visibility = "custom [@raid21, exists] hide; [@raid1, exists] show; "
     if not C.unitframes.party.enabled then
-        visibility = visibility .. "[group:party, nogroup:raid] show; "
+        visibility = visibility .. "[@party1, exists] show; "
     end
     if C.unitframes.raid.solo then
-        visibility = visibility .. "[@player, exists, nogroup:party] show; "
+        visibility = visibility .. "[@party1, noexists] show; "
     end
     return visibility ..  "hide"
 end
@@ -393,18 +402,21 @@ function UnitFrames:Init()
 
         if (C.unitframes.party.enabled) then
             local party = self:SpawnHeader(UnitFrames:GetPartyAttributes())
-            party:SetVisibility("custom [group:party, nogroup:raid] show; hide")
+            CreateHeaderChildren(party, 5)
+            party:SetVisibility("custom [@raid1, exists] hide; [@party1, exists] show; hide")
             party:SetParent(holder)
             party:SetPoint("LEFT", holder, "LEFT", 28, 0)
         end
 
         if (C.unitframes.raid.enabled) then
             local raid = self:SpawnHeader(UnitFrames:GetRaidAttributes())
+            CreateHeaderChildren(raid, 40)
             raid:SetVisibility(UnitFrames:GetRaidVisibility())
             raid:SetParent(RaidHolder)
             raid:SetPoint("BOTTOMLEFT", 0, 0)
 
             local raid40 = self:SpawnHeader(UnitFrames:GetRaid40Attributes())
+            CreateHeaderChildren(raid40, 40)
             raid40:SetVisibility(UnitFrames:GetRaid40Visibilty())
             raid40:SetParent(RaidHolder)
             raid40:SetPoint("BOTTOMLEFT", 0, 0)
