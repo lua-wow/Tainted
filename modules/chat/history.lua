@@ -8,12 +8,13 @@ if not C.chat.history.enabled then return end
 
 -- Blizzard
 local hasanysecretvalues = _G.hasanysecretvalues
+local GetPlayerLink = _G.GetPlayerLink
+local Ambiguate = _G.Ambiguate
 
 local database = TaintedChatHistory
 
 local frame_proto = {
     threshold = C.chat.history.threshold or 0,
-    isPrinting = false,
     events = {
         "CHAT_MSG_INSTANCE_CHAT",
         "CHAT_MSG_INSTANCE_CHAT_LEADER",
@@ -36,16 +37,22 @@ local frame_proto = {
     }
 }
 
+-- Replays as plain lines: running Blizzard's MessageEventHandler from here taints its chat
+-- state (HistoryKeeper access IDs), which later breaks live messages with secret senders.
 function frame_proto:Print()
-    self.isPrinting = true
+    local chatFrame = _G.ChatFrame1
 
-    for index = #TaintedChatHistory, 1, -1 do
-        local tmp = TaintedChatHistory[index]
-        local chatFrame = _G["ChatFrame1"]
-        pcall(chatFrame.MessageEventHandler, chatFrame, tmp.event, unpack(tmp.args))
+    for index = #database, 1, -1 do
+        local tmp = database[index]
+        local chatType = tmp.event:sub(10)
+        local info = ChatTypeInfo[chatType]
+        local fmt = _G["CHAT_" .. chatType .. "_GET"]
+        local text, name = tmp.args[1], tmp.args[2]
+        if info and fmt and name then
+            local sender = GetPlayerLink(name, "[" .. Ambiguate(name, "none") .. "]")
+            chatFrame:AddMessage(fmt:format(sender) .. text, info.r, info.g, info.b)
+        end
     end
-
-    self.isPrinting = false
 end
 
 function frame_proto:Save(event, ...)
@@ -91,7 +98,7 @@ end
 function frame_proto:OnEvent(event, ...)
     if (event == "PLAYER_LOGIN") then
         self:Init()
-    elseif not self.isPrinting then
+    else
         self:Save(event, ...)
     end
 end
