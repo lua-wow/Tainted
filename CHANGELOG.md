@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.7.0] - 2026-11-10
+
 ### Added
 
 -   Swing timer skinned and stacked below the class power, enabled on install; Edit Mode still controls when it shows (Forever)
