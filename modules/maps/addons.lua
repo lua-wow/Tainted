@@ -17,7 +17,8 @@ do
     local row_proto = {}
 
     function row_proto:OnClick(mouseButton)
-        local OnClick = self.dataObject.OnClick
+        -- look-alike buttons keep their handlers as frame scripts
+        local OnClick = self.dataObject.OnClick or self.button:GetScript("OnClick")
         if OnClick then
             OnClick(self, mouseButton)
         end
@@ -31,6 +32,11 @@ do
             GameTooltip:Show()
         elseif dataObject.OnEnter then
             dataObject.OnEnter(self)
+        else
+            local OnEnter = self.button:GetScript("OnEnter")
+            if OnEnter then
+                OnEnter(self)
+            end
         end
     end
 
@@ -99,8 +105,10 @@ do
             local row = list[index] or CreateRow(list)
             list[index] = row
 
-            local dataObject = self.buttons[name].dataObject
+            local button = self.buttons[name]
+            local dataObject = button.dataObject
             local coords = dataObject.iconCoords
+            row.button = button
             row.dataObject = dataObject
             row.Icon:SetTexture(dataObject.icon)
             if coords then
@@ -127,9 +135,6 @@ do
     end
 
     function MODULE:CreateAddonButtons()
-        local LibDBIcon = LibStub and LibStub("LibDBIcon-1.0", true)
-        if not LibDBIcon then return end
-
         local Minimap = _G.Minimap
         local anchor = self.DataText or Minimap
 
@@ -160,13 +165,28 @@ do
         list:Hide()
         toggle.List = list
 
-        for name, button in next, LibDBIcon.objects do
-            toggle:Collect(button, name)
+        local LibDBIcon = LibStub and LibStub("LibDBIcon-1.0", true)
+        if LibDBIcon then
+            for name, button in next, LibDBIcon.objects do
+                toggle:Collect(button, name)
+            end
+
+            -- addons registering their icon after Tainted loads
+            LibDBIcon.RegisterCallback(toggle, "LibDBIcon_IconCreated", function(_, button, name)
+                toggle:Collect(button, name)
+            end)
         end
 
-        -- addons registering their icon after Tainted loads
-        LibDBIcon.RegisterCallback(toggle, "LibDBIcon_IconCreated", function(_, button, name)
-            toggle:Collect(button, name)
+        -- addons without LibDBIcon may imitate its buttons (name and dataObject) for collectors;
+        -- deferred because they create them in their own PLAYER_LOGIN, which may run after ours
+        C_Timer.After(0, function()
+            for _, child in ipairs({ Minimap:GetChildren() }) do
+                local name = child.dataObject and child:GetName()
+                name = name and name:match("^LibDBIcon10_(.+)")
+                if name then
+                    toggle:Collect(child, name)
+                end
+            end
         end)
 
         local function UpdateShown()
