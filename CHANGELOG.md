@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+-   Swing timer skinned and stacked below the class power, enabled on install; Edit Mode still controls when it shows (Forever)
+-   Friends datatext names Forever and Mists friends' game version
+
+### Changed
+
+-   Install sets legacy Q/E strafe unless movement keys were rebound (Retail, Forever), turns off Sticky Targeting, and shows the target of target and target castbar
+-   Raid frames show only defensive and short buffs and a single capped debuff group, since aura filters are ignored (Forever)
+-   Tooltips hide the realm, which is the surname there (Forever)
+-   Addon minimap buttons that imitate LibDBIcon are collected below the minimap as well (Forever)
+-   Blizzard's bags open above the right chat when Tainted bags are disabled
+-   Fix friends datatext game version names
+-   Fix group frames when joining a group in combat: party frames are created at login, visibility no longer depends on the stale `[group]` condition
+-   Fix objective tracker jumping in combat (Retail, Forever)
+-   Fix MicroMenu and BagsBar showing on every loading screen, and Edit Mode breaking (Forever)
+-   Fix backdrops erroring on secret sizes
+-   Fix chat history replay tainting chat (Forever)
+
 ## [1.6.0] - 2026-11-04
 
 ### Added
