@@ -30,10 +30,13 @@ local gold_proto = {
 }
 
 function gold_proto:FormatMoney(value)
+    -- split the absolute value: floor and % round negatives toward -inf
+    local sign = (value < 0) and "-" or ""
+    value = math.abs(value)
     local gold = math.floor(value / 10000)
     local silver = math.floor(value / 100 % 100)
     local copper = value % 100
-    return ("%02d%s %02d%s %02d%s"):format(gold, L.gold, silver, L.silver, copper, L.copper)
+    return ("%s%02d%s %02d%s %02d%s"):format(sign, gold, L.gold, silver, L.silver, copper, L.copper)
 end
 
 local SortByMoney = function(a, b)
@@ -167,15 +170,15 @@ function gold_proto:OnEvent(event, ...)
     -- get player current money
     local money = GetMoney()
 
-    -- load money from saved variables
-    local savedMoney = E:GetMoney() or money
-
-    local change = money - savedMoney
+    -- baseline is the money seen at login, not the saved value: that one is stale
+    -- when the last session didn't save, and its difference isn't this session's
+    local change = money - (self.money or money)
     if (change < 0) then
         self.spent = self.spent - change
     elseif (change > 0) then
         self.earned = self.earned + change
     end
+    self.money = money
 
     if self.Text then
         self.Text:SetText(self:FormatMoney(money))
@@ -192,7 +195,8 @@ end
 function gold_proto:Enable()
     self.spent = 0
     self.earned = 0
-    
+    self.money = nil
+
     if self.Text then
         local color = C.datatexts.colors.value
         self.Text:SetTextColor(color:GetRGB())
