@@ -42,6 +42,8 @@ function UnitFrames:CreatePlayerFrame(frame)
     -- SOUL SHARDS      (WARLOCK)
     frame.ClassPower = self:CreateClassPower(frame)
 
+    self:CreateSwing(frame)
+
     -- SHAMAN -> TOTEMS
     -- MONK -> STATUES
     -- PALADIN -> CONSACRATION

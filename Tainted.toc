@@ -131,6 +131,7 @@ modules\unitframes\elements\range.lua
 modules\unitframes\elements\portrait.lua
 modules\unitframes\elements\runes.lua
 modules\unitframes\elements\stagger.lua
+modules\unitframes\elements\swing.lua
 modules\unitframes\elements\targetindicator.lua
 modules\unitframes\elements\threatindicator.lua
 modules\unitframes\elements\totems.lua

@@ -229,6 +229,7 @@ read_globals = {
     'InitiateRolePoll',
     'IsAltKeyDown',
     'IsControlKeyDown',
+    'IsDualWielding',
     'issecretvalue',
     'IsShiftKeyDown',
     'Item',

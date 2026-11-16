@@ -79,7 +79,7 @@ C["blizzard"] = {
     ["durability"] = true,
     ["ghost"] = true,
     ["mirrortimers"] = true,
-    ["swingtimer"] = true,
+    ["swingtimer"] = false,
     ["talkinghead"] = true,
     ["uiwidgets"] = true
 }
@@ -213,6 +213,10 @@ C["unitframes"] = {
         ["icons"] = false,
         ["size"] = 32,
         ["spacing"] = 5
+    },
+    -- swing timer (Forever only), anchored below the class power
+    ["swingtimer"] = {
+        ["enabled"] = true
     },
     -- castbar
     ["castbar"] = {
