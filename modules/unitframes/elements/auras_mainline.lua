@@ -5,7 +5,7 @@ local UnitFrames = E:GetModule("UnitFrames")
 --------------------------------------------------
 -- Auras
 -- Retail oUF has no Buffs/Debuffs elements: auras are Blizzard AuraContainers built through
--- frame:CreateAuras. Blizzard fills the buttons, so secret aura values never reach us.
+-- frame:CreateAurasElement. Blizzard fills the buttons, so secret aura values never reach us.
 --------------------------------------------------
 -- stealable buffs are Magic; None covers a secret or missing dispel type
 local stealableColors = { Magic = E.colors.stealable, None = E.colors.stealable }
@@ -70,7 +70,7 @@ local function CreateAuraElement(frame, isCompact, initialAnchor, growthX)
         width = math.floor(width / 2)
     end
 
-    local element = frame:CreateAuras({
+    local element = frame:CreateAurasElement({
         initialAnchor = initialAnchor,
         growthX = growthX,
         growthY = "UP",
@@ -161,7 +161,7 @@ local function CreateRaidBuffs(frame)
     local spacing = 6
     local size = (width / 4) - spacing - (spacing / 4)
 
-    local element = frame:CreateAuras({
+    local element = frame:CreateAurasElement({
         initialAnchor = "TOPLEFT",
         growthX = "RIGHT",
         growthY = "DOWN",
@@ -196,7 +196,7 @@ local function CreateRaidDebuffs(frame, config)
     local spacing = C.unitframes.auras.spacing or 3
     local width = num * size + (num - 1) * spacing
 
-    local element = frame:CreateAuras({
+    local element = frame:CreateAurasElement({
         initialAnchor = "TOPLEFT",
         growthX = "RIGHT",
         layoutLimit = width,
