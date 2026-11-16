@@ -214,7 +214,7 @@ C["unitframes"] = {
         ["size"] = 32,
         ["spacing"] = 5
     },
-    -- swing timer (Forever only), anchored below the class power
+    -- swing timer (Forever, Era), anchored below the class power
     ["swingtimer"] = {
         ["enabled"] = true
     },

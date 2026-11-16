@@ -3,7 +3,7 @@ local E, C, A = ns.E, ns.C, ns.A
 local UnitFrames = E:GetModule("UnitFrames")
 
 --------------------------------------------------
--- Swing (Forever)
+-- Swing (Forever, Era)
 --------------------------------------------------
 -- replaces the Blizzard swing timer skin (modules/blizzard/swing_timer.lua): same spot, size and font
 
@@ -13,11 +13,11 @@ local MAINHAND = PlayerSwingType.MainHand or 0
 local OFFHAND = PlayerSwingType.OffHand or 1
 local RANGED = PlayerSwingType.Ranged or 2
 
--- labels are Blizzard's swing timer strings
+-- labels are Blizzard's swing timer strings (Forever), item slot names elsewhere
 local SWING_TYPES = {
-    { MAINHAND, _G.SWING_TIMER_MAIN_HAND },
-    { OFFHAND, _G.SWING_TIMER_OFF_HAND },
-    { RANGED, _G.SWING_TIMER_RANGED }
+    { MAINHAND, _G.SWING_TIMER_MAIN_HAND or _G.INVTYPE_WEAPONMAINHAND },
+    { OFFHAND, _G.SWING_TIMER_OFF_HAND or _G.INVTYPE_WEAPONOFFHAND },
+    { RANGED, _G.SWING_TIMER_RANGED or _G.INVTYPE_RANGED }
 }
 
 local bars = {}
@@ -41,8 +41,8 @@ local function PostUpdate(element, event, swingType)
 end
 
 function UnitFrames:CreateSwing(frame)
-    -- oUF Swing only works on Forever
-    if not (E.isCamelot and C.unitframes.swingtimer.enabled) then return end
+    -- oUF Swing only works on Forever and Era
+    if not ((E.isCamelot or E.isVanilla) and C.unitframes.swingtimer.enabled) then return end
 
     local texture = C.unitframes.texture
     local font = A.fonts.normal

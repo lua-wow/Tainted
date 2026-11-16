@@ -170,7 +170,7 @@ oUF.colors.mirror = {
 	FEIGNDEATH	= oUF:CreateColor(1.0, 0.70, 0.0)
 }
 
--- keyed by Enum.PlayerSwingType (Forever only, so the Enum isn't referenced here)
+-- keyed by Enum.PlayerSwingType (Forever only, so the Enum isn't referenced here; Era uses the same values)
 oUF.colors.swing = {
 	[0] = oUF:CreateColor(0.78, 0.61, 0.43),	-- MainHand
 	[1] = oUF:CreateColor(0.65, 0.63, 0.35),	-- OffHand
