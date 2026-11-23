@@ -15,6 +15,7 @@ function UnitFrames:CreateTargetFrame(frame)
     end
 
     frame.AlternativePower = self:CreateAlternativePower(frame)
+    frame.CombatFeedback = self:CreateCombatFeedback(frame)
     frame.LeaderIndicator = self:CreateLeaderIndicator(frame)
     frame.AssistantIndicator = self:CreateAssistantIndicator(frame)
     frame.FocusIndicator = self:CreateFocusIndicator(frame)

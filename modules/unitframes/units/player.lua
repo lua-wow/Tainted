@@ -18,6 +18,7 @@ function UnitFrames:CreatePlayerFrame(frame)
 
     frame.AdditionalPower = self:CreateAdditionalPower(frame)
     frame.AlternativePower = self:CreateAlternativePower(frame)
+    frame.CombatFeedback = self:CreateCombatFeedback(frame)
 
     -- indicators
     frame.AssistantIndicator = self:CreateAssistantIndicator(frame)

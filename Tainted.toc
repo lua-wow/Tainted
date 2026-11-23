@@ -25,6 +25,7 @@ libs\LibMobs\LibMobs.xml
 libs\oUF\oUF.xml [AllowLoadGameType mainline]
 libs\oUF_Classic\oUF.xml [AllowLoadGameType classic]
 libs\oUF_Atonement\oUF_Atonement.lua [AllowLoadGameType mainline]
+libs\oUF_CombatFeedback\oUF_CombatFeedback.lua
 libs\oUF_AuraTrack\oUF_AuraTrack.xml [AllowLoadGameType classic]
 libs\oUF_RaidDebuffs\oUF_RaidDebuffs.xml [AllowLoadGameType classic]
 libs\oUF_Tempest\oUF_Tempest.lua [AllowLoadGameType mainline]
@@ -122,6 +123,7 @@ modules\unitframes\elements\auras.lua [AllowLoadGameType classic]
 modules\unitframes\elements\auras_mainline.lua [AllowLoadGameType mainline]
 modules\unitframes\elements\castbar.lua
 modules\unitframes\elements\classpower.lua
+modules\unitframes\elements\combatfeedback.lua
 modules\unitframes\elements\eclipsebar.lua
 modules\unitframes\elements\health.lua
 modules\unitframes\elements\indicators.lua

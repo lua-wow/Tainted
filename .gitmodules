@@ -50,3 +50,6 @@
 	path = modules/miscellaneous/screenshots
 	url = https://github.com/lua-wow/screenshots.git
 	branch = master
+[submodule "libs/oUF_CombatFeedback"]
+	path = libs/oUF_CombatFeedback
+	url = https://github.com/lua-wow/oUF_CombatFeedback.git
