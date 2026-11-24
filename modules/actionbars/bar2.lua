@@ -15,7 +15,8 @@ do
     function element_proto:UpdateAnchor()
         local element = self
         element:ClearAllPoints()
-        element:SetPoint("BOTTOM", UIParent, "BOTTOM", 0, 62)
+        -- bar 2 is split in two halves flanking bar 1
+        element:SetPoint("CENTER", MODULE.ActionBar1, "CENTER", 0, 0)
     end
 
     function element_proto:PostCreate()
@@ -38,19 +39,22 @@ do
 		local rows = 1
 		local cols = (num / 2)
 
+		local width = (cols * size) + ((cols + 1) * spacing)
+		local height = (rows * size) + ((rows + 1) * spacing)
+
+		self:SetSize((2 * width) + MODULE.ActionBar1:GetWidth() + (2 * spacing), height)
+
         local left = CreateFrame("Frame", self:GetName() .. "Left", self) --, "SecureHandlerStateTemplate")
-        left:SetPoint("RIGHT", MODULE.ActionBar1, "LEFT", -spacing, 0)
-        left:SetWidth((cols * size) + ((cols + 1) * spacing))
-        left:SetHeight((rows * size) + ((rows + 1) * spacing))
+        left:SetPoint("LEFT", self, "LEFT", 0, 0)
+        left:SetSize(width, height)
         left:SetFrameStrata("LOW")
         left:SetFrameLevel(self:GetFrameLevel())
         left:CreateBackdrop("transparent")
         self.Left = left
         
         local right = CreateFrame("Frame", self:GetName() .. "Right", self) --, "SecureHandlerStateTemplate")
-        right:SetPoint("LEFT", MODULE.ActionBar1, "RIGHT", spacing, 0)
-        right:SetWidth((cols * size) + ((cols + 1) * spacing))
-        right:SetHeight((rows * size) + ((rows + 1) * spacing))
+        right:SetPoint("RIGHT", self, "RIGHT", 0, 0)
+        right:SetSize(width, height)
         right:SetFrameStrata("LOW")
         right:SetFrameLevel(self:GetFrameLevel())
         right:CreateBackdrop("transparent")
