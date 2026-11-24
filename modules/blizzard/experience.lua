@@ -6,6 +6,7 @@ local GameLimitedMode_GetLevelLimit = _G.GameLimitedMode_GetLevelLimit
 local GameLimitedMode_IsBankedXPActive = _G.GameLimitedMode_IsBankedXPActive
 local GetMaxLevelForPlayerExpansion = _G.GetMaxLevelForPlayerExpansion
 local GetMaxPlayerLevel = _G.GetMaxPlayerLevel
+local GetTime = _G.GetTime
 local GetRestState = _G.GetRestState
 local GetXPExhaustion = _G.GetXPExhaustion
 local UnitHonor = _G.UnitHonor
@@ -14,6 +15,7 @@ local UnitHonorMax = _G.UnitHonorMax
 local UnitLevel = _G.UnitLevel
 local UnitTrialBankedLevels = _G.UnitTrialBankedLevels
 local UnitTrialXP = _G.UnitTrialXP
+local UnitXP = _G.UnitXP
 local UnitXPMax = _G.UnitXPMax
 local GetWatchedFactionInfo = _G.GetWatchedFactionInfo
 local GetPetExperience = _G.GetPetExperience
@@ -36,6 +38,7 @@ local HAS_HOUSING = C_Housing ~= nil and C_Housing.GetTrackedHouseGuid ~= nil
 
 local EXP_PATTERN = "%d / %d (%.1f%%)"
 local RESTED_PATTERN = "+%d (%.1f%%)"
+local REMAINING_PATTERN = "%s (%.1f%%)"
 
 local EXPERIENCE = _G.COMBAT_XP_GAIN or "Experience"
 local REPUTATION = _G.REPUTATION or "Reputation"
@@ -47,6 +50,9 @@ local ANIMA = _G.POWER_TYPE_ANIMA or "Anima"
 local RENOWN = _G.COVENANT_SANCTUM_TAB_RENOWN or "Renown"
 local RESTED = _G.TUTORIAL_TITLE26 or "Rested"
 local PET_EXPERIENCE = L.PET_EXPERIENCE
+local REMAINING = L.EXP_REMAINING
+local XP_PER_HOUR = L.EXP_PER_HOUR
+local TIME_TO_LEVEL = L.EXP_TIME_TO_LEVEL
 local HOUSE_FAVOR = _G.HOUSING_DASHBOARD_NEIGHBORHOOD_FAVOR_LABEL or "House Favor"
 local HOUSE_LEVEL = _G.HOUSING_DASHBOARD_HOUSE_LEVEL or "Level %d"
 local HOUSE_FAVOR_PATTERN = _G.HOUSING_DASHBOARD_NEIGHBORHOOD_FAVOR or "%d / %d"
@@ -253,6 +259,24 @@ do
         return currXP, nextXP, level, bankedLevels;
     end
 
+    -- session XP gained; the baseline only moves when XP changes, so repeated Updates (UNIT_LEVEL,
+    -- PLAYER_ENTERING_WORLD) count nothing and keep the previous level's max until UnitXP wraps
+    function experience_proto:TrackGain(currXP, nextXP)
+        local lastXP = self.lastXP
+        if not lastXP then
+            self.sessionStart = GetTime()
+            self.gainedXP = 0
+        elseif currXP == lastXP then
+            return
+        elseif currXP > lastXP then
+            self.gainedXP = self.gainedXP + (currXP - lastXP)
+        else
+            -- level up: UnitXP wrapped
+            self.gainedXP = self.gainedXP + (self.lastNextXP - lastXP) + currXP
+        end
+        self.lastXP, self.lastNextXP = currXP, nextXP
+    end
+
     function experience_proto:Update()
         local exhaustionID, name, factor = GetRestState()
         local exhaustion = GetXPExhaustion()
@@ -266,6 +290,10 @@ do
         self.isRested = (exhaustionID == 1)
         self.percentage = self:CalculatePercentage(self.currXP, self.nextXP)
 
+        if not self:IsCapped() and not self:IsMaxLevel() then
+            self:TrackGain(self.currXP, self.nextXP)
+        end
+
         self:UpdateStatusBar(self.currXP, 0, self.nextXP, self.restedXP)
     end
 
@@ -276,6 +304,18 @@ do
         
         if not self:IsCapped() then
             tooltip:AddDoubleLine(color:WrapTextInColorCode(XP .. ":"), EXP_PATTERN:format(self.currXP, self.nextXP, self.percentage))
+
+            if not self:IsMaxLevel() then
+                local remaining = self.nextXP - self.currXP
+                tooltip:AddDoubleLine(color:WrapTextInColorCode(REMAINING .. ":"), REMAINING_PATTERN:format(E.ShortValue(remaining), 100 - self.percentage))
+
+                local elapsed = self.gainedXP and GetTime() - self.sessionStart
+                if elapsed and elapsed > 0 and self.gainedXP > 0 then
+                    local rate = self.gainedXP / elapsed * 3600
+                    tooltip:AddDoubleLine(color:WrapTextInColorCode(XP_PER_HOUR .. ":"), E.ShortValue(rate))
+                    tooltip:AddDoubleLine(color:WrapTextInColorCode(TIME_TO_LEVEL .. ":"), E.FormatTime(remaining / rate * 3600))
+                end
+            end
 
             if (self.isRested and self.restedXP > 0) then
                 local restedColor = BarColors[BarsEnum.Rested]
