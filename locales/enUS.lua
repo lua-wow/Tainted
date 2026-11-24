@@ -49,6 +49,9 @@ L.IN_BAG = "In Bag"
 
 -- experience
 L.PET_EXPERIENCE = "Pet Experience"
+L.EXP_REMAINING = "Remaining"
+L.EXP_PER_HOUR = "XP/hour"
+L.EXP_TIME_TO_LEVEL = "Time to level"
 
 -- datatexts
 L.ADDON_CPU = "AddOn CPU"

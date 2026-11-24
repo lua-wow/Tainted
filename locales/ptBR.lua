@@ -25,6 +25,9 @@ L.IN_BAG = "Na Bolsa"
 
 -- experience
 L.PET_EXPERIENCE = "Experiência do Mascote"
+L.EXP_REMAINING = "Restante"
+L.EXP_PER_HOUR = "XP/hora"
+L.EXP_TIME_TO_LEVEL = "Tempo para subir de nível"
 
 -- datatexts
 L.ADDON_CPU = "CPU dos AddOns"
