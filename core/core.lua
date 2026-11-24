@@ -40,6 +40,9 @@ do
 				-- the error handler's stack does not always reach the module, so name it
 				if not self:Call(module.Init, module) then
 					self:error("Module " .. name .. " failed to initialize.")
+				elseif module.PostInit then
+					-- hook point for edit addons (#11), runs only after a successful Init
+					self:Call(module.PostInit, module)
 				end
 			else
 				self:error("Module " .. name .. " do not have 'Init' function.")
