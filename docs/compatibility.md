@@ -44,7 +44,9 @@ Every module loads on all 6 clients except lines tagged in `Tainted.toc`. Non-ob
   managed container.
 - Threat bar hides while threat values are secret (Retail, Forever). Merchant uses
   `C_MerchantFrame.SellAllJunkItems` where it exists, the bag loop elsewhere.
-- Dispels/interrupts are `classic`-only: addons can't read the combat log on Retail/Forever. Auto
+- Dispels are `classic`-only: addons can't read the combat log on Retail/Forever. Interrupts use the
+  combat log on `classic`, and on `mainline` pair the player's interrupt cast with an enemy cast
+  stopping in the same frame (`mainline.lua`, see `docs/interrupts.md`). Auto
   keystone, dungeon portals and `core\keystone.lua` are `standard`-only. Skyriding race is the
   standalone `Skyriding` addon.
 - Install sets `taintLog` to 0 on Retail; elsewhere every login sets it to the `C.general.taintLog` level

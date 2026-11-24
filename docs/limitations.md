@@ -4,8 +4,11 @@
     WotLK and MoP.
 -   **Auras on Retail/Forever:** aura buttons show Blizzard's protected aura tooltip, so there is no spell ID line.
 -   **Minimap on Forever:** toggling `rotateMinimap` brings back Blizzard's round mask until `/reload`.
--   **Announcers:** addons can't read the combat log on Retail and Forever, so dispel and interrupt
-    announcers are Classic only.
+-   **Announcers:** addons can't read the combat log on Retail and Forever, so the dispel announcer is
+    Classic only. The interrupt announcer there names only the player's own interrupt spell (enemy name
+    and spell are secret), stays silent when the enemy has no unit token (target, focus, nameplate,
+    soft target), and can credit the player if a teammate's interrupt lands in the same frame as a
+    player interrupt that hit nothing.
 -   **Threat bar:** hidden while threat values are secret (Retail, Forever).
 -   **Skyriding race tracker:** no longer part of Tainted; it is the standalone `Skyriding` addon.
 -   **Action bars 6–8:** a changed `C.actionbars.bar6/7/8` can need a second `/reload`
