@@ -41,11 +41,16 @@ do
         end
     end
 
-    function element_proto:OnEvent(event, ...)
-        if event == "PLAYER_REGEN_ENABLED" then
-            UIFrameFadeIn(self, 0.5, self:GetAlpha(), 1)
-        elseif event == "PLAYER_REGEN_DISABLED" then
+    function element_proto:OnEvent(event)
+        self:UpdateCombatFade(event == "PLAYER_REGEN_DISABLED")
+    end
+
+    -- looked up on the frame at call time, so an edit addon can override it on TaintedActionBar3
+    function element_proto:UpdateCombatFade(inCombat)
+        if inCombat then
             UIFrameFadeOut(self, 0.5, self:GetAlpha(), 0)
+        else
+            UIFrameFadeIn(self, 0.5, self:GetAlpha(), 1)
         end
     end
 end
