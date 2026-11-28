@@ -102,7 +102,7 @@ function gold_proto:CreateTooltip(tooltip)
     for index, row in next, self.characters do
         if isShiftKeyDown or index <= self.threshold then
             local color = (row.name == E.name and row.realm == E.realm) and E.colors.class[E.class] or E.colors.white
-            local left = ("%s - %s"):format(row.name, row.realm)
+            local left = (row.realm == "") and row.name or ("%s - %s"):format(row.name, row.realm)
             tooltip:AddDoubleLine(left, self:FormatMoney(row.money), color.r, color.g, color.b, 1.0, 1.0, 1.0)
             total = total + row.money
         end
@@ -116,7 +116,8 @@ function gold_proto:CreateTooltip(tooltip)
 	tooltip:AddLine(" ")
 	tooltip:AddDoubleLine(TOTAL, self:FormatMoney(total), 1.0, 1.0, 1.0, 1.0, 1.0, 1.0)
 
-    if C_Bank and C_Bank.FetchDepositedMoney then
+    -- warband gold is Retail only: Forever has the API (and claims money transfer) but no warband gold
+    if E.isStandard and C_Bank.DoesBankTypeSupportMoneyTransfer(Enum.BankType.Account) then
         local warband = C_Bank.FetchDepositedMoney(Enum.BankType.Account)
         tooltip:AddLine(" ")
         tooltip:AddDoubleLine(L.WARBAND, self:FormatMoney(warband), 1.0, 1.0, 1.0, 1.0, 1.0, 1.0)

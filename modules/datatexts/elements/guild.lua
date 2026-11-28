@@ -34,7 +34,7 @@ function guild_proto:CreateTooltip(tooltip)
     if IsInGuild() and numOnlineGuildMembers > 0 then
         local guildName, guildRankName, guildRankIndex, guildRealm = GetGuildInfo(self.unit)
 
-        tooltip:AddDoubleLine(guildName, guildRealm or "", 1.0, 1.0, 1.0, 1.0, 1.0, 1.0)
+        tooltip:AddDoubleLine(guildName, (not E.isCamelot and guildRealm) or "", 1.0, 1.0, 1.0, 1.0, 1.0, 1.0)
         -- tooltip:AddDoubleLine("Members", "|cff00ff00" .. FRIENDS_LIST_ONLINE .. "|r |cffffffff(" .. numOnlineGuildMembers .. ")|r", 1.0, 1.0, 1.0, 1.0, 1.0, 1.0)
         tooltip:AddDoubleLine(MEMBERS, ("%d / %d"):format(numOnlineGuildMembers, numTotalGuildMembers), 1.0, 1.0, 1.0, 1.0, 1.0, 1.0)
 	    tooltip:AddLine(" ")

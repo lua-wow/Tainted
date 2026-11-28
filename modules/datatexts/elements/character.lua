@@ -47,7 +47,6 @@ local GetSpellHitModifier = _G.GetSpellHitModifier
 local IsShiftKeyDown = _G.IsShiftKeyDown
 local UnitClass = _G.UnitClass
 local UnitLevel = _G.UnitLevel
-local UnitName = _G.UnitName
 local UnitStat = _G.UnitStat
 local UnitAttackPower = _G.UnitAttackPower
 local UnitDefense = _G.UnitDefense
@@ -166,7 +165,7 @@ function character_proto:CreateTooltip(tooltip)
     self:UpdateKeyStones()
 
     -- player info
-    local name = UnitName(self.unit)
+    local name = E.name
     local level = UnitLevel(self.unit)
     local class = select(2, UnitClass(self.unit))
     local classColor = E.colors.class[class]
@@ -358,7 +357,7 @@ function character_proto:CreateTooltip(tooltip)
         for index, row in next, self.keystones do
             if isShiftKeyDown or index <= self.threshold then
                 local color = (row.name == E.name and row.realm == E.realm) and E.colors.class[E.class] or E.colors.white
-                local left = ("%s - %s"):format(row.name, row.realm)
+                local left = (row.realm == "") and row.name or ("%s - %s"):format(row.name, row.realm)
                 local right = row.keystone
                 if row.vault and row.vault.progress and row.vault.threshold then
                     right = row.vault.progress .. "/" .. row.vault.threshold .. " - " .. right

@@ -243,6 +243,7 @@ read_globals = {
     'MinimapZoneText',
     'Mixin',
     'MouseIsOver',
+    'NameUtil',
     'PaperDollFrame_UpdateStats',
     'PartyFrame',
     'PetBattlePrimaryAbilityTooltip',

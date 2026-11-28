@@ -43,6 +43,13 @@ E.isCamelot = (WOW_PROJECT_ID == WOW_PROJECT_CAMELOT)
 E.isClassic = (E.isVanilla or E.isTBC or E.isWrath or E.isCata or E.isMists)
 E.isMainline = not E.isClassic
 
+-- Forever: first names repeat, name + surname is region-unique; the realm isn't needed
+-- (and GetRealmName() is often "" at load)
+if E.isCamelot then
+    E.name = NameUtil.GetUnmodifiedUnitFullName("player")
+    E.realm = ""
+end
+
 -- Hider
 E.Hider = CreateFrame("Frame", "TaintedHider", UIParent)
 -- needs a rect, or frames anchored to hidden frames (e.g. Classic Era MicroMenuContainer) return nil from GetCenter()
